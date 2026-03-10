@@ -1,23 +1,8 @@
-# uicraft
+# @uicraft/core
 
-79 UI components. Pure CSS utility classes, design tokens, dark mode, vanilla JS bundle.
+uicraft — beautifully designed UI components built with semantic CSS utility classes
 
-**→ [getuicraft.com](https://getuicraft.com)**
-
-## Installation
-
-### CDN
-
-```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tarasenko-by/uicraft-core@latest/uicraft.min.css">
-<script src="https://cdn.jsdelivr.net/gh/tarasenko-by/uicraft-core@latest/uicraft.min.js"></script>
-```
-
-### Download
-
-[Download from getuicraft.com](https://getuicraft.com/docs/download)
-
-### npm
+## Install
 
 ```bash
 npm install @uicraft/core
@@ -26,46 +11,20 @@ npm install @uicraft/core
 ## Usage
 
 ```html
-<!DOCTYPE html>
-<html data-theme="default">
-<head>
-  <link rel="stylesheet" href="uicraft.min.css">
-</head>
-<body>
-  <button class="uc-btn uc-btn-primary">Button</button>
-  <script src="uicraft.min.js"></script>
-</body>
-</html>
+<link rel="stylesheet" href="node_modules/@uicraft/core/uicraft.min.css">
+<script src="node_modules/@uicraft/core/uicraft.min.js"></script>
 ```
 
-### Dark Mode
-
-Add the `.dark` class to `<html>`:
-
-```js
-document.documentElement.classList.toggle('dark');
-```
-
-### Themes
-
-Set `data-theme` on `<html>`:
+Or via CDN:
 
 ```html
-<html data-theme="default">     <!-- Default -->
-<html data-theme="rounded-sans"> <!-- Rounded Sans -->
-<html data-theme="editorial">    <!-- Editorial -->
+<link rel="stylesheet" href="https://unpkg.com/@uicraft/core/uicraft.min.css">
+<script src="https://unpkg.com/@uicraft/core/uicraft.min.js"></script>
 ```
 
-## Files
+## Documentation
 
-| File | Description |
-|------|-------------|
-| `uicraft.css` | Expanded CSS bundle |
-| `uicraft.min.css` | Minified CSS bundle |
-| `uicraft.js` | Expanded JS bundle |
-| `uicraft.min.js` | Minified JS bundle |
-| `theme-manifest.json` | Available themes |
-| `themes/` | Theme JSON source files |
+[getuicraft.com](https://getuicraft.com)
 
 ## License
 

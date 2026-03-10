@@ -18,7 +18,14 @@ var UCAccordion = {
         trigger.id = tId;
         content.id = cId;
         trigger.setAttribute('aria-controls', cId);
+        if (!trigger.hasAttribute('role') && trigger.tagName !== 'BUTTON') {
+          trigger.setAttribute('role', 'button');
+          trigger.setAttribute('tabindex', '0');
+        }
         content.setAttribute('aria-labelledby', tId);
+        content.setAttribute('role', 'region');
+        var isOpen = !content.classList.contains('uc-hidden') && !content.classList.contains('hidden');
+        trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
       }
     });
 
@@ -50,6 +57,9 @@ var UCAccordion = {
       if (trigger.hasAttribute('data-accordion-init')) return;
       trigger.setAttribute('data-accordion-init', 'true');
 
+      trigger.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); trigger.click(); }
+      });
       trigger.addEventListener('click', function() {
         var item = trigger.closest('[data-accordion-item]');
         var accordion = trigger.closest('[data-accordion]');
@@ -278,7 +288,16 @@ var UCCombobox = {
         var tag = document.createElement('span');
         tag.className = 'uc-combobox-tag uc-inline-flex uc-items-center uc-gap-1 uc-rounded uc-bg-neutrals-subtle uc-px-2 uc-py-0.5 uc-text-xs uc-font-medium';
         tag.setAttribute('data-tag-value', text);
-        tag.innerHTML = text + '<button type="button" onclick="event.stopPropagation(); removeComboboxTag(this)" class="uc-ml-0.5 uc-rounded-sm uc-hover:bg-neutrals-muted uc-transition-colors">' + xTagSvg + '</button>';
+        tag.appendChild(document.createTextNode(text));
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'uc-ml-0.5 uc-rounded-sm uc-hover:bg-neutrals-muted uc-transition-colors';
+        removeBtn.innerHTML = xTagSvg;
+        removeBtn.addEventListener('click', function(event) {
+          event.stopPropagation();
+          window.removeComboboxTag(removeBtn);
+        });
+        tag.appendChild(removeBtn);
         tagContainer.insertBefore(tag, tagContainer.querySelector('input'));
       } else {
         var existing = tagContainer.querySelector('[data-tag-value="' + text + '"]');
@@ -484,9 +503,12 @@ var UCDropdown = {
     document.querySelectorAll('[data-dropdown-trigger]').forEach(function(trigger) {
       if (trigger.hasAttribute('data-dropdown-bound')) return;
       trigger.setAttribute('data-dropdown-bound', 'true');
+      var targetId = trigger.getAttribute('data-dropdown-trigger');
+      trigger.setAttribute('aria-haspopup', 'menu');
+      trigger.setAttribute('aria-expanded', 'false');
+      if (targetId) trigger.setAttribute('aria-controls', targetId);
       trigger.addEventListener('click', function(e) {
         e.stopPropagation();
-        var targetId = trigger.getAttribute('data-dropdown-trigger');
         var content = document.getElementById(targetId);
         if (!content) return;
 
@@ -494,8 +516,21 @@ var UCDropdown = {
           if (el !== content) el.classList.remove('uc-open');
         });
 
+        var willOpen = !content.classList.contains('uc-open');
         content.classList.toggle('uc-open');
+        trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
       });
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.uc-dropdown-menu.uc-open').forEach(function(el) {
+          el.classList.remove('uc-open');
+        });
+        document.querySelectorAll('[data-dropdown-trigger]').forEach(function(t) {
+          t.setAttribute('aria-expanded', 'false');
+        });
+      }
     });
   }
 };
@@ -508,9 +543,11 @@ function toggleCheckbox(el) {
   if (isChecked) {
     indicator.classList.remove('uc-bg-accents-blue', 'uc-text-constant-white', 'uc-border-transparent');
     indicator.innerHTML = '';
+    el.setAttribute('aria-checked', 'false');
   } else {
     indicator.classList.add('uc-bg-accents-blue', 'uc-text-constant-white', 'uc-border-transparent');
     indicator.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="uc-w-3 uc-h-3"><path d="M20 6 9 17l-5-5"/></svg>';
+    el.setAttribute('aria-checked', 'true');
   }
 }
 
@@ -655,9 +692,13 @@ var UCNumberInput = {
 var UCPopover = {
   init: function() {
     document.querySelectorAll('[data-popover-trigger]').forEach(function(btn) {
+      var id = btn.getAttribute('data-popover-trigger');
+      btn.setAttribute('aria-haspopup', 'dialog');
+      btn.setAttribute('aria-expanded', 'false');
+      if (id) btn.setAttribute('aria-controls', id);
+
       btn.onclick = function(e) {
         e.stopPropagation();
-        var id = btn.getAttribute('data-popover-trigger');
         var el = id ? document.getElementById(id) : null;
         if (!el) return;
 
@@ -666,8 +707,14 @@ var UCPopover = {
         document.querySelectorAll('.uc-popover-content').forEach(function(p) {
           p.classList.remove('uc-open');
         });
+        document.querySelectorAll('[data-popover-trigger]').forEach(function(t) {
+          t.setAttribute('aria-expanded', 'false');
+        });
 
-        if (!isOpen) el.classList.add('uc-open');
+        if (!isOpen) {
+          el.classList.add('uc-open');
+          btn.setAttribute('aria-expanded', 'true');
+        }
       };
     });
 
@@ -678,6 +725,19 @@ var UCPopover = {
         if (!target.closest('.uc-popover-content') && !target.closest('[data-popover-trigger]')) {
           document.querySelectorAll('.uc-popover-content').forEach(function(p) {
             p.classList.remove('uc-open');
+          });
+          document.querySelectorAll('[data-popover-trigger]').forEach(function(t) {
+            t.setAttribute('aria-expanded', 'false');
+          });
+        }
+      });
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.uc-popover-content').forEach(function(p) {
+            p.classList.remove('uc-open');
+          });
+          document.querySelectorAll('[data-popover-trigger]').forEach(function(t) {
+            t.setAttribute('aria-expanded', 'false');
           });
         }
       });
@@ -744,6 +804,9 @@ var UCToast = {
     var toast = document.createElement('div');
     toast.id = id;
     toast.className = 'uc-flex uc-items-start uc-gap-3 uc-w-80 uc-p-4 uc-rounded-lg uc-border uc-border-border-default uc-bg-neutrals-surface uc-shadow-lg uc-mb-2';
+    toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
+    toast.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
+    toast.setAttribute('aria-atomic', 'true');
     toast.innerHTML =
       (c.icon ? '<div class="uc-flex-shrink-0 uc-mt-0.5">' + c.icon + '</div>' : '') +
       '<div class="uc-flex-1 uc-min-w-0">' +
@@ -751,7 +814,7 @@ var UCToast = {
         '<p class="uc-text-xs uc-text-fg-disabled uc-mt-0.5">' + c.desc + '</p>' +
       '</div>' +
       (c.btn ? '<button onclick="this.parentElement.remove()" class="uc-flex-shrink-0 uc-inline-flex uc-items-center uc-justify-center uc-rounded-lg uc-text-xs uc-font-medium uc-h-7 uc-px-2 uc-border uc-border-border-strong uc-bg-neutrals-surface uc-hover:bg-neutrals-subtle uc-transition-colors">' + c.btn + '</button>' : '') +
-      '<button onclick="this.parentElement.remove()" class="uc-flex-shrink-0 uc-p-0.5 uc-text-fg-disabled uc-hover:text-fg-primary uc-transition-colors">' +
+      '<button onclick="this.parentElement.remove()" aria-label="Close" class="uc-flex-shrink-0 uc-p-0.5 uc-text-fg-disabled uc-hover:text-fg-primary uc-transition-colors">' +
         '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="uc-w-3.5 uc-h-3.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
       '</button>';
 
@@ -775,8 +838,12 @@ var UCDialog = {
     window.openDialog = function(id) {
       var el = document.getElementById(id);
       if (!el) return;
+      if (el._keyHandler) document.removeEventListener('keydown', el._keyHandler);
+      el._previousFocus = document.activeElement;
       el.classList.add('uc-open');
       el.removeAttribute('aria-hidden');
+      el.setAttribute('role', 'dialog');
+      el.setAttribute('aria-modal', 'true');
       var focusable = el.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
       if (focusable) focusable.focus();
       el._keyHandler = function(e) {
@@ -797,6 +864,11 @@ var UCDialog = {
       el.classList.remove('uc-open');
       el.setAttribute('aria-hidden', 'true');
       if (el._keyHandler) document.removeEventListener('keydown', el._keyHandler);
+      if (el._previousFocus && typeof el._previousFocus.focus === 'function') {
+        el._previousFocus.focus();
+      }
+      el._keyHandler = null;
+      el._previousFocus = null;
     };
   }
 };
@@ -827,7 +899,11 @@ var UCSheet = {
       var overlay = document.getElementById('uc-sheet-overlay');
       if (overlay) overlay.classList.add('uc-open');
       var sheet = document.getElementById(id);
-      if (sheet) sheet.classList.add('uc-open');
+      if (sheet) {
+        sheet.classList.add('uc-open');
+        sheet.setAttribute('role', 'dialog');
+        sheet.setAttribute('aria-modal', 'true');
+      }
     };
 
     window.closeSheet = function(id) {
@@ -844,6 +920,13 @@ var UCSheet = {
         s.classList.remove('uc-open');
       });
     };
+
+    if (!document.body.hasAttribute('data-sheet-esc-init')) {
+      document.body.setAttribute('data-sheet-esc-init', 'true');
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') window.closeAllSheets();
+      });
+    }
   }
 };
 
@@ -872,12 +955,7 @@ var UCSheet = {
     initAll();
   }
 
-  // Astro view transitions
   document.addEventListener('astro:after-swap', function() {
-    document.body.removeAttribute('data-dropdowns-init');
-    document.body.removeAttribute('data-select-init');
-    document.body.removeAttribute('data-popover-outside-init');
-    document.body.removeAttribute('data-combobox-outside-init');
     initAll();
   });
 })();

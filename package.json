@@ -1,6 +1,6 @@
 {
   "name": "@uicraft/core",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "uicraft — beautifully designed UI components built with semantic CSS utility classes",
   "main": "uicraft.js",
   "style": "uicraft.css",
@@ -10,7 +10,8 @@
     "uicraft.js",
     "uicraft.min.js",
     "theme-manifest.json",
-    "themes/"
+    "themes/",
+    "generated/"
   ],
   "keywords": [
     "ui",
@@ -24,7 +25,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tarasenko-by/uicraft-core.git"
+    "url": "https://github.com/tarasenko-by/UiCraft.git"
   },
   "homepage": "https://getuicraft.com"
 }
