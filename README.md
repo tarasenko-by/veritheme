@@ -145,4 +145,4 @@ The site also serves [getuicraft.com/llms.txt](https://getuicraft.com/llms.txt) 
 
 ## License
 
-MIT © Taras Tarasenko
+MIT © Siarhei Tarasenko
