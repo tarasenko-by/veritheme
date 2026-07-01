@@ -4671,8 +4671,8 @@ html.dark[data-theme=editorial] {
   --mains-secondary: 37 14% 80%;
   --mains-tertiary: 35 10% 64%;
   --mains-quaternary: 33 7% 48%;
-  --surfaces-background: 24 16% 10%;
-  --surfaces-surface: 22 16% 8%;
+  --surfaces-background: 22 16% 4%;
+  --surfaces-surface: 24 16% 10%;
   --surfaces-subtle: 24 12% 14%;
   --surfaces-moderate: 25 13% 11%;
   --surfaces-contrast: 23 10% 20%;
@@ -4704,8 +4704,8 @@ html.dark[data-theme=rounded-sans] {
   --mains-secondary: 220 16% 83%;
   --mains-tertiary: 220 12% 66%;
   --mains-quaternary: 220 10% 48%;
-  --surfaces-background: 226 24% 10%;
-  --surfaces-surface: 226 24% 8%;
+  --surfaces-background: 226 24% 4%;
+  --surfaces-surface: 226 24% 10%;
   --surfaces-subtle: 224 19% 16%;
   --surfaces-moderate: 226 20% 12%;
   --surfaces-contrast: 224 16% 22%;
