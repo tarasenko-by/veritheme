@@ -32,8 +32,19 @@ var UCAccordion = {
     function openContent(content) {
       content.classList.remove('uc-hidden');
       content.classList.add('open');
-      var pb = parseFloat(getComputedStyle(content).paddingBottom) || 0;
-      content.style.maxHeight = (content.scrollHeight + pb) + 'px';
+      // Measure the final height with transitions suppressed: while
+      // padding-bottom is mid-transition, computed styles report the start
+      // value and the measured height comes out short — freezing a max-height
+      // that permanently clips the bottom padding.
+      var prevTransition = content.style.transition;
+      var prevMaxHeight = content.style.maxHeight;
+      content.style.transition = 'none';
+      content.style.maxHeight = 'none';
+      var target = content.scrollHeight; // includes the final padding-bottom
+      content.style.maxHeight = prevMaxHeight || '0px';
+      void content.offsetHeight; // commit the collapsed start value
+      content.style.transition = prevTransition;
+      content.style.maxHeight = target + 'px';
     }
 
     function closeContent(content) {
@@ -49,9 +60,7 @@ var UCAccordion = {
 
     document.querySelectorAll('[data-accordion-content]').forEach(function(content) {
       if (!content.classList.contains('uc-hidden') && !content.classList.contains('hidden')) {
-        content.classList.add('open');
-        var pb = parseFloat(getComputedStyle(content).paddingBottom) || 0;
-        content.style.maxHeight = (content.scrollHeight + pb) + 'px';
+        openContent(content);
       }
     });
 
@@ -96,6 +105,144 @@ var UCAccordion = {
         }
       });
     });
+  }
+};
+
+// UCCalendar — day selection for [data-calendar="single|range"] grids
+var UCCalendar = {
+  init: function() {
+    document.querySelectorAll('[data-calendar]').forEach(function(cal) {
+      if (cal.hasAttribute('data-calendar-bound')) return;
+      cal.setAttribute('data-calendar-bound', 'true');
+      var mode = cal.getAttribute('data-calendar') || 'single';
+
+      cal.addEventListener('click', function(e) {
+        var day = e.target.closest('.uc-calendar-day');
+        if (!day || day.classList.contains('uc-outside') || day.classList.contains('uc-muted')) return;
+        var days = Array.prototype.slice.call(cal.querySelectorAll('.uc-calendar-day')).filter(function(d) {
+          return !d.classList.contains('uc-outside') && !d.classList.contains('uc-muted');
+        });
+
+        if (mode === 'range') {
+          var idx = days.indexOf(day);
+          if (cal._rangeStart == null || cal._rangeDone) {
+            days.forEach(function(d) {
+              d.classList.remove('uc-range-start', 'uc-range-middle', 'uc-range-end', 'uc-active');
+            });
+            day.classList.add('uc-range-start');
+            cal._rangeStart = idx;
+            cal._rangeDone = false;
+          } else {
+            var a = cal._rangeStart, b = idx;
+            if (a === b) return;
+            if (b < a) {
+              days[a].classList.remove('uc-range-start');
+              var t = a; a = b; b = t;
+              days[a].classList.add('uc-range-start');
+            }
+            for (var k = a + 1; k < b; k++) days[k].classList.add('uc-range-middle');
+            days[b].classList.add('uc-range-end');
+            cal._rangeDone = true;
+          }
+        } else {
+          days.forEach(function(d) { d.classList.remove('uc-active'); });
+          day.classList.add('uc-active');
+        }
+      });
+    });
+  }
+};
+
+// UCChip — toggleable filter chips inside [data-chip-group]
+var UCChip = {
+  init: function() {
+    document.querySelectorAll('[data-chip-group]').forEach(function(group) {
+      if (group.hasAttribute('data-chip-bound')) return;
+      group.setAttribute('data-chip-bound', 'true');
+      group.querySelectorAll('.uc-chip-btn').forEach(function(btn) {
+        var selected = btn.getAttribute('data-selected') === 'true' || btn.classList.contains('uc-chip-active');
+        btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
+        btn.addEventListener('click', function() {
+          var isSelected = btn.getAttribute('data-selected') === 'true';
+          btn.setAttribute('data-selected', isSelected ? 'false' : 'true');
+          btn.setAttribute('aria-pressed', isSelected ? 'false' : 'true');
+          btn.classList.toggle('uc-chip-active', !isSelected);
+        });
+      });
+    });
+  }
+};
+
+// UCRadioGroup — custom radio circles grouped by [data-group]
+var UCRadioGroup = {
+  init: function() {
+    document.querySelectorAll('[data-group] .uc-radio').forEach(function(radio) {
+      var label = radio.closest('label');
+      if (!label || label.hasAttribute('data-radio-bound')) return;
+      label.setAttribute('data-radio-bound', 'true');
+      label.addEventListener('click', function() {
+        if (radio.classList.contains('disabled')) return;
+        var group = radio.closest('[data-group]');
+        group.querySelectorAll('.uc-radio').forEach(function(r) {
+          r.classList.remove('selected');
+        });
+        radio.classList.add('selected');
+      });
+    });
+  }
+};
+
+// selectRadio — called via onclick in HTML (docs markup)
+function selectRadio(group, el) {
+  document.querySelectorAll('[data-group="' + group + '"] .uc-radio').forEach(function(r) {
+    r.classList.remove('selected');
+  });
+  var radio = el.querySelector('.uc-radio');
+  if (radio && !radio.classList.contains('disabled')) radio.classList.add('selected');
+}
+
+// UCTabs — tab switching for [data-tab-group] with roving-tabindex keyboard nav
+var UCTabs = {
+  activate: function(container, tabName) {
+    container.querySelectorAll('[role="tab"]').forEach(function(t) {
+      var isActive = t.getAttribute('data-tab') === tabName;
+      t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      t.setAttribute('tabindex', isActive ? '0' : '-1');
+      t.classList.toggle('uc-active', isActive);
+    });
+    container.querySelectorAll('[role="tabpanel"]').forEach(function(p) {
+      p.classList.toggle('uc-hidden', p.getAttribute('data-panel') !== tabName);
+    });
+  },
+
+  init: function() {
+    document.querySelectorAll('[data-tab-group]').forEach(function(container) {
+      if (container.hasAttribute('data-tabs-bound')) return;
+      container.setAttribute('data-tabs-bound', 'true');
+      container.querySelectorAll('[role="tab"]').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+          UCTabs.activate(container, tab.getAttribute('data-tab'));
+        });
+      });
+    });
+
+    if (!document.body.hasAttribute('data-tabs-keyboard-init')) {
+      document.body.setAttribute('data-tabs-keyboard-init', 'true');
+      document.addEventListener('keydown', function(e) {
+        var tab = e.target;
+        if (!tab || tab.getAttribute('role') !== 'tab') return;
+        var tablist = tab.closest('[role="tablist"]');
+        if (!tablist) return;
+        var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[role="tab"]'));
+        var idx = tabs.indexOf(tab);
+        var newIdx = -1;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { newIdx = (idx + 1) % tabs.length; }
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { newIdx = (idx - 1 + tabs.length) % tabs.length; }
+        else if (e.key === 'Home') { newIdx = 0; }
+        else if (e.key === 'End') { newIdx = tabs.length - 1; }
+        if (newIdx >= 0) { e.preventDefault(); tabs[newIdx].focus(); tabs[newIdx].click(); }
+      });
+    }
   }
 };
 
@@ -491,16 +638,33 @@ var UCCarousel = {
 // UCDropdown — dropdown menu with checkbox and radio item support
 var UCDropdown = {
   init: function() {
-    if (document.body.hasAttribute('data-dropdowns-init')) return;
-    document.body.setAttribute('data-dropdowns-init', 'true');
+    // Document-level listeners once; trigger binding runs every init so
+    // nodes added after page load (astro:after-swap) still get wired.
+    if (!document.body.hasAttribute('data-dropdowns-init')) {
+      document.body.setAttribute('data-dropdowns-init', 'true');
 
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('[data-dropdown-trigger]') && !e.target.closest('.uc-dropdown-menu')) {
-        document.querySelectorAll('.uc-dropdown-menu').forEach(function(el) {
-          el.classList.remove('uc-open');
-        });
-      }
-    });
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('[data-dropdown-trigger]') && !e.target.closest('.uc-dropdown-menu')) {
+          document.querySelectorAll('.uc-dropdown-menu').forEach(function(el) {
+            // Combobox reuses .uc-dropdown-menu for its panel and manages
+            // open/close itself — closing it here fights the combobox.
+            if (el.closest('.uc-combobox-wrapper')) return;
+            el.classList.remove('uc-open');
+          });
+        }
+      });
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.uc-dropdown-menu.uc-open').forEach(function(el) {
+            el.classList.remove('uc-open');
+          });
+          document.querySelectorAll('[data-dropdown-trigger]').forEach(function(t) {
+            t.setAttribute('aria-expanded', 'false');
+          });
+        }
+      });
+    }
 
     document.querySelectorAll('[data-dropdown-trigger]').forEach(function(trigger) {
       if (trigger.hasAttribute('data-dropdown-bound')) return;
@@ -523,17 +687,6 @@ var UCDropdown = {
         trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
       });
     });
-
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        document.querySelectorAll('.uc-dropdown-menu.uc-open').forEach(function(el) {
-          el.classList.remove('uc-open');
-        });
-        document.querySelectorAll('[data-dropdown-trigger]').forEach(function(t) {
-          t.setAttribute('aria-expanded', 'false');
-        });
-      }
-    });
   }
 };
 
@@ -553,8 +706,8 @@ function toggleCheckbox(el) {
   }
 }
 
-// Radio select — called via onclick in HTML
-function selectRadio(el) {
+// Menu radio select — called via onclick in HTML
+function selectMenuRadio(el) {
   var parent = el.closest('.uc-dropdown-menu');
   parent.querySelectorAll('.radio-indicator').forEach(function(r) {
     r.classList.remove('uc-border-accents-brand');
@@ -813,7 +966,13 @@ var UCToast = {
 
   show: function(type) {
     var container = document.getElementById('toast-container');
-    if (!container) return;
+    if (!container) {
+      // Out-of-the-box: create the host container on first use.
+      container = document.createElement('div');
+      container.id = 'toast-container';
+      container.className = 'uc-fixed uc-bottom-4 uc-right-4 uc-z-50 uc-flex uc-flex-col uc-items-end';
+      document.body.appendChild(container);
+    }
 
     var id = 'toast-' + (++UCToast._count);
     var configs = {
@@ -914,49 +1073,14 @@ var UCTreeView = {
   }
 };
 
-// UCSheet — slide-in panels from any edge
-var UCSheet = {
-  init: function() {
-    // Expose functions globally for onclick use
-    window.openSheet = function(id) {
-      var overlay = document.getElementById('uc-sheet-overlay');
-      if (overlay) overlay.classList.add('uc-open');
-      var sheet = document.getElementById(id);
-      if (sheet) {
-        sheet.classList.add('uc-open');
-        sheet.setAttribute('role', 'dialog');
-        sheet.setAttribute('aria-modal', 'true');
-      }
-    };
-
-    window.closeSheet = function(id) {
-      var overlay = document.getElementById('uc-sheet-overlay');
-      if (overlay) overlay.classList.remove('uc-open');
-      var sheet = document.getElementById(id);
-      if (sheet) sheet.classList.remove('uc-open');
-    };
-
-    window.closeAllSheets = function() {
-      var overlay = document.getElementById('uc-sheet-overlay');
-      if (overlay) overlay.classList.remove('uc-open');
-      document.querySelectorAll('.uc-sheet-right,.uc-sheet-bottom,.uc-sheet-left').forEach(function(s) {
-        s.classList.remove('uc-open');
-      });
-    };
-
-    if (!document.body.hasAttribute('data-sheet-esc-init')) {
-      document.body.setAttribute('data-sheet-esc-init', 'true');
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') window.closeAllSheets();
-      });
-    }
-  }
-};
-
 // Auto-initialize all components
 (function() {
   function initAll() {
     UCAccordion.init();
+    UCCalendar.init();
+    UCChip.init();
+    UCRadioGroup.init();
+    UCTabs.init();
     UCCollapsible.init();
     UCCombobox.init();
     UCResizable.init();
@@ -970,7 +1094,6 @@ var UCSheet = {
     UCToast.init();
     UCDialog.init();
     UCTreeView.init();
-    UCSheet.init();
   }
 
   if (document.readyState === 'loading') {
