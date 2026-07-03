@@ -11,6 +11,18 @@ _Add entries here as you work. `npm run release` freezes this section into a
 dated version block. Use the Keep a Changelog headings: Added / Changed /
 Deprecated / Removed / Fixed / Security._
 
+## [1.4.1] — 2026-07-04
+
+### Added
+- Four new design-system components, promoted from page-local demo markup to real recipes (`components/*.json` → generated CSS, shipped in `system.scss`, shadcn registry `/r/`, MCP specs, Storybook): **Combobox** (`uc-combobox-wrapper` + `-item`/`-group`/`-tags`/`-tag`/`-icon`/`-button-label`/`-empty`), **Command** (`uc-command-wrapper` + `-input`/`-list`/`-group`/`-item`/`-separator`/`-empty`), **Tree View** (`uc-tree` + `-item`/`-toggle`/`-chevron`/`-children`/`-leaf`/`-active`), and **Resizable** (`uc-resize-handle` + `-col`/`-row` orientation). Their pages previously referenced these classes with no CSS behind them (the styling was lost in an earlier refactor), so the demos rendered unstyled; now they're first-class components.
+- Utility generator (`generate-uc-utilities.mjs`) filled in ~50 standard utilities the docs pages already used but that were never emitted — so every `uc-*` on the site resolves to our CSS: the `2.5` step across spacing/width/height, width fractions (`1/4`, `4/6`, `5/12`), `uc-flex-row`, `uc-h-screen`/`-auto`/`-px`, `uc-w-px`/`-fit`/`-52`, `uc-max-w-4xl`/`-6xl`, `uc-col-span-1..6`, `uc-mt-auto`, `uc-place-items-center`, `uc-border-0`, `uc-font-black`/`-sans`, `uc-leading-snug`, `uc-break-all`, `uc-list-disc`/`-decimal`/`-inside`, `uc-underline-offset-2`, `uc-rotate-45`, `uc-translate-y-24`, `uc-drop-shadow-md`, `uc-cursor-text`, `uc-bottom-6`/`-right-6`, more responsive (`sm:flex`, `sm:col-span-1`, `md:grid-cols-3`, `lg:flex`, `lg:grid-cols-6`), hover/focus-visible/focus-within/group-hover variants, gradient `from-*`/`to-*` stops, and a batch of arbitrary sizes used on specific cards.
+
+### Changed
+- Sitewide pass to make every page reference the design system instead of hand-building visuals with utilities: where a real component/class exists, the markup now uses it. Renamed invented classes to their real equivalents — `form.astro` `uc-form-field`/`-hint`/`-error`/`-message` → `uc-field`/`uc-field-description`/`uc-field-error` (these were taught verbatim in the copy-paste code examples), `uc-chip-btn`/`-selected` → `uc-chip`/`uc-chip-active`, `uc-separator-vertical` → `uc-separator-v`, `uc-nav-link`/`uc-link-external` → `uc-nav-item`/`uc-link`, `uc-tag`/`-selected` → `uc-chip`/`uc-chip-active`. Replaced hand-rolled component visuals with the component class + modifier — showcase's faux segmented buttons → `uc-btn-group` + `uc-btn`, faux chips → `uc-chip`/`uc-chip-active`, pricing-card "Popular" ribbon → `uc-badge uc-badge-primary`, the overview status pill → `uc-chip uc-chip-active`, sidebar-nav notification count → `uc-count-badge`, page-layout's hand-sized buttons → `uc-btn-sm`.
+
+### Fixed
+- Page-local helper classes that had no CSS anywhere (rendered unstyled) now reference real CSS: `uc-tabs-content`, `uc-theme-toggle`/`uc-select-wrapper`, `uc-drag-scroll`, `uc-list-check`, `uc-sidebar-overview`, `uc-color-format-btn`, `uc-component-section`, `uc-size-label` got scoped `<style>` blocks; `uc-hover:bg-neutrals-overlay` (no such token) → `uc-hover:bg-surfaces-subtle`; `uc-!p-0` (defined without the `uc-` prefix) → `!p-0`.
+
 ## [1.4.0] — 2026-07-04
 
 ### Added
@@ -155,7 +167,8 @@ First stable release.
 - **WCAG contrast**: 32 token pairs fall below AA across editorial/rounded-sans themes. Default theme addressed; remaining themes queued for v1.1.
 - **Scope**: 18 components (Dialog, Accordion, Slider, Button Group, Popover, Sheet, Sidebar, mini-variants) remain in `main.scss` pending recipe-engine extensions (`rawRules`, `@keyframes`, `[data-*]` selectors). Scheduled for v1.1.
 
-[Unreleased]: https://github.com/tarasenko-by/uicraft/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/tarasenko-by/uicraft/compare/v1.4.1...HEAD
+[1.4.1]: https://github.com/tarasenko-by/uicraft/releases/tag/v1.4.1
 [1.4.0]: https://github.com/tarasenko-by/uicraft/releases/tag/v1.4.0
 [1.3.0]: https://github.com/tarasenko-by/uicraft/releases/tag/v1.3.0
 [1.2.1]: https://github.com/tarasenko-by/uicraft/releases/tag/v1.2.1
