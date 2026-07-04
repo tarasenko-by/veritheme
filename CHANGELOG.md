@@ -11,6 +11,11 @@ _Add entries here as you work. `npm run release` freezes this section into a
 dated version block. Use the Keep a Changelog headings: Added / Changed /
 Deprecated / Removed / Fixed / Security._
 
+## [1.4.3] — 2026-07-04
+
+### Changed
+- ExampleBlock (the "Preview / Code" block used on every component and docs page) now matches the `uc-table` container: its header bar uses `surfaces-subtle` (was the darker `surfaces-moderate`) and the block/header/code-panel corner radius is `radius-xl` (was `radius-2xl`), so the header reads as the same light, rounded surface as table headers across the whole site. Single recipe change (`components/example-block.json`) → propagates everywhere.
+
 ## [1.4.2] — 2026-07-04
 
 ### Changed
@@ -172,7 +177,8 @@ First stable release.
 - **WCAG contrast**: 32 token pairs fall below AA across editorial/rounded-sans themes. Default theme addressed; remaining themes queued for v1.1.
 - **Scope**: 18 components (Dialog, Accordion, Slider, Button Group, Popover, Sheet, Sidebar, mini-variants) remain in `main.scss` pending recipe-engine extensions (`rawRules`, `@keyframes`, `[data-*]` selectors). Scheduled for v1.1.
 
-[Unreleased]: https://github.com/tarasenko-by/uicraft/compare/v1.4.2...HEAD
+[Unreleased]: https://github.com/tarasenko-by/uicraft/compare/v1.4.3...HEAD
+[1.4.3]: https://github.com/tarasenko-by/uicraft/releases/tag/v1.4.3
 [1.4.2]: https://github.com/tarasenko-by/uicraft/releases/tag/v1.4.2
 [1.4.1]: https://github.com/tarasenko-by/uicraft/releases/tag/v1.4.1
 [1.4.0]: https://github.com/tarasenko-by/uicraft/releases/tag/v1.4.0
