@@ -2320,7 +2320,7 @@ input[type="range"]:disabled::-webkit-slider-thumb {
   gap: 8px;
   padding: 7px 12px 7px 2rem;
   border-radius: var(--radius-sm);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-normal);
   color: hsl(var(--mains-secondary));
   transition: all var(--transition-fast);
@@ -2356,7 +2356,7 @@ input[type="range"]:disabled::-webkit-slider-thumb {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -2380,7 +2380,7 @@ input[type="range"]:disabled::-webkit-slider-thumb {
   gap: var(--spacing-2);
   padding: var(--spacing-2);
   border-radius: var(--radius-lg);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -2424,7 +2424,7 @@ input[type="range"]:disabled::-webkit-slider-thumb {
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -2511,7 +2511,7 @@ input[type="range"]:disabled::-webkit-slider-thumb {
   justify-content: center;
   border-radius: var(--radius-lg);
   padding: var(--spacing-1) var(--spacing-2);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
   border: none;
@@ -2536,7 +2536,7 @@ input[type="range"]:disabled::-webkit-slider-thumb {
   background: hsl(var(--surfaces-surface));
   padding-left: var(--spacing-8);
   padding-right: var(--spacing-3);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   color: hsl(var(--mains-primary));
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }

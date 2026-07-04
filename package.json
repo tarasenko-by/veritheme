@@ -1,6 +1,6 @@
 {
   "name": "@uicraft/core",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "UI component library — pure CSS utility classes, design tokens, dark mode, vanilla JS bundle.",
   "license": "MIT",
   "author": "Taras Tarasenko <by.tarasenko@gmail.com>",
