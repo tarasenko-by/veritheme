@@ -11,6 +11,11 @@ _Add entries here as you work. `npm run release` freezes this section into a
 dated version block. Use the Keep a Changelog headings: Added / Changed /
 Deprecated / Removed / Fixed / Security._
 
+## [1.4.2] — 2026-07-04
+
+### Changed
+- Foundation "token tables" (Size Scale, Token Syntax, color/type/border/effects reference tables on the docs and component foundation pages) now inherit the real `uc-table` component's header styling instead of hand-overriding it. Every table header row dropped its ad-hoc background (`uc-bg-surfaces-moderate`/`-moderate/50`/`-subtle`) and every header cell dropped the utilities that `.uc-table th` already provides identically (`uc-text-left`/`-px-4`/`-py-3`/`-py-2`/`-pr-4`/`-font-semibold`/`-font-medium`/`-text-xs`/`-text-mains-quaternary`) — only structural classes (column widths, right/center alignment) remain. So the reference tables now match the `uc-table` used on component pages instead of carrying a slightly different, hand-built header. Applied across all 10 foundation pages (`docs/{typography,utilities-layout,spacing,design-system,border,colors}`, `components/{spacing,typography,colors,border}`).
+
 ## [1.4.1] — 2026-07-04
 
 ### Added
@@ -167,7 +172,8 @@ First stable release.
 - **WCAG contrast**: 32 token pairs fall below AA across editorial/rounded-sans themes. Default theme addressed; remaining themes queued for v1.1.
 - **Scope**: 18 components (Dialog, Accordion, Slider, Button Group, Popover, Sheet, Sidebar, mini-variants) remain in `main.scss` pending recipe-engine extensions (`rawRules`, `@keyframes`, `[data-*]` selectors). Scheduled for v1.1.
 
-[Unreleased]: https://github.com/tarasenko-by/uicraft/compare/v1.4.1...HEAD
+[Unreleased]: https://github.com/tarasenko-by/uicraft/compare/v1.4.2...HEAD
+[1.4.2]: https://github.com/tarasenko-by/uicraft/releases/tag/v1.4.2
 [1.4.1]: https://github.com/tarasenko-by/uicraft/releases/tag/v1.4.1
 [1.4.0]: https://github.com/tarasenko-by/uicraft/releases/tag/v1.4.0
 [1.3.0]: https://github.com/tarasenko-by/uicraft/releases/tag/v1.3.0
