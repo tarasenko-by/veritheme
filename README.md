@@ -45,12 +45,12 @@ import 'veritheme'; // initializes interactive components
 
 | File | Description |
 |------|-------------|
-| `veritheme.min.css` / `veritheme.css` | All components + UC utility classes + design tokens (minified / readable) |
+| `veritheme.min.css` / `veritheme.css` | All components + vt- utility classes + design tokens (minified / readable) |
 | `veritheme.min.js` / `veritheme.js` | Vanilla JS for interactive components, zero dependencies |
 | `themes/*.json` | Theme token files — `default`, `editorial`, `rounded-sans` |
 | `theme-manifest.json` | Index of available themes (name, label, font, dark-mode support) |
 
-Package exports: `Veritheme/css`, `Veritheme/js/unminified`, `Veritheme/themes/*`, `Veritheme/theme-manifest`.
+Package exports: `veritheme/css`, `veritheme/js/unminified`, `veritheme/themes/*`, `veritheme/theme-manifest`.
 
 ## Usage
 
@@ -111,7 +111,7 @@ Want your own? The **[Theme Generator](https://veritheme.com/themes/)** lets you
 
 - Generates Figma Variables — colors, typography, spacing, radius, borders, shadows
 - Creates Light and Dark mode collections automatically
-- Includes 24 UI components: buttons, form controls, navigation, feedback, and data display
+- Includes 45 UI components: buttons, form controls, navigation, feedback, and data display
 - Lets you customize the theme — brand color, neutrals, typography, and semantic tokens — before generating
 - Outputs a structured, token-driven component library ready to use in your designs
 
@@ -130,7 +130,7 @@ claude mcp add veritheme -- npx -y @veritheme/mcp-server
 
 ```json
 // any MCP client config
-{ "mcpServers": { "Veritheme": { "command": "npx", "args": ["-y", "@veritheme/mcp-server"] } } }
+{ "mcpServers": { "veritheme": { "command": "npx", "args": ["-y", "@veritheme/mcp-server"] } } }
 ```
 
 Tools: `list_components`, `get_component`, `get_tokens`, `get_theme`, `get_snippet`, `search`.
