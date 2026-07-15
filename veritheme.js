@@ -1,6 +1,6 @@
 /*!
- * uicraft.js v1.1.0
- * https://getuicraft.com
+ * veritheme.js v1.1.0
+ * https://veritheme.com
  * MIT License
  */
 
@@ -24,13 +24,13 @@ var UCAccordion = {
         }
         content.setAttribute('aria-labelledby', tId);
         content.setAttribute('role', 'region');
-        var isOpen = !content.classList.contains('uc-hidden') && !content.classList.contains('hidden');
+        var isOpen = !content.classList.contains('vt-hidden') && !content.classList.contains('hidden');
         trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
       }
     });
 
     function openContent(content) {
-      content.classList.remove('uc-hidden');
+      content.classList.remove('vt-hidden');
       content.classList.add('open');
       // Measure the final height with transitions suppressed: while
       // padding-bottom is mid-transition, computed styles report the start
@@ -52,14 +52,14 @@ var UCAccordion = {
       content.classList.remove('open');
       content.addEventListener('transitionend', function handler() {
         if (content.style.maxHeight === '0px') {
-          content.classList.add('uc-hidden');
+          content.classList.add('vt-hidden');
         }
         content.removeEventListener('transitionend', handler);
       });
     }
 
     document.querySelectorAll('[data-accordion-content]').forEach(function(content) {
-      if (!content.classList.contains('uc-hidden') && !content.classList.contains('hidden')) {
+      if (!content.classList.contains('vt-hidden') && !content.classList.contains('hidden')) {
         openContent(content);
       }
     });
@@ -77,16 +77,16 @@ var UCAccordion = {
         var mode = accordion.getAttribute('data-accordion');
         var content = item.querySelector('[data-accordion-content]');
         var icon = trigger.querySelector('[data-accordion-icon]');
-        var isOpen = !content.classList.contains('uc-hidden') && !content.classList.contains('hidden') && content.classList.contains('open');
+        var isOpen = !content.classList.contains('vt-hidden') && !content.classList.contains('hidden') && content.classList.contains('open');
 
         if (mode === 'single') {
           accordion.querySelectorAll('[data-accordion-item]').forEach(function(otherItem) {
             var otherContent = otherItem.querySelector('[data-accordion-content]');
             var otherTrigger = otherItem.querySelector('[data-accordion-trigger]');
             var otherIcon = otherItem.querySelector('[data-accordion-trigger] [data-accordion-icon]');
-            if (otherItem !== item && !otherContent.classList.contains('uc-hidden') && !otherContent.classList.contains('hidden')) {
+            if (otherItem !== item && !otherContent.classList.contains('vt-hidden') && !otherContent.classList.contains('hidden')) {
               closeContent(otherContent);
-              if (otherIcon) otherIcon.classList.remove('uc-rotate-180');
+              if (otherIcon) otherIcon.classList.remove('vt-rotate-180');
               if (otherTrigger) otherTrigger.setAttribute('aria-expanded', 'false');
             }
           });
@@ -94,13 +94,13 @@ var UCAccordion = {
 
         if (isOpen) {
           closeContent(content);
-          if (icon) icon.classList.remove('uc-rotate-180');
+          if (icon) icon.classList.remove('vt-rotate-180');
           trigger.setAttribute('aria-expanded', 'false');
         } else {
-          content.classList.remove('uc-hidden');
+          content.classList.remove('vt-hidden');
           content.offsetHeight;
           openContent(content);
-          if (icon) icon.classList.add('uc-rotate-180');
+          if (icon) icon.classList.add('vt-rotate-180');
           trigger.setAttribute('aria-expanded', 'true');
         }
       });
@@ -117,36 +117,36 @@ var UCCalendar = {
       var mode = cal.getAttribute('data-calendar') || 'single';
 
       cal.addEventListener('click', function(e) {
-        var day = e.target.closest('.uc-calendar-day');
-        if (!day || day.classList.contains('uc-outside') || day.classList.contains('uc-muted')) return;
-        var days = Array.prototype.slice.call(cal.querySelectorAll('.uc-calendar-day')).filter(function(d) {
-          return !d.classList.contains('uc-outside') && !d.classList.contains('uc-muted');
+        var day = e.target.closest('.vt-calendar-day');
+        if (!day || day.classList.contains('vt-outside') || day.classList.contains('vt-muted')) return;
+        var days = Array.prototype.slice.call(cal.querySelectorAll('.vt-calendar-day')).filter(function(d) {
+          return !d.classList.contains('vt-outside') && !d.classList.contains('vt-muted');
         });
 
         if (mode === 'range') {
           var idx = days.indexOf(day);
           if (cal._rangeStart == null || cal._rangeDone) {
             days.forEach(function(d) {
-              d.classList.remove('uc-range-start', 'uc-range-middle', 'uc-range-end', 'uc-active');
+              d.classList.remove('vt-range-start', 'vt-range-middle', 'vt-range-end', 'vt-active');
             });
-            day.classList.add('uc-range-start');
+            day.classList.add('vt-range-start');
             cal._rangeStart = idx;
             cal._rangeDone = false;
           } else {
             var a = cal._rangeStart, b = idx;
             if (a === b) return;
             if (b < a) {
-              days[a].classList.remove('uc-range-start');
+              days[a].classList.remove('vt-range-start');
               var t = a; a = b; b = t;
-              days[a].classList.add('uc-range-start');
+              days[a].classList.add('vt-range-start');
             }
-            for (var k = a + 1; k < b; k++) days[k].classList.add('uc-range-middle');
-            days[b].classList.add('uc-range-end');
+            for (var k = a + 1; k < b; k++) days[k].classList.add('vt-range-middle');
+            days[b].classList.add('vt-range-end');
             cal._rangeDone = true;
           }
         } else {
-          days.forEach(function(d) { d.classList.remove('uc-active'); });
-          day.classList.add('uc-active');
+          days.forEach(function(d) { d.classList.remove('vt-active'); });
+          day.classList.add('vt-active');
         }
       });
     });
@@ -159,14 +159,14 @@ var UCChip = {
     document.querySelectorAll('[data-chip-group]').forEach(function(group) {
       if (group.hasAttribute('data-chip-bound')) return;
       group.setAttribute('data-chip-bound', 'true');
-      group.querySelectorAll('.uc-chip-btn').forEach(function(btn) {
-        var selected = btn.getAttribute('data-selected') === 'true' || btn.classList.contains('uc-chip-active');
+      group.querySelectorAll('.vt-chip-btn').forEach(function(btn) {
+        var selected = btn.getAttribute('data-selected') === 'true' || btn.classList.contains('vt-chip-active');
         btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
         btn.addEventListener('click', function() {
           var isSelected = btn.getAttribute('data-selected') === 'true';
           btn.setAttribute('data-selected', isSelected ? 'false' : 'true');
           btn.setAttribute('aria-pressed', isSelected ? 'false' : 'true');
-          btn.classList.toggle('uc-chip-active', !isSelected);
+          btn.classList.toggle('vt-chip-active', !isSelected);
         });
       });
     });
@@ -176,14 +176,14 @@ var UCChip = {
 // UCRadioGroup — custom radio circles grouped by [data-group]
 var UCRadioGroup = {
   init: function() {
-    document.querySelectorAll('[data-group] .uc-radio').forEach(function(radio) {
+    document.querySelectorAll('[data-group] .vt-radio').forEach(function(radio) {
       var label = radio.closest('label');
       if (!label || label.hasAttribute('data-radio-bound')) return;
       label.setAttribute('data-radio-bound', 'true');
       label.addEventListener('click', function() {
         if (radio.classList.contains('disabled')) return;
         var group = radio.closest('[data-group]');
-        group.querySelectorAll('.uc-radio').forEach(function(r) {
+        group.querySelectorAll('.vt-radio').forEach(function(r) {
           r.classList.remove('selected');
         });
         radio.classList.add('selected');
@@ -194,10 +194,10 @@ var UCRadioGroup = {
 
 // selectRadio — called via onclick in HTML (docs markup)
 function selectRadio(group, el) {
-  document.querySelectorAll('[data-group="' + group + '"] .uc-radio').forEach(function(r) {
+  document.querySelectorAll('[data-group="' + group + '"] .vt-radio').forEach(function(r) {
     r.classList.remove('selected');
   });
-  var radio = el.querySelector('.uc-radio');
+  var radio = el.querySelector('.vt-radio');
   if (radio && !radio.classList.contains('disabled')) radio.classList.add('selected');
 }
 
@@ -208,10 +208,10 @@ var UCTabs = {
       var isActive = t.getAttribute('data-tab') === tabName;
       t.setAttribute('aria-selected', isActive ? 'true' : 'false');
       t.setAttribute('tabindex', isActive ? '0' : '-1');
-      t.classList.toggle('uc-active', isActive);
+      t.classList.toggle('vt-active', isActive);
     });
     container.querySelectorAll('[role="tabpanel"]').forEach(function(p) {
-      p.classList.toggle('uc-hidden', p.getAttribute('data-panel') !== tabName);
+      p.classList.toggle('vt-hidden', p.getAttribute('data-panel') !== tabName);
     });
   },
 
@@ -254,13 +254,13 @@ var UCCollapsible = {
       var content = collapsible.querySelector('[data-collapsible-content]');
       var icon = collapsible.querySelector('[data-collapsible-icon]');
       if (content) {
-        content.classList.remove('uc-hidden');
+        content.classList.remove('vt-hidden');
         if (collapsible.hasAttribute('data-collapsible-animated')) {
           content.style.maxHeight = content.scrollHeight + 'px';
         }
       }
       if (icon) {
-        icon.classList.add('uc-rotate-180');
+        icon.classList.add('vt-rotate-180');
       }
     });
 
@@ -284,28 +284,28 @@ var UCCollapsible = {
         if (isAnimated) {
           isOpen = parseInt(content.style.maxHeight) > 0;
         } else {
-          isOpen = !content.classList.contains('uc-hidden');
+          isOpen = !content.classList.contains('vt-hidden');
         }
 
         if (isOpen) {
           if (isAnimated) {
             content.style.maxHeight = '0';
           } else {
-            content.classList.add('uc-hidden');
+            content.classList.add('vt-hidden');
           }
-          if (icon) icon.classList.remove('uc-rotate-180');
-          if (labelCollapse) labelCollapse.classList.add('uc-hidden');
-          if (labelExpand) labelExpand.classList.remove('uc-hidden');
+          if (icon) icon.classList.remove('vt-rotate-180');
+          if (labelCollapse) labelCollapse.classList.add('vt-hidden');
+          if (labelExpand) labelExpand.classList.remove('vt-hidden');
           collapsible.removeAttribute('data-collapsible-open');
         } else {
           if (isAnimated) {
             content.style.maxHeight = content.scrollHeight + 'px';
           } else {
-            content.classList.remove('uc-hidden');
+            content.classList.remove('vt-hidden');
           }
-          if (icon) icon.classList.add('uc-rotate-180');
-          if (labelCollapse) labelCollapse.classList.remove('uc-hidden');
-          if (labelExpand) labelExpand.classList.add('uc-hidden');
+          if (icon) icon.classList.add('vt-rotate-180');
+          if (labelCollapse) labelCollapse.classList.remove('vt-hidden');
+          if (labelExpand) labelExpand.classList.add('vt-hidden');
           collapsible.setAttribute('data-collapsible-open', '');
         }
       });
@@ -316,17 +316,17 @@ var UCCollapsible = {
 // UCCombobox — searchable single/multi-select with tags
 var UCCombobox = {
   init: function() {
-    var checkSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="uc-w-4 uc-h-4 uc-shrink-0 uc-text-accents-brand uc-combobox-icon"><path d="M20 6 9 17l-5-5"/></svg>';
-    var emptySpacer = '<span class="uc-w-4 uc-h-4 uc-shrink-0 uc-combobox-icon"></span>';
-    var xTagSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="uc-w-3 uc-h-3"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+    var checkSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-w-4 vt-h-4 vt-shrink-0 vt-text-accents-brand vt-combobox-icon"><path d="M20 6 9 17l-5-5"/></svg>';
+    var emptySpacer = '<span class="vt-w-4 vt-h-4 vt-shrink-0 vt-combobox-icon"></span>';
+    var xTagSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-w-3 vt-h-3"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
 
     // Close on click outside
     if (!document.body.hasAttribute('data-combobox-outside-init')) {
       document.body.setAttribute('data-combobox-outside-init', 'true');
       document.addEventListener('click', function(e) {
-        if (!e.target.closest('.uc-combobox-wrapper')) {
+        if (!e.target.closest('.vt-combobox-wrapper')) {
           document.querySelectorAll('[data-combobox-content]').forEach(function(el) {
-            el.classList.remove('uc-open');
+            el.classList.remove('vt-open');
           });
         }
       });
@@ -335,33 +335,33 @@ var UCCombobox = {
     // Expose functions globally for inline onclick use
     window.openCombobox = function(id) {
       var el = document.getElementById(id);
-      if (el) el.classList.add('uc-open');
+      if (el) el.classList.add('vt-open');
     };
 
     window.toggleCombobox = function(id) {
       var el = document.getElementById(id);
-      if (el) el.classList.toggle('uc-open');
+      if (el) el.classList.toggle('vt-open');
     };
 
     window.filterCombobox = function(input, id) {
       var dropdown = document.getElementById(id);
       var query = input.value.toLowerCase();
-      var items = dropdown.querySelectorAll('.uc-combobox-item');
+      var items = dropdown.querySelectorAll('.vt-combobox-item');
       var groups = dropdown.querySelectorAll('[data-combobox-group]');
-      var emptyEl = dropdown.querySelector('.uc-combobox-empty');
+      var emptyEl = dropdown.querySelector('.vt-combobox-empty');
       var totalVisible = 0;
 
       if (groups.length > 0) {
         groups.forEach(function(group) {
-          var groupItems = group.querySelectorAll('.uc-combobox-item');
+          var groupItems = group.querySelectorAll('.vt-combobox-item');
           var groupVisible = 0;
           groupItems.forEach(function(item) {
             if (item.textContent.toLowerCase().includes(query)) {
-              item.classList.remove('uc-hidden');
+              item.classList.remove('vt-hidden');
               groupVisible++;
               totalVisible++;
             } else {
-              item.classList.add('uc-hidden');
+              item.classList.add('vt-hidden');
             }
           });
           group.style.display = groupVisible > 0 ? '' : 'none';
@@ -369,78 +369,78 @@ var UCCombobox = {
       } else {
         items.forEach(function(item) {
           if (item.textContent.toLowerCase().includes(query)) {
-            item.classList.remove('uc-hidden');
+            item.classList.remove('vt-hidden');
             totalVisible++;
           } else {
-            item.classList.add('uc-hidden');
+            item.classList.add('vt-hidden');
           }
         });
       }
 
       if (emptyEl) {
-        emptyEl.classList.toggle('uc-hidden', totalVisible > 0 || !query);
+        emptyEl.classList.toggle('vt-hidden', totalVisible > 0 || !query);
       }
     };
 
     function setItemIcon(item, checked) {
-      var icon = item.querySelector('.uc-combobox-icon');
+      var icon = item.querySelector('.vt-combobox-icon');
       if (icon) icon.outerHTML = checked ? checkSvg : emptySpacer;
     }
 
     window.selectComboboxItem = function(item) {
       var text = item.textContent.trim();
-      var wrapper = item.closest('.uc-combobox-wrapper');
+      var wrapper = item.closest('.vt-combobox-wrapper');
       var keepIcons = wrapper.hasAttribute('data-keep-icons');
       var input = wrapper.querySelector('input');
       var dropdown = item.closest('[data-combobox-content]');
 
       input.value = text;
 
-      dropdown.querySelectorAll('.uc-combobox-item').forEach(function(i) {
-        i.classList.remove('uc-selected');
+      dropdown.querySelectorAll('.vt-combobox-item').forEach(function(i) {
+        i.classList.remove('vt-selected');
         if (!keepIcons) setItemIcon(i, false);
       });
-      item.classList.add('uc-selected');
+      item.classList.add('vt-selected');
       if (!keepIcons) setItemIcon(item, true);
 
-      dropdown.classList.remove('uc-open');
+      dropdown.classList.remove('vt-open');
     };
 
     window.selectComboboxButton = function(item, dropdownId) {
       var text = item.textContent.trim();
-      var wrapper = item.closest('.uc-combobox-wrapper');
-      var label = wrapper.querySelector('.uc-combobox-button-label');
+      var wrapper = item.closest('.vt-combobox-wrapper');
+      var label = wrapper.querySelector('.vt-combobox-button-label');
       var dropdown = document.getElementById(dropdownId);
 
       label.textContent = text;
-      label.classList.remove('uc-text-mains-quaternary');
+      label.classList.remove('vt-text-mains-quaternary');
 
-      dropdown.querySelectorAll('.uc-combobox-item').forEach(function(i) {
-        i.classList.remove('uc-selected');
+      dropdown.querySelectorAll('.vt-combobox-item').forEach(function(i) {
+        i.classList.remove('vt-selected');
         setItemIcon(i, false);
       });
-      item.classList.add('uc-selected');
+      item.classList.add('vt-selected');
       setItemIcon(item, true);
 
-      dropdown.classList.remove('uc-open');
+      dropdown.classList.remove('vt-open');
     };
 
     window.toggleMultiComboboxItem = function(item) {
-      var isSelected = item.classList.toggle('uc-selected');
+      var isSelected = item.classList.toggle('vt-selected');
       setItemIcon(item, isSelected);
 
-      var wrapper = item.closest('.uc-combobox-wrapper');
-      var tagContainer = wrapper.querySelector('.uc-combobox-tags');
+      var wrapper = item.closest('.vt-combobox-wrapper');
+      var tagContainer = wrapper.querySelector('.vt-combobox-tags');
       var text = item.textContent.trim();
 
       if (isSelected) {
         var tag = document.createElement('span');
-        tag.className = 'uc-combobox-tag uc-inline-flex uc-items-center uc-gap-1 uc-rounded uc-bg-surfaces-subtle uc-px-2 uc-py-0.5 uc-text-xs uc-font-medium';
+        tag.className = 'vt-combobox-tag vt-inline-flex vt-items-center vt-gap-1 vt-rounded vt-bg-surfaces-subtle vt-px-2 vt-py-0.5 vt-text-xs vt-font-medium';
         tag.setAttribute('data-tag-value', text);
         tag.appendChild(document.createTextNode(text));
         var removeBtn = document.createElement('button');
         removeBtn.type = 'button';
-        removeBtn.className = 'uc-ml-0.5 uc-rounded-sm uc-hover:bg-surfaces-moderate uc-transition-colors';
+        removeBtn.className = 'vt-ml-0.5 vt-rounded-sm vt-hover:bg-surfaces-moderate vt-transition-colors';
         removeBtn.innerHTML = xTagSvg;
         removeBtn.addEventListener('click', function(event) {
           event.stopPropagation();
@@ -457,17 +457,17 @@ var UCCombobox = {
     };
 
     window.removeComboboxTag = function(btn) {
-      var tag = btn.closest('.uc-combobox-tag');
+      var tag = btn.closest('.vt-combobox-tag');
       if (!tag) return;
       var value = tag.getAttribute('data-tag-value');
-      var wrapper = tag.closest('.uc-combobox-wrapper');
+      var wrapper = tag.closest('.vt-combobox-wrapper');
       tag.remove();
 
       var dropdown = wrapper.querySelector('[data-combobox-content]');
       if (dropdown) {
-        dropdown.querySelectorAll('.uc-combobox-item').forEach(function(item) {
+        dropdown.querySelectorAll('.vt-combobox-item').forEach(function(item) {
           if (item.textContent.trim() === value) {
-            item.classList.remove('uc-selected');
+            item.classList.remove('vt-selected');
             setItemIcon(item, false);
           }
         });
@@ -479,7 +479,7 @@ var UCCombobox = {
 
   _updateMultiPlaceholder: function(wrapper) {
     var input = wrapper.querySelector('input');
-    var tags = wrapper.querySelectorAll('.uc-combobox-tag');
+    var tags = wrapper.querySelectorAll('.vt-combobox-tag');
     if (input) {
       input.placeholder = tags.length > 0 ? '' : 'Add framework...';
     }
@@ -497,7 +497,7 @@ var UCResizable = {
       var isHorizontal = direction === 'horizontal';
       var minPct = parseFloat(container.dataset.min || '10');
       var maxPct = parseFloat(container.dataset.max || '90');
-      var handles = container.querySelectorAll(':scope > .uc-resize-handle');
+      var handles = container.querySelectorAll(':scope > .vt-resize-handle');
 
       handles.forEach(function(handle) {
         var isDown = false;
@@ -553,8 +553,8 @@ var UCResizable = {
           prevPanel.style.flex = 'none';
           nextPanel.style.flex = 'none';
 
-          var prevLabel = prevPanel.querySelector('.uc-size-label');
-          var nextLabel = nextPanel.querySelector('.uc-size-label');
+          var prevLabel = prevPanel.querySelector('.vt-size-label');
+          var nextLabel = nextPanel.querySelector('.vt-size-label');
           if (prevLabel) prevLabel.textContent = Math.round(parseFloat(prevPct)) + '%';
           if (nextLabel) nextLabel.textContent = Math.round(parseFloat(nextPct)) + '%';
         });
@@ -601,7 +601,7 @@ var UCCarousel = {
         if (dotsContainer) {
           dotsContainer.querySelectorAll('[data-dot]').forEach(function(dot) {
             var idx = parseInt(dot.dataset.dot || '0');
-            dot.className = 'uc-w-2 uc-h-2 uc-rounded-full uc-transition-colors ' + (idx === current ? 'uc-bg-accents-brand' : 'uc-bg-surfaces-moderate');
+            dot.className = 'vt-w-2 vt-h-2 vt-rounded-full vt-transition-colors ' + (idx === current ? 'vt-bg-accents-brand' : 'vt-bg-surfaces-moderate');
           });
         }
 
@@ -644,20 +644,20 @@ var UCDropdown = {
       document.body.setAttribute('data-dropdowns-init', 'true');
 
       document.addEventListener('click', function(e) {
-        if (!e.target.closest('[data-dropdown-trigger]') && !e.target.closest('.uc-dropdown-menu')) {
-          document.querySelectorAll('.uc-dropdown-menu').forEach(function(el) {
-            // Combobox reuses .uc-dropdown-menu for its panel and manages
+        if (!e.target.closest('[data-dropdown-trigger]') && !e.target.closest('.vt-dropdown-menu')) {
+          document.querySelectorAll('.vt-dropdown-menu').forEach(function(el) {
+            // Combobox reuses .vt-dropdown-menu for its panel and manages
             // open/close itself — closing it here fights the combobox.
-            if (el.closest('.uc-combobox-wrapper')) return;
-            el.classList.remove('uc-open');
+            if (el.closest('.vt-combobox-wrapper')) return;
+            el.classList.remove('vt-open');
           });
         }
       });
 
       document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-          document.querySelectorAll('.uc-dropdown-menu.uc-open').forEach(function(el) {
-            el.classList.remove('uc-open');
+          document.querySelectorAll('.vt-dropdown-menu.vt-open').forEach(function(el) {
+            el.classList.remove('vt-open');
           });
           document.querySelectorAll('[data-dropdown-trigger]').forEach(function(t) {
             t.setAttribute('aria-expanded', 'false');
@@ -678,12 +678,12 @@ var UCDropdown = {
         var content = document.getElementById(targetId);
         if (!content) return;
 
-        document.querySelectorAll('.uc-dropdown-menu').forEach(function(el) {
-          if (el !== content) el.classList.remove('uc-open');
+        document.querySelectorAll('.vt-dropdown-menu').forEach(function(el) {
+          if (el !== content) el.classList.remove('vt-open');
         });
 
-        var willOpen = !content.classList.contains('uc-open');
-        content.classList.toggle('uc-open');
+        var willOpen = !content.classList.contains('vt-open');
+        content.classList.toggle('vt-open');
         trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
       });
     });
@@ -693,39 +693,39 @@ var UCDropdown = {
 // Checkbox toggle — called via onclick in HTML
 function toggleCheckbox(el) {
   var indicator = el.querySelector('.checkbox-indicator');
-  var isChecked = indicator.classList.contains('uc-bg-accents-brand');
+  var isChecked = indicator.classList.contains('vt-bg-accents-brand');
 
   if (isChecked) {
-    indicator.classList.remove('uc-bg-accents-brand', 'uc-text-generic-white', 'uc-border-transparent');
+    indicator.classList.remove('vt-bg-accents-brand', 'vt-text-generic-white', 'vt-border-transparent');
     indicator.innerHTML = '';
     el.setAttribute('aria-checked', 'false');
   } else {
-    indicator.classList.add('uc-bg-accents-brand', 'uc-text-generic-white', 'uc-border-transparent');
-    indicator.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="uc-w-3 uc-h-3"><path d="M20 6 9 17l-5-5"/></svg>';
+    indicator.classList.add('vt-bg-accents-brand', 'vt-text-generic-white', 'vt-border-transparent');
+    indicator.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="vt-w-3 vt-h-3"><path d="M20 6 9 17l-5-5"/></svg>';
     el.setAttribute('aria-checked', 'true');
   }
 }
 
 // Menu radio select — called via onclick in HTML
 function selectMenuRadio(el) {
-  var parent = el.closest('.uc-dropdown-menu');
+  var parent = el.closest('.vt-dropdown-menu');
   parent.querySelectorAll('.radio-indicator').forEach(function(r) {
-    r.classList.remove('uc-border-accents-brand');
-    r.classList.add('uc-border-input');
+    r.classList.remove('vt-border-accents-brand');
+    r.classList.add('vt-border-input');
     r.innerHTML = '';
   });
 
   var indicator = el.querySelector('.radio-indicator');
-  indicator.classList.remove('uc-border-input');
-  indicator.classList.add('uc-border-accents-brand');
-  indicator.innerHTML = '<div class="uc-w-2 uc-h-2 uc-rounded-full uc-bg-accents-brand"></div>';
+  indicator.classList.remove('vt-border-input');
+  indicator.classList.add('vt-border-accents-brand');
+  indicator.innerHTML = '<div class="vt-w-2 vt-h-2 vt-rounded-full vt-bg-accents-brand"></div>';
 }
 
 // UCScrollView — drag-to-scroll and scroll indicators
 var UCScrollView = {
   init: function() {
     // Drag-to-scroll for horizontal containers
-    document.querySelectorAll('.uc-drag-scroll').forEach(function(el) {
+    document.querySelectorAll('.vt-drag-scroll').forEach(function(el) {
       if (el.hasAttribute('data-drag-init')) return;
       el.setAttribute('data-drag-init', 'true');
 
@@ -763,36 +763,36 @@ var UCScrollView = {
     });
 
     // Scroll indicators — vertical
-    document.querySelectorAll('.uc-scroll-indicator').forEach(function(indicator) {
+    document.querySelectorAll('.vt-scroll-indicator').forEach(function(indicator) {
       if (indicator.hasAttribute('data-indicator-init')) return;
       indicator.setAttribute('data-indicator-init', 'true');
 
-      var scroll = indicator.querySelector('.uc-scroll, .uc-scroll-hidden, .uc-scroll-autohide');
+      var scroll = indicator.querySelector('.vt-scroll, .vt-scroll-hidden, .vt-scroll-autohide');
       if (!scroll) return;
 
       scroll.addEventListener('scroll', function() {
         var st = scroll.scrollTop;
         var sh = scroll.scrollHeight;
         var ch = scroll.clientHeight;
-        indicator.classList.toggle('uc-show-top', st > 8);
-        indicator.classList.toggle('uc-show-bottom', st < sh - ch - 8);
+        indicator.classList.toggle('vt-show-top', st > 8);
+        indicator.classList.toggle('vt-show-bottom', st < sh - ch - 8);
       });
     });
 
     // Scroll indicators — horizontal
-    document.querySelectorAll('.uc-scroll-indicator-h').forEach(function(indicator) {
+    document.querySelectorAll('.vt-scroll-indicator-h').forEach(function(indicator) {
       if (indicator.hasAttribute('data-indicator-h-init')) return;
       indicator.setAttribute('data-indicator-h-init', 'true');
 
-      var scroll = indicator.querySelector('.uc-scroll, .uc-scroll-hidden, .uc-scroll-autohide, [class*="uc-overflow-x"]');
+      var scroll = indicator.querySelector('.vt-scroll, .vt-scroll-hidden, .vt-scroll-autohide, [class*="vt-overflow-x"]');
       if (!scroll) return;
 
       scroll.addEventListener('scroll', function() {
         var sl = scroll.scrollLeft;
         var sw = scroll.scrollWidth;
         var cw = scroll.clientWidth;
-        indicator.classList.toggle('uc-show-left', sl > 8);
-        indicator.classList.toggle('uc-show-right', sl < sw - cw - 8);
+        indicator.classList.toggle('vt-show-left', sl > 8);
+        indicator.classList.toggle('vt-show-right', sl < sw - cw - 8);
       });
     });
   }
@@ -857,17 +857,17 @@ var UCPopover = {
         var el = id ? document.getElementById(id) : null;
         if (!el) return;
 
-        var isOpen = el.classList.contains('uc-open');
+        var isOpen = el.classList.contains('vt-open');
 
-        document.querySelectorAll('.uc-popover-content').forEach(function(p) {
-          p.classList.remove('uc-open');
+        document.querySelectorAll('.vt-popover-content').forEach(function(p) {
+          p.classList.remove('vt-open');
         });
         document.querySelectorAll('[data-popover-trigger]').forEach(function(t) {
           t.setAttribute('aria-expanded', 'false');
         });
 
         if (!isOpen) {
-          el.classList.add('uc-open');
+          el.classList.add('vt-open');
           btn.setAttribute('aria-expanded', 'true');
         }
       };
@@ -877,9 +877,9 @@ var UCPopover = {
       document.body.setAttribute('data-popover-outside-init', 'true');
       document.addEventListener('click', function(e) {
         var target = e.target;
-        if (!target.closest('.uc-popover-content') && !target.closest('[data-popover-trigger]')) {
-          document.querySelectorAll('.uc-popover-content').forEach(function(p) {
-            p.classList.remove('uc-open');
+        if (!target.closest('.vt-popover-content') && !target.closest('[data-popover-trigger]')) {
+          document.querySelectorAll('.vt-popover-content').forEach(function(p) {
+            p.classList.remove('vt-open');
           });
           document.querySelectorAll('[data-popover-trigger]').forEach(function(t) {
             t.setAttribute('aria-expanded', 'false');
@@ -888,8 +888,8 @@ var UCPopover = {
       });
       document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-          document.querySelectorAll('.uc-popover-content').forEach(function(p) {
-            p.classList.remove('uc-open');
+          document.querySelectorAll('.vt-popover-content').forEach(function(p) {
+            p.classList.remove('vt-open');
           });
           document.querySelectorAll('[data-popover-trigger]').forEach(function(t) {
             t.setAttribute('aria-expanded', 'false');
@@ -907,8 +907,8 @@ var UCSelect = {
     document.body.setAttribute('data-select-init', 'true');
 
     document.addEventListener('click', function(e) {
-      if (!e.target.closest('.uc-select-wrapper')) {
-        document.querySelectorAll('.uc-select-dropdown').forEach(function(d) {
+      if (!e.target.closest('.vt-select-wrapper')) {
+        document.querySelectorAll('.vt-select-dropdown').forEach(function(d) {
           d.classList.remove('open');
         });
       }
@@ -919,7 +919,7 @@ var UCSelect = {
 // toggleSelect — called via onclick in HTML
 function toggleSelect(id) {
   var dropdown = document.getElementById(id);
-  document.querySelectorAll('.uc-select-dropdown').forEach(function(d) {
+  document.querySelectorAll('.vt-select-dropdown').forEach(function(d) {
     if (d.id !== id) d.classList.remove('open');
   });
   dropdown.classList.toggle('open');
@@ -930,10 +930,10 @@ function selectItem(id, triggerId, value) {
   document.getElementById(triggerId).querySelector('span').textContent = value;
   document.getElementById(triggerId).querySelector('span').classList.remove('placeholder');
   var dropdown = document.getElementById(id);
-  dropdown.querySelectorAll('.uc-select-item').forEach(function(i) {
+  dropdown.querySelectorAll('.vt-select-item').forEach(function(i) {
     i.classList.remove('selected');
   });
-  dropdown.querySelectorAll('.uc-select-item').forEach(function(i) {
+  dropdown.querySelectorAll('.vt-select-item').forEach(function(i) {
     if (i.textContent.trim() === value) i.classList.add('selected');
   });
   dropdown.classList.remove('open');
@@ -970,34 +970,34 @@ var UCToast = {
       // Out-of-the-box: create the host container on first use.
       container = document.createElement('div');
       container.id = 'toast-container';
-      container.className = 'uc-fixed uc-bottom-4 uc-right-4 uc-z-50 uc-flex uc-flex-col uc-items-end';
+      container.className = 'vt-fixed vt-bottom-4 vt-right-4 vt-z-50 vt-flex vt-flex-col vt-items-end';
       document.body.appendChild(container);
     }
 
     var id = 'toast-' + (++UCToast._count);
     var configs = {
       default: { title: 'Scheduled: Catch up', desc: 'Friday, February 14, 2026 at 5:57 PM', icon: '', btn: 'Undo' },
-      success: { title: 'Success', desc: 'Your changes have been saved.', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="uc-w-5 uc-h-5 uc-text-accents-brand"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>', btn: '' },
-      error: { title: 'Error', desc: 'Something went wrong. Please try again.', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="uc-w-5 uc-h-5 uc-text-error-primary"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>', btn: 'Retry' },
+      success: { title: 'Success', desc: 'Your changes have been saved.', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-w-5 vt-h-5 vt-text-accents-brand"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>', btn: '' },
+      error: { title: 'Error', desc: 'Something went wrong. Please try again.', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-w-5 vt-h-5 vt-text-error-primary"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>', btn: 'Retry' },
       action: { title: 'Event created', desc: 'Sunday, December 03, 2023', icon: '', btn: 'Undo' }
     };
 
     var c = configs[type] || configs.default;
     var toast = document.createElement('div');
     toast.id = id;
-    toast.className = 'uc-flex uc-items-start uc-gap-3 uc-w-80 uc-p-4 uc-rounded-lg uc-border uc-border-border-default uc-bg-surfaces-surface uc-shadow-lg uc-mb-2';
+    toast.className = 'vt-flex vt-items-start vt-gap-3 vt-w-80 vt-p-4 vt-rounded-lg vt-border vt-border-border-default vt-bg-surfaces-surface vt-shadow-lg vt-mb-2';
     toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
     toast.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
     toast.setAttribute('aria-atomic', 'true');
     toast.innerHTML =
-      (c.icon ? '<div class="uc-flex-shrink-0 uc-mt-0.5">' + c.icon + '</div>' : '') +
-      '<div class="uc-flex-1 uc-min-w-0">' +
-        '<p class="uc-text-sm uc-font-semibold">' + c.title + '</p>' +
-        '<p class="uc-text-xs uc-text-mains-quaternary uc-mt-0.5">' + c.desc + '</p>' +
+      (c.icon ? '<div class="vt-flex-shrink-0 vt-mt-0.5">' + c.icon + '</div>' : '') +
+      '<div class="vt-flex-1 vt-min-w-0">' +
+        '<p class="vt-text-sm vt-font-semibold">' + c.title + '</p>' +
+        '<p class="vt-text-xs vt-text-mains-quaternary vt-mt-0.5">' + c.desc + '</p>' +
       '</div>' +
-      (c.btn ? '<button onclick="this.parentElement.remove()" class="uc-flex-shrink-0 uc-inline-flex uc-items-center uc-justify-center uc-rounded-lg uc-text-xs uc-font-medium uc-h-7 uc-px-2 uc-border uc-border-border-strong uc-bg-surfaces-surface uc-hover:bg-surfaces-subtle uc-transition-colors">' + c.btn + '</button>' : '') +
-      '<button onclick="this.parentElement.remove()" aria-label="Close" class="uc-flex-shrink-0 uc-p-0.5 uc-text-mains-quaternary uc-hover:text-mains-primary uc-transition-colors">' +
-        '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="uc-w-3.5 uc-h-3.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
+      (c.btn ? '<button onclick="this.parentElement.remove()" class="vt-flex-shrink-0 vt-inline-flex vt-items-center vt-justify-center vt-rounded-lg vt-text-xs vt-font-medium vt-h-7 vt-px-2 vt-border vt-border-border-strong vt-bg-surfaces-surface vt-hover:bg-surfaces-subtle vt-transition-colors">' + c.btn + '</button>' : '') +
+      '<button onclick="this.parentElement.remove()" aria-label="Close" class="vt-flex-shrink-0 vt-p-0.5 vt-text-mains-quaternary vt-hover:text-mains-primary vt-transition-colors">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-w-3.5 vt-h-3.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
       '</button>';
 
     container.appendChild(toast);
@@ -1022,7 +1022,7 @@ var UCDialog = {
       if (!el) return;
       if (el._keyHandler) document.removeEventListener('keydown', el._keyHandler);
       el._previousFocus = document.activeElement;
-      el.classList.add('uc-open');
+      el.classList.add('vt-open');
       el.removeAttribute('aria-hidden');
       el.setAttribute('role', 'dialog');
       el.setAttribute('aria-modal', 'true');
@@ -1043,7 +1043,7 @@ var UCDialog = {
     window.closeDialog = function(id) {
       var el = document.getElementById(id);
       if (!el) return;
-      el.classList.remove('uc-open');
+      el.classList.remove('vt-open');
       el.setAttribute('aria-hidden', 'true');
       if (el._keyHandler) document.removeEventListener('keydown', el._keyHandler);
       if (el._previousFocus && typeof el._previousFocus.focus === 'function') {
@@ -1063,7 +1063,7 @@ var UCTreeView = {
       tree.setAttribute('data-tree-bound', 'true');
 
       tree.querySelectorAll('[data-tree-branch]').forEach(function(branch) {
-        var toggle = branch.querySelector(':scope > .uc-tree-toggle');
+        var toggle = branch.querySelector(':scope > .vt-tree-toggle');
         if (!toggle) return;
         toggle.addEventListener('click', function() {
           branch.classList.toggle('open');

@@ -1,16 +1,16 @@
 {
-  "name": "@uicraft/core",
-  "version": "1.4.4",
+  "name": "veritheme",
+  "version": "1.0.0",
   "description": "UI component library — pure CSS utility classes, design tokens, dark mode, vanilla JS bundle.",
   "license": "MIT",
   "author": "Taras Tarasenko <by.tarasenko@gmail.com>",
-  "homepage": "https://getuicraft.com",
+  "homepage": "https://veritheme.com",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tarasenko-by/uicraft-core.git"
+    "url": "git+https://github.com/tarasenko-by/veritheme.git"
   },
   "bugs": {
-    "url": "https://github.com/tarasenko-by/uicraft-core/issues"
+    "url": "https://github.com/tarasenko-by/veritheme/issues"
   },
   "keywords": [
     "ui",
@@ -21,24 +21,24 @@
     "dark-mode",
     "figma"
   ],
-  "main": "uicraft.min.js",
-  "style": "uicraft.min.css",
+  "main": "veritheme.min.js",
+  "style": "veritheme.min.css",
   "exports": {
     ".": {
-      "import": "./uicraft.min.js",
-      "default": "./uicraft.min.js"
+      "import": "./veritheme.min.js",
+      "default": "./veritheme.min.js"
     },
-    "./css": "./uicraft.min.css",
-    "./css/unminified": "./uicraft.css",
-    "./js/unminified": "./uicraft.js",
+    "./css": "./veritheme.min.css",
+    "./css/unminified": "./veritheme.css",
+    "./js/unminified": "./veritheme.js",
     "./theme-manifest": "./theme-manifest.json",
     "./themes/*": "./themes/*"
   },
   "files": [
-    "uicraft.css",
-    "uicraft.min.css",
-    "uicraft.js",
-    "uicraft.min.js",
+    "veritheme.css",
+    "veritheme.min.css",
+    "veritheme.js",
+    "veritheme.min.js",
     "theme-manifest.json",
     "themes",
     "README.md",
