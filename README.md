@@ -105,7 +105,7 @@ Want your own? The **[Theme Generator](https://veritheme.com/themes/)** lets you
 
 ## Figma plugin
 
-**[Veritheme — Design Tokens & UI Components](https://www.figma.com/community/plugin/1610343587499165100/Veritheme-design-tokens-ui-components)** is a design system generator for Figma. Select the components you need, customize your theme, and generate production-ready design tokens and UI components directly into your file.
+**[Veritheme — Design Tokens & UI Components](https://www.figma.com/community/plugin/1610343587499165100)** is a design system generator for Figma. Select the components you need, customize your theme, and generate production-ready design tokens and UI components directly into your file.
 
 **What it does:**
 
@@ -143,7 +143,7 @@ The site also serves [veritheme.com/llms.txt](https://veritheme.com/llms.txt) �
 |----------------|-----------|
 | [`veritheme`](https://www.npmjs.com/package/veritheme) | This package — the CSS + JS distribution bundle |
 | [`@veritheme/mcp-server`](https://www.npmjs.com/package/@veritheme/mcp-server) | MCP server exposing components/tokens/themes to AI agents |
-| [Veritheme Figma plugin](https://www.figma.com/community/plugin/1610343587499165100/Veritheme-design-tokens-ui-components) | Generate design tokens + 24 UI components into Figma |
+| [Veritheme Figma plugin](https://www.figma.com/community/plugin/1610343587499165100) | Generate design tokens + 45 UI components into Figma |
 | [veritheme.com](https://veritheme.com) | Docs, live demos, and the Theme Generator |
 
 ## License
