@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="https://veritheme.com">
+    <img src="https://veritheme.com/og-image.png" alt="Veritheme — one source of truth for Figma, code &amp; AI" width="800">
+  </a>
+</p>
+
 # Veritheme
 
 **75 beautifully designed UI components.** Pure CSS utility classes, semantic design tokens, dark mode, and a vanilla JS bundle — no framework, no build step required.

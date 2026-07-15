@@ -11,6 +11,10 @@ _Add entries here as you work. `npm run release` freezes this section into a
 dated version block. Use the Keep a Changelog headings: Added / Changed /
 Deprecated / Removed / Fixed / Security._
 
+### Changed
+- New social-preview image (`og-image.png`): Veritheme brand, “One source of truth for Figma, code & AI”. HTML source lives in `scripts/og-card.html` (regeneration command in its header comment).
+- Brand is written **Veritheme** (capital V) in all display text — site titles, OG tags, docs prose, plugin name ("Veritheme Design Tokens"), Storybook, READMEs. Technical identifiers stay lowercase as required: npm package `veritheme`, scope `@veritheme`, domain veritheme.com, bundle files `veritheme.(min.)css/js`, localStorage key `veritheme-theme`.
+
 ### Removed
 - **Figma plugin: the Blocks generation step is removed** (shipped in 1.0.0, cut for the Community release — block generation had quality problems). The plugin flow is back to Theme → Components → Export; the blocks compiler (`scripts/build-plugin-blocks.mjs`), `registry/blocks.json` and the Blocks UI/generation code are deleted. DTCG `.tokens.json` import via the drop-zone is kept. The destructive "Clear file" button stays hidden (footer, `display:none`).
 
