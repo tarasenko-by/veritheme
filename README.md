@@ -1,4 +1,4 @@
-# veritheme
+# Veritheme
 
 **75 beautifully designed UI components.** Pure CSS utility classes, semantic design tokens, dark mode, and a vanilla JS bundle — no framework, no build step required.
 
@@ -6,9 +6,9 @@
 
 ---
 
-## What is veritheme?
+## What is Veritheme?
 
-veritheme is a framework-agnostic UI component library delivered as plain CSS and vanilla JavaScript. You style your markup with `vt-` utility classes and drop in `data-*` attributes for interactive behavior — the JS bundle wires everything up automatically. No React, no Tailwind runtime, no bundler needed.
+Veritheme is a framework-agnostic UI component library delivered as plain CSS and vanilla JavaScript. You style your markup with `vt-` utility classes and drop in `data-*` attributes for interactive behavior — the JS bundle wires everything up automatically. No React, no Tailwind runtime, no bundler needed.
 
 It's built around a **2-layer design token system** (raw palette → semantic tokens) that keeps colors, spacing, typography, and radii consistent across light/dark modes and across three shipped themes. The exact same token format powers the website, the Figma plugin, and exported custom themes — so design and code never drift apart.
 
@@ -44,7 +44,7 @@ import 'veritheme'; // initializes interactive components
 | `themes/*.json` | Theme token files — `default`, `editorial`, `rounded-sans` |
 | `theme-manifest.json` | Index of available themes (name, label, font, dark-mode support) |
 
-Package exports: `veritheme/css`, `veritheme/js/unminified`, `veritheme/themes/*`, `veritheme/theme-manifest`.
+Package exports: `Veritheme/css`, `Veritheme/js/unminified`, `Veritheme/themes/*`, `Veritheme/theme-manifest`.
 
 ## Usage
 
@@ -99,7 +99,7 @@ Want your own? The **[Theme Generator](https://veritheme.com/themes/)** lets you
 
 ## Figma plugin
 
-**[veritheme — Design Tokens & UI Components](https://www.figma.com/community/plugin/1610343587499165100/veritheme-design-tokens-ui-components)** is a design system generator for Figma. Select the components you need, customize your theme, and generate production-ready design tokens and UI components directly into your file.
+**[Veritheme — Design Tokens & UI Components](https://www.figma.com/community/plugin/1610343587499165100/Veritheme-design-tokens-ui-components)** is a design system generator for Figma. Select the components you need, customize your theme, and generate production-ready design tokens and UI components directly into your file.
 
 **What it does:**
 
@@ -115,7 +115,7 @@ It shares the same `theme.json` format as the Theme Generator, so a theme design
 
 ## Use with AI agents (MCP)
 
-veritheme ships an official MCP server, **[`@veritheme/mcp-server`](https://www.npmjs.com/package/@veritheme/mcp-server)** — AI assistants (Claude Code, Cursor, any MCP client) can query real components, design tokens, themes, and HTML snippets instead of guessing class names:
+Veritheme ships an official MCP server, **[`@veritheme/mcp-server`](https://www.npmjs.com/package/@veritheme/mcp-server)** — AI assistants (Claude Code, Cursor, any MCP client) can query real components, design tokens, themes, and HTML snippets instead of guessing class names:
 
 ```bash
 # Claude Code
@@ -124,20 +124,20 @@ claude mcp add veritheme -- npx -y @veritheme/mcp-server
 
 ```json
 // any MCP client config
-{ "mcpServers": { "veritheme": { "command": "npx", "args": ["-y", "@veritheme/mcp-server"] } } }
+{ "mcpServers": { "Veritheme": { "command": "npx", "args": ["-y", "@veritheme/mcp-server"] } } }
 ```
 
 Tools: `list_components`, `get_component`, `get_tokens`, `get_theme`, `get_snippet`, `search`.
 
 The site also serves [veritheme.com/llms.txt](https://veritheme.com/llms.txt) — a compact, LLM-friendly map of the library for web-browsing agents.
 
-## The veritheme ecosystem
+## The Veritheme ecosystem
 
 | Package / repo | What it is |
 |----------------|-----------|
 | [`veritheme`](https://www.npmjs.com/package/veritheme) | This package — the CSS + JS distribution bundle |
 | [`@veritheme/mcp-server`](https://www.npmjs.com/package/@veritheme/mcp-server) | MCP server exposing components/tokens/themes to AI agents |
-| [veritheme Figma plugin](https://www.figma.com/community/plugin/1610343587499165100/veritheme-design-tokens-ui-components) | Generate design tokens + 24 UI components into Figma |
+| [Veritheme Figma plugin](https://www.figma.com/community/plugin/1610343587499165100/Veritheme-design-tokens-ui-components) | Generate design tokens + 24 UI components into Figma |
 | [veritheme.com](https://veritheme.com) | Docs, live demos, and the Theme Generator |
 
 ## License
