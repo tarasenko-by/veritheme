@@ -6,7 +6,7 @@
 
 # Veritheme
 
-**75 beautifully designed UI components.** Pure CSS utility classes, semantic design tokens, dark mode, and a vanilla JS bundle — no framework, no build step required.
+**66 beautifully designed UI components.** Pure CSS utility classes, semantic design tokens, dark mode, and a vanilla JS bundle — no framework, no build step required.
 
 **[veritheme.com](https://veritheme.com)** · [Docs & live demos](https://veritheme.com) · [Theme Generator](https://veritheme.com/themes/)
 
