@@ -11,6 +11,23 @@ _Add entries here as you work. `npm run release` freezes this section into a
 dated version block. Use the Keep a Changelog headings: Added / Changed /
 Deprecated / Removed / Fixed / Security._
 
+## [1.0.3] — 2026-07-18
+
+### Fixed
+- **Badge leading icons were oversized (20px), inflating badge height.** `.vt-badge > svg/img` forced 20×20 icons, overriding the demo's utility sizes — so an icon badge rendered 29px tall (full-stadium) instead of 24px, making bordered "Featured"-style badges look inconsistent next to plain ones. Icons are now 14×14, keeping every badge 24px tall; the demo drops its redundant `vt-w-3` overrides (component-first).
+
+### Changed
+- **`vt-api-table` restyled to match `vt-table`** — the API Reference / Accessibility tables on every component page now share the standard table look: `radius-xl` container, `surfaces-subtle` header without uppercase, `font-size-sm` cells. The bespoke colored `vt-api-type--*` chips are gone; class types render as `vt-badge vt-badge-soft vt-badge-secondary` (intent colors stay reserved for semantic states).
+
+### Added
+- **Component pages surface "When to use"** — every component page header now auto-renders the usage guidance from the specs (same text as MCP/llms/registry), matched by URL slug in ComponentPage. Chip, Code Block, Collapsible, Media and Not Found gained the missing API Reference / Accessibility sections.
+
+### Removed
+- **/components/ overview page** — the Components nav now lands on /docs/introduction/ (redirect in place); the six stale Foundation duplicates under /components/ (border, colors, effects, icons, spacing, typography) are deleted and redirect to their current /docs/ versions.
+
+- **shadcn registry: usage guidance in descriptions.** Every item in `/r/*.json` now ends with "When to use: …" — the same when/when-not/alternative text served by MCP `get_component` and `llms-full.txt`, so CLI consumers see it in `npx shadcn add` output too.
+- **Examples now demonstrate states** (per the states rule): the tasks board gained an empty "Blocked" column built on `vt-empty-state`, and analytics gained a "Realtime" card that loads with `vt-skeleton` lines — both flow into the MCP composition patterns on rebuild.
+
 ## [1.0.2] — 2026-07-18
 
 ### Added
@@ -228,7 +245,8 @@ First stable release.
 - **WCAG contrast**: 32 token pairs fall below AA across editorial/rounded-sans themes. Default theme addressed; remaining themes queued for v1.1.
 - **Scope**: 18 components (Dialog, Accordion, Slider, Button Group, Popover, Sheet, Sidebar, mini-variants) remain in `main.scss` pending recipe-engine extensions (`rawRules`, `@keyframes`, `[data-*]` selectors). Scheduled for v1.1.
 
-[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.3
 [1.0.2]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.2
 [1.0.1]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.1
 [1.4.4]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.4.4
