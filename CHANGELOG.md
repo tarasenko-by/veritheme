@@ -11,7 +11,16 @@ _Add entries here as you work. `npm run release` freezes this section into a
 dated version block. Use the Keep a Changelog headings: Added / Changed /
 Deprecated / Removed / Fixed / Security._
 
+## [1.0.1] — 2026-07-17
+
+### Added
+- **Badge & icon-badge: `soft` style variant and `info` color.** Badge now offers a soft (tinted-background) style alongside solid/outline; icon-badge gains size options and a `square` shape. Documented in the components pages and reflected across the site.
+- **Banner: intent variants** (info / success / warning / danger) driven by design tokens, replacing the site-only `status-pill` / tone / `surface-card` CSS that previously faked them.
+- New `rating` entry in the shadcn-style registry (`public/r/rating.json`).
+
 ### Changed
+- **`/examples` and docs pages migrated to real library components.** The examples gallery and documentation now compose Veritheme components instead of hand-rolled site-only CSS (per the "pages must use DS components" rule); catalog screenshots regenerated to match.
+- Component count unified to the actual **66** in every public place — site copy and meta descriptions, README, GitHub repo description, og-image, llms.txt (was variously 62/63/75/79). The Figma plugin's 45 is a separate, correct number (its own canvas set).
 - New social-preview image (`og-image.png`): Veritheme brand, “One source of truth for Figma, code & AI”. HTML source lives in `scripts/og-card.html` (regeneration command in its header comment).
 - Brand is written **Veritheme** (capital V) in all display text — site titles, OG tags, docs prose, plugin name ("Veritheme Design Tokens"), Storybook, READMEs. Technical identifiers stay lowercase as required: npm package `veritheme`, scope `@veritheme`, domain veritheme.com, bundle files `veritheme.(min.)css/js`, localStorage key `veritheme-theme`.
 
@@ -203,7 +212,8 @@ First stable release.
 - **WCAG contrast**: 32 token pairs fall below AA across editorial/rounded-sans themes. Default theme addressed; remaining themes queued for v1.1.
 - **Scope**: 18 components (Dialog, Accordion, Slider, Button Group, Popover, Sheet, Sidebar, mini-variants) remain in `main.scss` pending recipe-engine extensions (`rawRules`, `@keyframes`, `[data-*]` selectors). Scheduled for v1.1.
 
-[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.4.4...HEAD
+[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.1
 [1.4.4]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.4.4
 [1.4.3]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.4.3
 [1.4.2]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.4.2
