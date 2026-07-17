@@ -11,6 +11,11 @@ _Add entries here as you work. `npm run release` freezes this section into a
 dated version block. Use the Keep a Changelog headings: Added / Changed /
 Deprecated / Removed / Fixed / Security._
 
+## [1.0.5] — 2026-07-18
+
+### Fixed
+- **Bordered secondary badges used the dark text color as their outline.** `vt-badge-bordered` set `border-color` to `--badge-accent`, which for the neutral `secondary` color is `mains-secondary` (a body-text grey) — so tag-list badges (Astro, React, …) had a heavy dark outline instead of a subtle one. A new `--badge-border` variable defaults to the accent (colored bordered badges keep their intent-colored outline) but `secondary` now maps it to `border-strong`, matching chips and other bordered controls. Also refreshed a stale docs line ("VT Utilities" tag, badge icon now documented as 14px).
+
 ## [1.0.4] — 2026-07-18
 
 ### Fixed
@@ -250,7 +255,8 @@ First stable release.
 - **WCAG contrast**: 32 token pairs fall below AA across editorial/rounded-sans themes. Default theme addressed; remaining themes queued for v1.1.
 - **Scope**: 18 components (Dialog, Accordion, Slider, Button Group, Popover, Sheet, Sidebar, mini-variants) remain in `main.scss` pending recipe-engine extensions (`rawRules`, `@keyframes`, `[data-*]` selectors). Scheduled for v1.1.
 
-[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.0.4...HEAD
+[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.0.5...HEAD
+[1.0.5]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.5
 [1.0.4]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.4
 [1.0.3]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.3
 [1.0.2]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.2

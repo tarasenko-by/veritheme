@@ -176,6 +176,7 @@
   color: var(--badge-fg);
   --badge-soft-bg: hsl(var(--accents-brand) / 0.1);
   --badge-soft-fg: hsl(var(--accents-brand));
+  --badge-border: var(--badge-accent);
 }
 
 /* ── Badge · color ── */
@@ -194,6 +195,7 @@
   --badge-fg: hsl(var(--mains-primary));
   --badge-soft-bg: hsl(var(--surfaces-subtle));
   --badge-soft-fg: hsl(var(--mains-tertiary));
+  --badge-border: hsl(var(--border-strong));
 }
 
 .vt-badge-danger {
@@ -232,7 +234,7 @@
 
 .vt-badge-bordered {
   background: transparent;
-  border-color: var(--badge-accent);
+  border-color: var(--badge-border);
   color: var(--badge-accent);
 }
 
