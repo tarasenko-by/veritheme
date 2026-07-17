@@ -11,6 +11,11 @@ _Add entries here as you work. `npm run release` freezes this section into a
 dated version block. Use the Keep a Changelog headings: Added / Changed /
 Deprecated / Removed / Fixed / Security._
 
+## [1.0.4] — 2026-07-18
+
+### Fixed
+- **`vt-card` no longer overrides margin/typography utilities on nested `h3`/`p`.** The card's built-in content defaults (`h3 { margin: 0 0 4px }`, `h3 + p { … }`) used a plain descendant selector whose specificity beat utility classes — so `vt-mt-3` and friends on a card title were silently ignored (e.g. the kanban card badge sat flush against its title). The defaults are now wrapped in `:where(.vt-card)` (zero specificity): a bare `<h3>` still gets the default spacing, but any utility on card content now wins. Audit: card was the last recipe with this utility-overriding pattern — badge's forced icon size was fixed in 1.0.3; avatar `img` (100% fill) and select `> svg` (internal chevron) are legitimate and untouched.
+
 ## [1.0.3] — 2026-07-18
 
 ### Fixed
@@ -245,7 +250,8 @@ First stable release.
 - **WCAG contrast**: 32 token pairs fall below AA across editorial/rounded-sans themes. Default theme addressed; remaining themes queued for v1.1.
 - **Scope**: 18 components (Dialog, Accordion, Slider, Button Group, Popover, Sheet, Sidebar, mini-variants) remain in `main.scss` pending recipe-engine extensions (`rawRules`, `@keyframes`, `[data-*]` selectors). Scheduled for v1.1.
 
-[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.0.4...HEAD
+[1.0.4]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.4
 [1.0.3]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.3
 [1.0.2]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.2
 [1.0.1]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.1
