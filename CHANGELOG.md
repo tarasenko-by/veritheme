@@ -11,6 +11,22 @@ _Add entries here as you work. `npm run release` freezes this section into a
 dated version block. Use the Keep a Changelog headings: Added / Changed /
 Deprecated / Removed / Fixed / Security._
 
+## [1.0.2] — 2026-07-18
+
+### Added
+- **MCP server: composition patterns and per-component usage guidance.** New tools `list_patterns`/`get_pattern` serve 22 page skeletons distilled from the live examples (structure only — content elided, repeats collapsed); every component spec now carries a `usage` field ("when to use / when not / alternative"), surfaced by `get_component`. The server instructions grew a full generation rulebook: component-first, min-12px typography with semantic classes, spacing grid, color roles (brand vs blue, surface & text hierarchy), radius scale, page rhythm, states, content voice, icon and responsive conventions, and a pre-return self-review checklist. `llms-full.txt` carries the same rules and usage notes for non-MCP consumers.
+- **Docs: Design principles page** (`/docs/design-principles`) — the same rulebook for humans.
+- Utility `vt-rounded-concentric-3` — concentric inner radius (`calc(var(--radius-2xl) - var(--spacing-3))`) for an element inset by `p-3` inside a `vt-card`, so nested corners run parallel to the card's per the concentric-radius rule (theme-independent).
+- Utility `vt-self-center` (`align-self: center`); gradient stop `vt-to-accents-brand/70`; `vt-decoration-accents-brand/30`.
+
+### Fixed
+- **Brand-vs-blue rule enforced in components**: `vt-tree-view` active item and `vt-resizable` handle hover now use `accents-brand` instead of `info-primary` — interactive/selection states belong to the brand accent; blue `info-*` is reserved for informational states and focus (matches `vt-sidebar-link`, `vt-calendar-day`, `vt-timeline-dot`, `vt-nav-item`).
+
+### Changed
+- **Site navigation: one clear sidebar.** The Function/Structure (atomic) toggle is gone; a single functional grouping remains — Docs, Foundation, Actions, Forms, Navigation, Layout, Data Display, Feedback, Overlay (new: Dialog/Dropdown/Popover/Tooltip) and Blocks (new: composite sections — Auth, Feature Section, Media, Not Found, Onboarding Flow, Pricing Card, Testimonial). Nine previously unlisted pages (Stepper, Timeline, Page Layout and the Blocks set) are now reachable. `/showcase` is retired in favor of Storybook (redirects to `/storybook/`).
+- **All component font sizes are now bound to typography tokens** (no hardcoded px/rem left in recipes), enforcing the min-12px text rule at the library level: `vt-count-badge`, `vt-pill-sm` and `vt-sidebar-badge` go 10px → `--font-size-xs` (12px); `vt-input-sm`/`vt-textarea-sm` go 13px → xs; `vt-select` trigger/items 14px → `--font-size-sm` and its label 12px → xs (weight 600 → `--font-weight-semibold`); `vt-number-input-sm` 0.75rem → xs and `vt-otp-input` lg 1.25rem → `--font-size-xl` (same values, token-bound).
+- **Site sweep per the MCP generation rules**: every readable text ≥ 12px (all `vt-text-[10px]`/`[11px]` usages replaced with `vt-text-xs`; sub-10px text remains only inside miniature catalog illustrations); 50 hand-rolled uppercase group labels across 20 pages replaced with the `vt-section-label` component; hand-rolled hover tooltips (avatar-group), count pills (list), calendar weekday rows and hand-sized avatars replaced with `vt-tooltip`, `vt-count-badge`, `vt-calendar-weekday` and `vt-avatar-sm`; mail/compose attachment chips unified with the task-detail pattern (`vt-card` + stretch icon tile + `vt-rounded-concentric-3`).
+
 ## [1.0.1] — 2026-07-17
 
 ### Added
@@ -212,7 +228,8 @@ First stable release.
 - **WCAG contrast**: 32 token pairs fall below AA across editorial/rounded-sans themes. Default theme addressed; remaining themes queued for v1.1.
 - **Scope**: 18 components (Dialog, Accordion, Slider, Button Group, Popover, Sheet, Sidebar, mini-variants) remain in `main.scss` pending recipe-engine extensions (`rawRules`, `@keyframes`, `[data-*]` selectors). Scheduled for v1.1.
 
-[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.2
 [1.0.1]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.1
 [1.4.4]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.4.4
 [1.4.3]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.4.3
