@@ -11,6 +11,19 @@ _Add entries here as you work. `npm run release` freezes this section into a
 dated version block. Use the Keep a Changelog headings: Added / Changed /
 Deprecated / Removed / Fixed / Security._
 
+## [1.0.6] — 2026-07-18
+
+### Added
+- **Per-component interaction docs for AI.** Every interactive component spec now carries an `interactions` field (which states are automatic vs. how to trigger active/disabled/error/loading in markup), surfaced by `get_component` as `## Interactions` and in `llms-full.txt`. Fills the gap where child-element states (tabs→tab, accordion→item, nav) were invisible to AI. Documentation only — no CSS change.
+- **Anti-patterns / common mistakes** listed in the MCP instructions, the design-system overview resource, and a new section on `/docs/design-principles` (rebuilding components, utility size/color overrides, info-as-brand, sub-12px, nested cards, hardcoded backgrounds, unlabeled icon buttons, multiple primaries, no empty state).
+- **Container queries**: `vt-cq` (establishes an inline-size query container) + `vt-cq-sm:` / `vt-cq-md:` / `vt-cq-lg:` variants for the common reflow utilities, so a component adapts to its container instead of the viewport. Documented with a live demo on `/docs/utilities-layout` and in the MCP responsive rule.
+- **RTL logical utilities**: `vt-ms-*` / `vt-me-*` (margin-inline), `vt-ps-*` / `vt-pe-*` (padding-inline), `vt-text-start` / `vt-text-end`.
+- **Semantic-first principle** in the MCP generation rules and the Design Principles page: the token/class names ARE the design intent, so match the content's meaning to the name (success = positive, warning = caution, error/danger = failure/destructive, info = neutral notice + focus, accents-brand = product accent; mains primary→quaternary = most→least important; surfaces = elevation; typography classes = role) rather than picking by appearance. The existing colour/typography rules become the guardrails under this framing.
+- **Calendar example pages.** Two new full-page examples under `/examples/` — a month grid with meetings, tasks, and continuous multi-day event bars, and a week view with an hourly time grid, all-day events, and flat colour-coded blocks (tinted fill + left accent, the real-calendar look). Built entirely from Veritheme components and utilities across five named calendars, light + dark.
+
+### Changed
+- **Components are now RTL-safe internally.** Physical directional properties in the recipes (padding/margin/border-left/right, text-align, and asymmetric padding/margin shorthands) were converted to logical properties (`padding-inline-start`, `border-inline-end`, `padding-inline`, `text-align: start`…). Identical rendering in LTR; correct mirroring under `dir="rtl"` (verified: sidebar link padding flips). Placement variants (tooltip/popover left/right) and directional positioning remain physical for now.
+
 ## [1.0.5] — 2026-07-18
 
 ### Fixed
@@ -255,7 +268,8 @@ First stable release.
 - **WCAG contrast**: 32 token pairs fall below AA across editorial/rounded-sans themes. Default theme addressed; remaining themes queued for v1.1.
 - **Scope**: 18 components (Dialog, Accordion, Slider, Button Group, Popover, Sheet, Sidebar, mini-variants) remain in `main.scss` pending recipe-engine extensions (`rawRules`, `@keyframes`, `[data-*]` selectors). Scheduled for v1.1.
 
-[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.0.5...HEAD
+[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.0.6...HEAD
+[1.0.6]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.6
 [1.0.5]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.5
 [1.0.4]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.4
 [1.0.3]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.3
