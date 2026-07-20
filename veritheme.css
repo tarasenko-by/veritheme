@@ -6338,6 +6338,94 @@ hr {
   color: hsl(var(--mains-primary));
 }
 
+/* Mobile hamburger — hidden on desktop, shown ≤640px */
+.vt-topbar-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin-left: -0.25rem;
+  margin-right: 0.125rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: hsl(var(--mains-secondary));
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+}
+
+.vt-topbar-menu-btn:hover {
+  color: hsl(var(--mains-primary));
+  background: hsl(var(--surfaces-subtle));
+}
+
+.vt-topbar-menu-icon {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.vt-topbar-menu-btn .vt-topbar-menu-icon-close {
+  display: none;
+}
+
+.vt-topbar-menu-btn.is-open .vt-topbar-menu-icon-menu {
+  display: none;
+}
+
+.vt-topbar-menu-btn.is-open .vt-topbar-menu-icon-close {
+  display: block;
+}
+
+/* Mobile menu panel — drops below the sticky topbar */
+.vt-topbar-mobile-menu {
+  display: none;
+  position: fixed;
+  top: 3.5rem;
+  left: 0;
+  right: 0;
+  z-index: 99;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.5rem;
+  background: hsl(var(--surfaces-surface));
+  border-bottom: 1px solid hsl(var(--border-default));
+  box-shadow: 0 12px 28px hsl(var(--generic-black)/0.1);
+}
+
+.vt-topbar-mobile-menu.open {
+  display: flex;
+}
+
+.vt-topbar-mobile-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: hsl(var(--mains-secondary));
+  text-decoration: none;
+  transition: color 0.15s, background 0.15s;
+}
+
+.vt-topbar-mobile-link:hover,
+.vt-topbar-mobile-link.vt-active {
+  color: hsl(var(--mains-primary));
+  background: hsl(var(--surfaces-subtle));
+}
+
+.vt-topbar-mobile-link-external {
+  width: 14px;
+  height: 14px;
+  margin-left: auto;
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
 /* Responsive */
 @media (max-width: 960px) {
   .vt-topbar-link-storybook,
@@ -6351,6 +6439,9 @@ hr {
   }
   .vt-topbar-nav {
     display: none;
+  }
+  .vt-topbar-menu-btn {
+    display: inline-flex;
   }
   .vt-topbar-search {
     margin-left: 0;

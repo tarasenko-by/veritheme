@@ -11,6 +11,14 @@ _Add entries here as you work. `npm run release` freezes this section into a
 dated version block. Use the Keep a Changelog headings: Added / Changed /
 Deprecated / Removed / Fixed / Security._
 
+## [1.0.7] — 2026-07-21
+
+### Fixed
+- **Mobile top navigation.** The site header (`TopBar`) hid its nav below 640px with no replacement, so on the homepage (standalone header, no sidebar) mobile users couldn't reach Components / Examples / Generator / Storybook / Figma. Added a hamburger button (≤640px) that toggles a dropdown menu with the top-level links; Esc / outside-click / link-click close it. Desktop nav unchanged.
+
+### Changed
+- **Calendar examples polish.** Month/week example headers use a square page-btn for search and a full-size primary "New event"; preview snapshots re-shot to match.
+
 ## [1.0.6] — 2026-07-18
 
 ### Added
@@ -268,7 +276,8 @@ First stable release.
 - **WCAG contrast**: 32 token pairs fall below AA across editorial/rounded-sans themes. Default theme addressed; remaining themes queued for v1.1.
 - **Scope**: 18 components (Dialog, Accordion, Slider, Button Group, Popover, Sheet, Sidebar, mini-variants) remain in `main.scss` pending recipe-engine extensions (`rawRules`, `@keyframes`, `[data-*]` selectors). Scheduled for v1.1.
 
-[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.0.6...HEAD
+[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.0.7...HEAD
+[1.0.7]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.7
 [1.0.6]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.6
 [1.0.5]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.5
 [1.0.4]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.4
