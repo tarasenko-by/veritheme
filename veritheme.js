@@ -45,9 +45,35 @@ var UCAccordion = {
       void content.offsetHeight; // commit the collapsed start value
       content.style.transition = prevTransition;
       content.style.maxHeight = target + 'px';
+
+      // Высота в пикселях — снимок одного момента. Стоит после раскрытия
+      // подгрузиться веб-шрифту или смениться ширине колонки, как текст
+      // переносится иначе, а потолок остаётся прежним и срезает низ вместе
+      // с нижним отступом — именно так открытая панель упиралась в свой
+      // разделитель, пока страницу не перезагрузишь. Поэтому, как только
+      // раскрытие доиграло, потолок снимается совсем.
+      var release = function() {
+        content.removeEventListener('transitionend', onEnd);
+        if (content.classList.contains('open')) content.style.maxHeight = 'none';
+      };
+      var onEnd = function(e) {
+        if (e.target !== content || e.propertyName !== 'max-height') return;
+        release();
+      };
+      content.addEventListener('transitionend', onEnd);
+      // Страховка на случай, когда перехода нет вовсе (prefers-reduced-motion,
+      // фоновая вкладка): transitionend тогда не придёт, а потолок обязан
+      // сняться — иначе баг просто переезжает в эти случаи.
+      setTimeout(release, 600);
     }
 
     function closeContent(content) {
+      // Схлопывание от `none` не анимируется — сначала возвращаем потолку
+      // текущую фактическую высоту, от неё и едем к нулю.
+      if (!content.style.maxHeight || content.style.maxHeight === 'none') {
+        content.style.maxHeight = content.scrollHeight + 'px';
+        void content.offsetHeight;
+      }
       content.style.maxHeight = '0px';
       content.classList.remove('open');
       content.addEventListener('transitionend', function handler() {
@@ -201,6 +227,11 @@ function selectRadio(group, el) {
   if (radio && !radio.classList.contains('disabled')) radio.classList.add('selected');
 }
 
+// Inline `onclick` looks these up on window. In the shipped bundle the files
+// are concatenated at top level, where a function declaration is already
+// global; under a bundler it would be module-scoped, so pin them explicitly.
+if (typeof window !== 'undefined') window.selectRadio = selectRadio;
+
 // UCTabs — tab switching for [data-tab-group] with roving-tabindex keyboard nav
 var UCTabs = {
   activate: function(container, tabName) {
@@ -316,7 +347,7 @@ var UCCollapsible = {
 // UCCombobox — searchable single/multi-select with tags
 var UCCombobox = {
   init: function() {
-    var checkSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-w-4 vt-h-4 vt-shrink-0 vt-text-accents-brand vt-combobox-icon"><path d="M20 6 9 17l-5-5"/></svg>';
+    var checkSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-w-4 vt-h-4 vt-shrink-0 vt-text-brand-fill vt-combobox-icon"><path d="M20 6 9 17l-5-5"/></svg>';
     var emptySpacer = '<span class="vt-w-4 vt-h-4 vt-shrink-0 vt-combobox-icon"></span>';
     var xTagSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-w-3 vt-h-3"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
 
@@ -413,7 +444,7 @@ var UCCombobox = {
       var dropdown = document.getElementById(dropdownId);
 
       label.textContent = text;
-      label.classList.remove('vt-text-mains-quaternary');
+      label.classList.remove('vt-text-foreground-disabled', 'vt-text-foreground-muted');
 
       dropdown.querySelectorAll('.vt-combobox-item').forEach(function(i) {
         i.classList.remove('vt-selected');
@@ -435,12 +466,12 @@ var UCCombobox = {
 
       if (isSelected) {
         var tag = document.createElement('span');
-        tag.className = 'vt-combobox-tag vt-inline-flex vt-items-center vt-gap-1 vt-rounded vt-bg-surfaces-subtle vt-px-2 vt-py-0.5 vt-text-xs vt-font-medium';
+        tag.className = 'vt-combobox-tag vt-inline-flex vt-items-center vt-gap-1 vt-rounded vt-bg-surface-subtle vt-px-2 vt-py-0.5 vt-text-xs vt-font-medium';
         tag.setAttribute('data-tag-value', text);
         tag.appendChild(document.createTextNode(text));
         var removeBtn = document.createElement('button');
         removeBtn.type = 'button';
-        removeBtn.className = 'vt-ml-0.5 vt-rounded-sm vt-hover:bg-surfaces-moderate vt-transition-colors';
+        removeBtn.className = 'vt-ml-0.5 vt-rounded-sm vt-hover:bg-surface-moderate vt-transition-colors';
         removeBtn.innerHTML = xTagSvg;
         removeBtn.addEventListener('click', function(event) {
           event.stopPropagation();
@@ -449,7 +480,12 @@ var UCCombobox = {
         tag.appendChild(removeBtn);
         tagContainer.insertBefore(tag, tagContainer.querySelector('input'));
       } else {
-        var existing = tagContainer.querySelector('[data-tag-value="' + text + '"]');
+        // The label is arbitrary text — a quote in it ('12" screen') makes the
+        // selector unparsable, so the tag stayed while the tick came off.
+        var existing = null;
+        tagContainer.querySelectorAll('[data-tag-value]').forEach(function(t) {
+          if (t.getAttribute('data-tag-value') === text) existing = t;
+        });
         if (existing) existing.remove();
       }
 
@@ -522,7 +558,7 @@ var UCResizable = {
 
           document.body.style.cursor = isHorizontal ? 'col-resize' : 'row-resize';
           document.body.style.userSelect = 'none';
-          handle.style.background = 'hsl(var(--accents-brand) / 0.5)';
+          handle.style.background = 'hsl(var(--brand-fill) / 0.5)';
         });
 
         document.addEventListener('mousemove', function(e) {
@@ -601,7 +637,7 @@ var UCCarousel = {
         if (dotsContainer) {
           dotsContainer.querySelectorAll('[data-dot]').forEach(function(dot) {
             var idx = parseInt(dot.dataset.dot || '0');
-            dot.className = 'vt-w-2 vt-h-2 vt-rounded-full vt-transition-colors ' + (idx === current ? 'vt-bg-accents-brand' : 'vt-bg-surfaces-moderate');
+            dot.className = 'vt-w-2 vt-h-2 vt-rounded-full vt-transition-colors ' + (idx === current ? 'vt-bg-brand-fill' : 'vt-bg-surface-moderate');
           });
         }
 
@@ -693,14 +729,14 @@ var UCDropdown = {
 // Checkbox toggle — called via onclick in HTML
 function toggleCheckbox(el) {
   var indicator = el.querySelector('.checkbox-indicator');
-  var isChecked = indicator.classList.contains('vt-bg-accents-brand');
+  var isChecked = indicator.classList.contains('vt-bg-brand-fill');
 
   if (isChecked) {
-    indicator.classList.remove('vt-bg-accents-brand', 'vt-text-generic-white', 'vt-border-transparent');
+    indicator.classList.remove('vt-bg-brand-fill', 'vt-text-generic-white', 'vt-border-transparent');
     indicator.innerHTML = '';
     el.setAttribute('aria-checked', 'false');
   } else {
-    indicator.classList.add('vt-bg-accents-brand', 'vt-text-generic-white', 'vt-border-transparent');
+    indicator.classList.add('vt-bg-brand-fill', 'vt-text-generic-white', 'vt-border-transparent');
     indicator.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="vt-w-3 vt-h-3"><path d="M20 6 9 17l-5-5"/></svg>';
     el.setAttribute('aria-checked', 'true');
   }
@@ -710,16 +746,22 @@ function toggleCheckbox(el) {
 function selectMenuRadio(el) {
   var parent = el.closest('.vt-dropdown-menu');
   parent.querySelectorAll('.radio-indicator').forEach(function(r) {
-    r.classList.remove('vt-border-accents-brand');
+    r.classList.remove('vt-border-brand-fill');
     r.classList.add('vt-border-input');
     r.innerHTML = '';
   });
 
   var indicator = el.querySelector('.radio-indicator');
   indicator.classList.remove('vt-border-input');
-  indicator.classList.add('vt-border-accents-brand');
-  indicator.innerHTML = '<div class="vt-w-2 vt-h-2 vt-rounded-full vt-bg-accents-brand"></div>';
+  indicator.classList.add('vt-border-brand-fill');
+  indicator.innerHTML = '<div class="vt-w-2 vt-h-2 vt-rounded-full vt-bg-brand-fill"></div>';
 }
+
+// Inline `onclick` looks these up on window. In the shipped bundle the files
+// are concatenated at top level, where a function declaration is already
+// global; under a bundler it would be module-scoped, so pin them explicitly.
+if (typeof window !== 'undefined') window.toggleCheckbox = toggleCheckbox;
+if (typeof window !== 'undefined') window.selectMenuRadio = selectMenuRadio;
 
 // UCScrollView — drag-to-scroll and scroll indicators
 var UCScrollView = {
@@ -810,19 +852,30 @@ var UCNumberInput = {
       var incBtn = wrapper.querySelector('[data-action="increment"]');
       if (!input) return;
 
+      function toInt(value, fallback) {
+        // `parseInt(x) || fallback` treats a legitimate 0 as missing.
+        var n = parseInt(value, 10);
+        return isNaN(n) ? fallback : n;
+      }
+
+      function bounds() {
+        return {
+          min: input.hasAttribute('min') ? toInt(input.min, -Infinity) : -Infinity,
+          max: input.hasAttribute('max') ? toInt(input.max, Infinity) : Infinity
+        };
+      }
+
       function updateButtons() {
-        var val = parseInt(input.value) || 0;
-        var min = input.hasAttribute('min') ? parseInt(input.min) : -Infinity;
-        var max = input.hasAttribute('max') ? parseInt(input.max) : Infinity;
-        if (decBtn) decBtn.disabled = val <= min;
-        if (incBtn) incBtn.disabled = val >= max;
+        var val = toInt(input.value, 0);
+        var b = bounds();
+        if (decBtn) decBtn.disabled = val <= b.min;
+        if (incBtn) incBtn.disabled = val >= b.max;
       }
 
       function step(delta) {
-        var val = parseInt(input.value) || 0;
-        var min = input.hasAttribute('min') ? parseInt(input.min) : -Infinity;
-        var max = input.hasAttribute('max') ? parseInt(input.max) : Infinity;
-        var next = Math.min(Math.max(val + delta, min), max);
+        var val = toInt(input.value, 0);
+        var b = bounds();
+        var next = Math.min(Math.max(val + delta, b.min), b.max);
         input.value = next;
         updateButtons();
       }
@@ -831,10 +884,11 @@ var UCNumberInput = {
       if (incBtn) incBtn.addEventListener('click', function() { step(1); });
 
       input.addEventListener('change', function() {
-        var min = input.hasAttribute('min') ? parseInt(input.min) : -Infinity;
-        var max = input.hasAttribute('max') ? parseInt(input.max) : Infinity;
-        var val = parseInt(input.value) || min;
-        input.value = Math.min(Math.max(val, min), max);
+        var b = bounds();
+        // An empty/invalid field falls back to the lower bound when there is
+        // one, otherwise to 0 — never to -Infinity.
+        var val = toInt(input.value, isFinite(b.min) ? b.min : 0);
+        input.value = Math.min(Math.max(val, b.min), b.max);
         updateButtons();
       });
 
@@ -939,6 +993,13 @@ function selectItem(id, triggerId, value) {
   dropdown.classList.remove('open');
 }
 
+// Inline `onclick` looks these up on window. In the shipped bundle the files
+// are concatenated at top level, where a function declaration is already
+// global; under a bundler it would be module-scoped, so pin them explicitly —
+// the same thing dialog.js, combobox.js and toast.js do.
+if (typeof window !== 'undefined') window.toggleSelect = toggleSelect;
+if (typeof window !== 'undefined') window.selectItem = selectItem;
+
 // UCSlider — paints the filled track portion based on value/min/max
 var UCSlider = {
   init: function() {
@@ -977,15 +1038,15 @@ var UCToast = {
     var id = 'toast-' + (++UCToast._count);
     var configs = {
       default: { title: 'Scheduled: Catch up', desc: 'Friday, February 14, 2026 at 5:57 PM', icon: '', btn: 'Undo' },
-      success: { title: 'Success', desc: 'Your changes have been saved.', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-w-5 vt-h-5 vt-text-accents-brand"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>', btn: '' },
-      error: { title: 'Error', desc: 'Something went wrong. Please try again.', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-w-5 vt-h-5 vt-text-error-primary"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>', btn: 'Retry' },
+      success: { title: 'Success', desc: 'Your changes have been saved.', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-w-5 vt-h-5 vt-text-brand-fill"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>', btn: '' },
+      error: { title: 'Error', desc: 'Something went wrong. Please try again.', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-w-5 vt-h-5 vt-text-error-fill"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>', btn: 'Retry' },
       action: { title: 'Event created', desc: 'Sunday, December 03, 2023', icon: '', btn: 'Undo' }
     };
 
     var c = configs[type] || configs.default;
     var toast = document.createElement('div');
     toast.id = id;
-    toast.className = 'vt-flex vt-items-start vt-gap-3 vt-w-80 vt-p-4 vt-rounded-lg vt-border vt-border-border-default vt-bg-surfaces-surface vt-shadow-lg vt-mb-2';
+    toast.className = 'vt-flex vt-items-start vt-gap-3 vt-w-80 vt-p-4 vt-rounded-lg vt-border vt-border-border-default vt-bg-surface-card vt-shadow-lg vt-mb-2';
     toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
     toast.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
     toast.setAttribute('aria-atomic', 'true');
@@ -993,10 +1054,10 @@ var UCToast = {
       (c.icon ? '<div class="vt-flex-shrink-0 vt-mt-0.5">' + c.icon + '</div>' : '') +
       '<div class="vt-flex-1 vt-min-w-0">' +
         '<p class="vt-text-sm vt-font-semibold">' + c.title + '</p>' +
-        '<p class="vt-text-xs vt-text-mains-quaternary vt-mt-0.5">' + c.desc + '</p>' +
+        '<p class="vt-text-xs vt-text-foreground-muted vt-mt-0.5">' + c.desc + '</p>' +
       '</div>' +
-      (c.btn ? '<button onclick="this.parentElement.remove()" class="vt-flex-shrink-0 vt-inline-flex vt-items-center vt-justify-center vt-rounded-lg vt-text-xs vt-font-medium vt-h-7 vt-px-2 vt-border vt-border-border-strong vt-bg-surfaces-surface vt-hover:bg-surfaces-subtle vt-transition-colors">' + c.btn + '</button>' : '') +
-      '<button onclick="this.parentElement.remove()" aria-label="Close" class="vt-flex-shrink-0 vt-p-0.5 vt-text-mains-quaternary vt-hover:text-mains-primary vt-transition-colors">' +
+      (c.btn ? '<button onclick="this.parentElement.remove()" class="vt-flex-shrink-0 vt-inline-flex vt-items-center vt-justify-center vt-rounded-lg vt-text-xs vt-font-medium vt-h-7 vt-px-2 vt-border vt-border-border-strong vt-bg-surface-card vt-hover:bg-surface-subtle vt-transition-colors">' + c.btn + '</button>' : '') +
+      '<button onclick="this.parentElement.remove()" aria-label="Close" class="vt-flex-shrink-0 vt-p-0.5 vt-text-foreground-muted vt-hover:text-foreground-primary vt-transition-colors">' +
         '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-w-3.5 vt-h-3.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
       '</button>';
 
@@ -1026,12 +1087,13 @@ var UCDialog = {
       el.removeAttribute('aria-hidden');
       el.setAttribute('role', 'dialog');
       el.setAttribute('aria-modal', 'true');
-      var focusable = el.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      var focusable = UCDialog._focusable(el)[0];
       if (focusable) focusable.focus();
       el._keyHandler = function(e) {
         if (e.key === 'Escape') { window.closeDialog(id); return; }
         if (e.key !== 'Tab') return;
-        var all = el.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        var all = UCDialog._focusable(el);
+        if (!all.length) return;
         var first = all[0];
         var last = all[all.length - 1];
         if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
@@ -1052,6 +1114,20 @@ var UCDialog = {
       el._keyHandler = null;
       el._previousFocus = null;
     };
+  },
+
+  /**
+   * The elements inside the dialog that can actually take focus. A disabled
+   * or hidden control matches the selector but never becomes activeElement,
+   * so counting it as "last" let Tab walk out of the dialog.
+   */
+  _focusable: function(el) {
+    var nodes = el.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    return Array.prototype.filter.call(nodes, function(n) {
+      if (n.disabled || n.getAttribute('aria-hidden') === 'true') return false;
+      if (n.hasAttribute('inert') || (n.closest && n.closest('[inert]'))) return false;
+      return !!(n.offsetWidth || n.offsetHeight || n.getClientRects().length);
+    });
   }
 };
 
@@ -1105,4 +1181,11 @@ var UCTreeView = {
   document.addEventListener('astro:after-swap', function() {
     initAll();
   });
+
+  // Markup added after load — a rendered preview, a fetched fragment, a
+  // client-side route — has to be wired the same way. Every component's init
+  // is written to be re-run safely (per-element guards, document listeners
+  // bound once), so calling this again is cheap and idempotent.
+  window.veritheme = window.veritheme || {};
+  window.veritheme.init = initAll;
 })();

@@ -8,7 +8,7 @@
 
 **66 beautifully designed UI components.** Pure CSS utility classes, semantic design tokens, dark mode, and a vanilla JS bundle — no framework, no build step required.
 
-**[veritheme.com](https://veritheme.com)** · [Docs & live demos](https://veritheme.com) · [Theme Generator](https://veritheme.com/themes/)
+**[veritheme.com](https://veritheme.com)** · [Docs & live demos](https://veritheme.com) · [Design-system wizard](https://veritheme.com/create/)
 
 ---
 
@@ -93,7 +93,7 @@ Markup uses `data-*` attributes as hooks; the JS bundle initializes them automat
 </div>
 ```
 
-## Themes & the Theme Generator
+## Themes & the design-system wizard
 
 Three themes ship in the box (each with a light and dark variant):
 
@@ -101,7 +101,7 @@ Three themes ship in the box (each with a light and dark variant):
 - **Editorial** — Source Serif 4, editorial / long-form
 - **Rounded Sans** — Manrope, soft and friendly
 
-Want your own? The **[Theme Generator](https://veritheme.com/themes/)** lets you pick colors (light + dark), font, border radius, border width, and spacing scale — and watch every component restyle live. Export a ready-to-use CSS + JS bundle, or download a `theme.json` that drops straight into the Figma plugin so your design files re-theme to match. One file drives both code and design.
+Want your own? **Build your design system. Get the components.** The **[design-system wizard](https://veritheme.com/create/)** is a 7-step builder — colour scales → semantic palette → shape → spacing grid → typography → component rebinding → hand-off — where every component restyles live as you go. At the end, download the tokens for the Figma plugin and a ready-to-use CSS + JS bundle. One token file drives both code and design.
 
 ## Figma plugin
 
@@ -117,7 +117,7 @@ Want your own? The **[Theme Generator](https://veritheme.com/themes/)** lets you
 
 **Who it's for:** Designers and product teams who want a consistent, token-driven foundation without building a design system from scratch.
 
-It shares the same `theme.json` format as the Theme Generator, so a theme designed in code re-themes your Figma library to match.
+It shares the same token format as the design-system wizard, so a system built in the browser re-themes your Figma library to match.
 
 ## Use with AI agents (MCP)
 
