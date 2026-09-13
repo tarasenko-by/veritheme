@@ -7442,6 +7442,18 @@ hr {
   color: hsl(var(--foreground-disabled));
 }
 
+/* Compact header on phones: hide the version chip and star count first, then the wordmark. */
+@media (max-width: 480px) {
+  .vt-topbar-version,
+  .vt-topbar-github-stars {
+    display: none;
+  }
+}
+@media (max-width: 360px) {
+  .vt-topbar-logo > span {
+    display: none;
+  }
+}
 /* Source: src/pages/components/colors.astro */
 /* Segmented HEX/RGB/HSL toggle — active state (bg/text/shadow) applied via utilities in JS */
 .vt-color-format-btn {
@@ -8152,6 +8164,14 @@ input[type=number] {
   font-size: 16px;
   font-weight: 400;
   line-height: 1.6;
+}
+
+.vt-inline-d2d9157b02 {
+  width: 42%;
+}
+
+.vt-inline-ceecf0acec {
+  width: 92%;
 }
 
 .vt-popover-content {

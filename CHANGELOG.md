@@ -11,6 +11,62 @@ _Add entries here as you work. `npm run release` freezes this section into a
 dated version block. Use the Keep a Changelog headings: Added / Changed /
 Deprecated / Removed / Fixed / Security._
 
+## [1.1.1] — 2026-09-13
+
+### Added
+
+- **The JS bundle wires more components from markup alone.** Password
+  visibility toggles, the pricing period switch and one-time-code groups
+  (`data-password-toggle`, `data-pricing`, `data-otp`), the command palette
+  (Enter runs the highlighted item and fires `vt:commandselect`) and
+  collapsible sidebar sections are now part of `veritheme.min.js`.
+- **Calendar navigation and selection.** `[data-calendar]` cards switch months,
+  select a date or a range, and move by keyboard (arrows, Home, End);
+  selection is tracked by date and fires `vt:datechange`.
+- **MCP reads the project's own system.** `get_project_system` loads
+  `veritheme.system.json` (or `VERITHEME_PROJECT_DIR`) with its revision and
+  whether the tokens were edited since export; `get_tokens` and `get_theme`
+  answer from it when present.
+- **/create exports one ZIP** with the system source, `tokens.json`,
+  `theme.css`, the library CSS and JS, a working demo page, README, AI
+  instructions and a SHA-256 revision manifest, and shows a before/after
+  review before an import replaces the current system.
+
+### Fixed
+
+- **The generator's dark preview stops borrowing the page's light colours.**
+  Intent text and the intent fill states are derived, not authored, and the
+  preview never wrote them — so a dark preview on a light page painted the
+  alert's text with the light `--error-text`, dark red on the dark red tint at
+  2.35:1, and its disabled state with a pale tint that was the brightest thing
+  on the panel. The preview now derives them for the mode it is showing, with
+  the same function that writes `theme.css` and the DTCG export.
+- **The contrast audit scores intent text on its own tint.** The alert and
+  banner pair was the one combination nothing checked, in the generator's audit
+  step, `npm run audit:contrast` and the MCP `audit_contrast` alike — all three
+  reported every pair passing while that text was unreadable. All four intents
+  are now scored against their surface, in the mode they are shown in.
+- **Dropdown menus follow the menu keyboard contract.** Arrow keys, Home,
+  End, Escape and Tab work; the trigger reports `aria-expanded`; checkbox
+  items keep their indicator and `aria-checked` in agreement.
+- **Tabs inside another tab group no longer open two panels at once.**
+- **Themes survive the round trip between Figma, /create and code.** Custom
+  scales and sizes, typography, shadows, dark colours, states, aliases and
+  component rebinds are kept on export and re-import, and size units agree
+  across CSS, SCSS, Tailwind and Style Dictionary, including a 20px root.
+- **The Figma plugin keeps each file's theme to itself.** The applied theme
+  and the draft are stored per document; a failed Apply keeps the draft,
+  Reset clears both, partial generation failures are reported as errors, and
+  border width applies and reads back correctly.
+- **MCP returns valid CSS or a clear error.** Theme JSON, DTCG and system
+  snapshots are normalised; objects, unitless sizes, legacy and unknown colour
+  roles no longer produce `[object Object]` or silently wrong variables. The
+  validator flags Tabs missing `data-tab`/`data-panel`.
+- **Snippets match the documentation.** MCP, the shadcn registry,
+  `llms-full.txt` and the plugin share the examples rendered on the site;
+  Button Group, Empty State, Number Input, OTP Input and Tree View have their
+  usage examples back, and interactive components say they need the JS bundle.
+
 ## [1.1.0] — 2026-09-08
 
 ### Fixed
@@ -1020,7 +1076,8 @@ First stable release.
 - **WCAG contrast**: 32 token pairs fall below AA across editorial/rounded-sans themes. Default theme addressed; remaining themes queued for v1.1.
 - **Scope**: 18 components (Dialog, Accordion, Slider, Button Group, Popover, Sheet, Sidebar, mini-variants) remain in `main.scss` pending recipe-engine extensions (`rawRules`, `@keyframes`, `[data-*]` selectors). Scheduled for v1.1.
 
-[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.1.1
 [1.1.0]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.1.0
 [1.0.7]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.7
 [1.0.6]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.6
