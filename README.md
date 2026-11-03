@@ -16,7 +16,7 @@
 
 Veritheme is a framework-agnostic UI component library delivered as plain CSS and vanilla JavaScript. You style your markup with `vt-` utility classes and drop in `data-*` attributes for interactive behavior — the JS bundle wires everything up automatically. No React, no Tailwind runtime, no bundler needed.
 
-It's built around a **2-layer design token system** (raw palette → semantic tokens) that keeps colors, spacing, typography, and radii consistent across light/dark modes and across three shipped themes. The builder exports CSS and DTCG from the same tokens. Supported variable values can be exchanged with Figma through explicit import/export; manual component structure edits are not automatically transferred.
+It's built around a **2-layer design token system** (raw palette → semantic tokens) that keeps colors, spacing, typography, and radii consistent across light/dark modes and across the shipped Default theme and any custom theme you build. The builder exports CSS and DTCG from the same tokens. Supported variable values can be exchanged with Figma through explicit import/export; manual component structure edits are not automatically transferred.
 
 ## Install
 
@@ -47,7 +47,7 @@ import 'veritheme'; // initializes interactive components
 |------|-------------|
 | `veritheme.min.css` / `veritheme.css` | All components + vt- utility classes + design tokens (minified / readable) |
 | `veritheme.min.js` / `veritheme.js` | Vanilla JS for interactive components, zero dependencies |
-| `themes/*.json` | Theme token files — `default`, `editorial`, `rounded-sans` |
+| `themes/*.json` | Theme token file — `default` (the one theme that ships) |
 | `theme-manifest.json` | Index of available themes (name, label, font, dark-mode support) |
 
 Package exports: the file names above (`veritheme/veritheme.min.css`, `veritheme/veritheme.js`, …), plus the aliases `veritheme/css`, `veritheme/css/unminified`, `veritheme/js/unminified`, `veritheme/themes/*` and `veritheme/theme-manifest`. A bare `import 'veritheme'` resolves to `veritheme.min.js`.
@@ -74,10 +74,10 @@ Add `.dark` to `<html>`:
 
 ### Themes
 
-Add `data-theme` to `<html>` — choose `default`, `editorial`, or `rounded-sans`:
+The **Default** theme applies with no attribute. A custom theme (from the design-system wizard) is applied with its own `data-theme` value on `<html>`:
 
 ```html
-<html data-theme="editorial">
+<html data-theme="my-theme">
 ```
 
 ### Interactive components
@@ -95,11 +95,7 @@ Markup uses `data-*` attributes as hooks; the JS bundle initializes them automat
 
 ## Themes & the design-system wizard
 
-Three themes ship in the box (each with a light and dark variant):
-
-- **Default** — Inter, clean and neutral
-- **Editorial** — Source Serif 4, editorial / long-form
-- **Rounded Sans** — Manrope, soft and friendly
+One theme ships in the box: **Default** — Inter, clean and neutral, with a light and dark variant.
 
 Want your own? **Build your design system. Get the components.** The **[design-system wizard](https://veritheme.com/create/)** is a 7-step builder — colour scales → semantic palette → shape → spacing grid → typography → component rebinding → hand-off — where every component restyles live as you go. At the end, download the tokens for the Figma plugin and a system package with source, tokens, library CSS/JS, a working demo and AI instructions.
 

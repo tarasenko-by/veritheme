@@ -11,6 +11,703 @@ _Add entries here as you work. `npm run release` freezes this section into a
 dated version block. Use the Keep a Changelog headings: Added / Changed /
 Deprecated / Removed / Fixed / Security._
 
+## [1.2.0] — 2026-11-03
+
+### Added
+
+- **Button labels sit on the optical center, in any font.** A label in a plain
+  `<span>` inside `vt-btn` or a `vt-btn-group` button is centered by cap
+  height (`text-box: trim-both cap alphabetic`), not by the font box: with
+  Onest, labels without descenders sat about 1px high. Raw text in a button
+  renders as before, so existing markup keeps working; the site's buttons now
+  wrap their labels.
+
+- **Studio audit: every component checked against its spec, with a report.**
+  `npm run audit:studio` (`scripts/studio-audit.mjs`) opens Studio in its own
+  browser with a fresh "Audit" system and checks each component and block
+  against `components/<name>.json` — its Figma variants and states, the
+  anatomy's state map (`anatomy.is`), its boolean properties — on six points:
+  preview, variants, states, properties, inspector, logic. The result is
+  `test-results/studio-audit/report.html`: a component × check table with a
+  snapshot of each canvas. The same checks run as a Playwright test
+  (`npm run test:studio-audit`, its own config — not part of `test:visual`),
+  and the checklist with the order of
+  work is the `/studio-audit` skill; each new kind of bug found becomes a new
+  check there. Beyond the spec it catches what broke the canvas itself: a
+  component cut off and scrolling inside its cell, a canvas that scrolls
+  sideways, and icons of the same part at different sizes across cells.
+  What only shows on a pseudo-element (Scroll view's scrollbar) or in
+  another variant than the one on the canvas is listed as a note to check
+  by eye, not as a problem.
+
+- **Studio keeps as many systems as you like, in your browser.** Each system
+  has its own place in local storage, so creating or duplicating one no longer
+  overwrites the last; Studio's home says where they are kept, and an empty
+  name becomes "Design system N". Accounts, saving to the cloud and releases
+  are built but switched off (`ACCOUNTS` in `src/lib/features.mjs`) until the
+  cloud launches: there is no Sign in, and nothing leaves the browser.
+
+- **A 4px radius step of its own: `--radius-2xs` and `vt-rounded-2xs`.** See
+  the `--radius-xs` change below.
+
+- **Remove a component straight from the Studio overview.** Each component card
+  has the same ⋯ menu as a system card: Customize, and Remove. A component that
+  another one uses shows Remove greyed out with the reason ("Used by …").
+  Removing doesn't ask for the name, unlike deleting a system — the component
+  comes back from the catalogue with its settings intact.
+
+- **A component in Studio opens on a canvas: variants across, states down.**
+  Like editing a component in Framer — columns are the values of one axis
+  (Variant by default, switchable), rows are Default, Hover, Active, Focus and
+  Disabled, all at once. The other axes (Size, Shape) are switches above the
+  canvas. The canvas is a preview: the inspector on the right sets the whole
+  component. A column's × takes the value out of the system; the "+" tile
+  brings it back.
+
+- **The component builder follows how a designer actually works.**
+  - What you look at and what the system is are apart: Show (icons, label)
+    moved to the bar above the canvas next to Size and Shape; Properties in
+    the inspector are switches that decide whether the component has the part
+    at all. Axes are named as in Figma (Variant, not Intent).
+  - A button is never empty. Its label and icons are its content, and the last
+    one showing can't be switched off — neither in Show nor from the system;
+    take the label out and an icon shows by itself. Show is a set of toggle
+    chips (several at once), not a segmented control like Size and Shape, and
+    it steps aside for the Icon shape, which draws its one icon anyway.
+  - A component's own logic shapes what can be switched off: a component that
+    has an icon-only shape (Button's Shape: Icon) always keeps its label in
+    the other shapes — turning the label off would just be the icon shape a
+    second way, so it has no toggle in Show or Properties.
+  - Each parameter shows the token that is in effect — `md · 12px`, `body-sm ·
+    14px` — muted while inherited, instead of a raw value; the list holds only
+    tokens, and the × next to a set value takes it back. The token is found by
+    result, not by guessing: the instance's computed value is compared with
+    every token of the family, and a rebound ladder shows the step it was
+    moved to. A recipe's own shadow reads "Recipe shadow".
+  - Colors groups the component's roles by what they paint — Fill, Text,
+    Border, Focus — and hides a group the component doesn't use.
+  - Every list in the inspector is the library's dropdown menu, not a native
+    select; clicking its field again closes it, as it does the color picker in
+    Colors.
+  - The inspector can be widened by its left edge, from 20rem to 32rem; the
+    width is remembered in this browser. Labels line up with section titles.
+  - Which sizes, shapes and other axis values go into the system is chosen
+    right above the canvas: next to each axis a "3/4" button opens a checklist
+    ("Sizes in the system"), and the segments show only what is checked. Any
+    value can be left out, the default too — a button set of LG only — as
+    long as one stays; the canvas columns take a × on the default as well.
+    The Variants section at the bottom of the inspector is gone, and Columns
+    uses the library dropdown.
+  - "Colours" is "Colors" throughout Studio.
+  - Adding a component opens it.
+  - A guest system changed in another tab stops saving here and says so,
+    instead of the last tab silently overwriting the other one's work.
+- **Figma gets the parameters.** Generate gives the component's values to
+  every variant of its set: radius, height, padding and gap bind to the
+  system's variables, shadow to its effect style and font size to the text
+  style's size. What the recipe itself changes in a state (the button's hover
+  shadow) stays the recipe's there, as in the CSS.
+
+- **The Studio inspector reads like Framer's.** Sections — Layout, Style,
+  Type, Properties, Variants — with a label on the left and a filled field on
+  the right; a value set for the component carries a dot and a × to reset it,
+  and variant values are chips. Properties are two
+  columns of checkboxes, Show and In system, instead of a button labelled
+  with its state. The blocks below follow the same system: Composition as
+  rows of links, Colours as filled rows with a swatch and the role's name
+  (the state strip is gone — the canvas row sets the state), HTML and CSS as
+  compact code with a text Copy, and neutral chips for variant values.
+
+- **Component parameters in Studio — through tokens, for the whole
+  component.** The component page in Studio is now a builder: the canvas of
+  variants and states in the middle, an inspector on the right where the live
+  preview used to be. It sets the component's corner radius, height, padding,
+  gap, shadow and font size — choosing from the system's own tokens — once
+  for all its variants and states. Radius and Height shift the whole size
+  ladder (SM stays smaller than MD). Colours are roles: Colors rebinds the
+  roles the component reads, and a role brings its own hover, pressed and
+  disabled shades, so a variant can't end up with a hover lighter than its
+  base. The parameters are ours and fixed per component — the ones its root
+  rule actually sets. In the exported CSS they are one rule of fixed weight
+  (0,2,0): above the recipe's variants, below its own states.
+
+- **Boolean properties can be previewed and removed.** Left icon, Label, Right
+  icon on a button (and Show Icon, Show Helper Text… elsewhere) can be shown
+  on the canvas, and kept in or taken out of the system. A removed property is
+  not created in Figma and its layer goes with it — unless another component
+  being generated turns it on (Auth's button keeps its leading icon).
+
+- **Filter the Studio catalogue by complexity.** Next to search: All, Basic
+  (one element — button, checkbox), Composite (built from basic ones — tabs,
+  pagination, card) and Complex (a whole interaction — dialog, combobox,
+  command). It combines with the category chips, and each card names its
+  level. The level is the component's `$mcp.level`, the same one the MCP
+  server gives agents.
+
+- **Adding a composite component asks first.** When a component brings
+  simpler ones that aren't in the system yet — Stats Card brings Card and Icon
+  Badge — a dialog names them before anything is added. What a component
+  includes is shown on its catalogue card as badges.
+
+### Changed
+
+- **Builder: Customize colors is quieter and lines up.** The expanded scale
+  row follows the table grid (charts span the ramp, the picker spans Base and
+  Name) and opens with the same animation it closes with. Swatches lose their
+  ring except near-white ones; scale and role names read as row headings; the
+  Lightness, Chroma and Hue drift summaries are worded ("97% → 28%", "peak
+  0.22 at 700", "−11° to +5°") and the white-text line is labeled. The hint,
+  the white-text line and the step labels follow the Label contrast method
+  (APCA Lc or WCAG). Show state colors is a switch next to the Roles tab, the
+  all-clear contrast banner is gone (problems still show), remove buttons are
+  a trash icon, the pencil of the block being edited stays highlighted, and
+  Custom colors shows up as soon as you edit, with your palette as dots. The
+  sidebar keeps only section titles.
+
+- **The palette is Tailwind CSS v3's.** `tokens/palette.json` now holds
+  Tailwind's ramps converted to HSL (grey = neutral, brand = blue), so every
+  step changes value in CSS, the exported tokens and the Figma variables
+  alike. Filled colours moved a step darker to keep white text readable:
+  brand and info fill 500 → 600, success and warning fill 600 → 700; in dark
+  mode, disabled text is grey.500 instead of grey.600. Primary hover and press
+  follow the fill (brand 700 / 800).
+
+- **Accordion titles use the Label/LG style** instead of Body/SM, so a title
+  reads as a heading for its panel.
+
+- **The home page opens on a live builder.** The hero starts where `/start/`
+  starts — pick a project, the corners and a colour and the example screen
+  repaints. The preview screens are shared (`/screens/…`, `noindex`) rather
+  than part of the beginner flow.
+
+- **Figma plugin: the panel wears the site theme.** The plugin's chrome is now
+  `data-theme="site"` — the same `tokens/site.json` theme as the stage site
+  (violet brand, 0.5px hairlines, pill buttons), compiled by
+  `scripts/build-plugin.mjs` into `figma-plugin/src/generated/site-theme.css`.
+  The previews stay `data-theme="default"` specimens. The preset chips are
+  hidden (Default is the only preset); the demo card in the preview is a
+  "New project" form instead of a sign-in screen.
+
+- **Lines: shell and content are two variables.** A system now carries
+  `lineWidth` (content lines — cards, dividers, table rows →
+  `--border-width-thin`) beside `borderWidth` (controls and the app shell →
+  `--border-width-default`), in CSS, DTCG and the canonical theme; without it
+  the old min(width, 1px) rule stands. The shell recipes — `page-layout`,
+  `sidebar-nav`, `header` — draw their dividers with the default line, like
+  `sidebar` already did (identical at the default 1px). A Hairline (0.5px)
+  system draws its lines at half strength below 2dppx, where browsers round
+  0.5px up to a full pixel.
+- **Bordered and ghost buttons: lighter hover and press.** Hover is
+  `neutral-fill` (grey.50), press `neutral-fill-hover` (grey.100); the grey
+  secondary button keeps 100/200.
+- **Dark mode: black page, grey.950 cards** in the default theme.
+- **Density moves control heights** by 4px a step (36 / 40 / 44px at
+  0.75 / 1 / 1.25) and scales button padding; density 1 output is unchanged.
+- **Guided builder (`/start`, behind the beginner flag):** one scroll instead
+  of steps, options as rows with true-size samples, Tailwind brand palette,
+  Untitled UI shadow scale (None / Small / Medium / Large / Extra large = md / lg / xl / 2xl), line thickness (None /
+  Hairline / Regular / Bold) and colour (Light / Strong), 65 Google fonts, a
+  Simple / Pro switch; Studio's create dialog offers Simple first.
+
+- **Button group sizes the whole group.** `vt-btn-group-sm`, `-lg` and `-xl`
+  used to change only the corners of the `vt-btn` buttons inside (and the
+  height of bare `<button>`s), so a group of `vt-btn`s looked the same at
+  every size — unlike Figma, where the group's Size is passed to its
+  buttons. Now every button in a sized group takes that size: height,
+  padding, type, shadow depth and corners, the same set as `vt-btn-sm/-lg/-xl`
+  (an icon-only `vt-btn-icon` keeps its zero side padding).
+  A group without a size class (MD) leaves its buttons' own size alone, so
+  existing markup keeps working; the docs' Sizes example now sets the size on
+  the group.
+
+- **Studio's inspector edits the whole component only.** Cells, columns and
+  rows of the canvas are no longer selected and edited one by one: every
+  parameter is set once for the component, colours go through roles in
+  Colors. Fewer ways to break a system, and the CSS, the preview and Figma
+  agree by construction.
+  - Layout is a grid of compact number fields, as in Figma: a glyph, the value
+    in px, and a menu of tokens behind the chevron. A typed number
+    snaps to the nearest step of the system's ladder, ↑/↓ step along it, and an
+    empty field or a click on the (brand-coloured) glyph of a set value resets
+    it. Radius moved here from Style, so every number sits in one place.
+  - Systems saved by the builder before this keep their component-wide
+    values; edits made on a variant, a state or a cell, and colour
+    parameters, are dropped when the system is opened (Studio schema 3) —
+    the generator no longer reads them either.
+  - The inspector's explanatory notes are gone: the "reaches the code only"
+    note and the hints under Radius steps and Density.
+  - A component's parts (the button's left and right icons) are always part of
+    it now — in the code and in Figma, where they stay a boolean property. The
+    Properties switches only show or hide them on the canvas, like toggling
+    the property on a Figma instance, and replace the "Show" chips above the
+    canvas. Parts a system had removed under the old rule come back: the
+    export no longer carries `props`, and Studio drops them when the system
+    is opened (in memory — opening a system is not a new revision).
+  - The colour axis is the one whose values have their own colours:
+    intent/variant, otherwise color, tone or style — Badge and Dot colour by
+    `color`, Link by `style`, and their columns follow it.
+  - The axes moved from above the canvas into the inspector, a Variants
+    section above Layout that lists every axis — the one in columns too, as
+    "In columns", whose menu only switches values in or out of the system
+    (on the canvas they are all shown already). Each is a dropdown showing
+    the value on the canvas and how many are in the system (4/4). In its menu
+    a click on a value shows it on the canvas, and the switch beside it takes
+    the value in or out of the system — the old "4/4" checklist, in one place.
+    The last value can't be switched off, a value that's off can't be shown,
+    and the menu stays open while you switch several.
+  - The bar above the canvas is gone. Columns are always the main axis
+    (Variant); the other axes are picked in the Variants panel.
+  - Radius and Height live in one place, Layout, for every component. The
+    field moves the whole size ladder (what "Radius steps" and "Density" in a
+    separate Scale section did). Button group, whose radius
+    lives in its parts, used to have only "Radius steps" — it now has the same
+    Radius field as Button. The Scale section is gone.
+  - A reset in a component's root rule is not a parameter: `padding: 0` on
+    the breadcrumb's list (items in one line), switch, stepper, timeline and
+    list no longer offers Padding X / Y. A value already set stays as a field,
+    so it can still be reset.
+  - The stage's light/dark preview is a segmented control of two icons (sun,
+    moon) instead of a "Dark"/"Light" text button — in Studio and in the
+    `/create` wizard, which share the stage.
+
+- **The site and Studio draw their own interface with Iconly icons.** Top
+  bar, sidebar, Studio, account, docs frames and the site's own pages use
+  Iconly Pro (Outline, Regular). The components, their examples, `/examples`
+  and the product demos on the home page keep Lucide — the icons a system's
+  users actually get. An interface icon is never smaller than 16×16: CSS
+  holds the floor, and `npm run check:min-icon-size` (part of `check:all`)
+  rejects smaller size classes in the markup. In the Studio sidebar the
+  active item's icon turns filled (the same Iconly glyph in Bold).
+
+- **Ten components now declare their complexity level.** Accordion, Alert,
+  Banner, Button Group, Card, Empty State, Toast and Toolbar are level 2;
+  Chip and Slider level 1. Before, they had none, and MCP reported all ten as
+  level 1.
+
+- **Studio thumbnails show each component as it is meant to be seen.** They are
+  centred in the card; small controls (checkbox, radio, switch, rating, badges)
+  are drawn larger; popover, dropdown, combobox and select are shown open with
+  the panel in frame, and the tooltip is visible. Stats card shows one card and
+  the table three rows, so neither is cut off; tall previews align to the top.
+  Media shows a single frame; Dialog and Command sit on a backdrop that covers
+  the whole thumbnail. Among blocks, Pricing Card shows the highlighted plan
+  and Testimonial a single quote; Header and Footer run full width along the
+  top and bottom edge, the way they sit on a page.
+
+- **`--radius-xs` is 6px; 4px is now `--radius-2xs`.** The scale gains a 6px
+  step, inserted by renaming: `--radius-xs` / `vt-rounded-xs` used to be 4px
+  and are now 6px, and the old 4px corner is `--radius-2xs` /
+  `vt-rounded-2xs`. The library's own 4px corners moved to 2xs, so components
+  look the same; markup of your own that uses `vt-rounded-xs` or
+  `var(--radius-xs)` gets 2px rounder — switch it to 2xs to keep 4px. The
+  themed scale from `sm` up is unchanged. A wizard system or tokens file saved
+  before the step is migrated on load (its 4px `xs` is read as `2xs`).
+- **Textarea has one size.** Its height is the user's (resizable, `rows`), so
+  the size axis is gone: `vt-textarea-sm` / `-lg` / `-xl` still exist but draw
+  the default field (see Deprecated). In Figma the Textarea set has no Size
+  property.
+- **DatePicker is part of Calendar.** Its classes (`vt-date-picker-field`,
+  `-trigger`, `-placeholder`, `-floating`, `-presets`) and the
+  `data-calendar` behaviour are unchanged and now live in the Calendar recipe;
+  the page is the Date Picker section of the Calendar page
+  (`/components/date-picker/` redirects there). See Removed for the separate
+  entries that went.
+
+- **Label and Section Label are text styles, not components.** Each was a Figma
+  component holding one line of text. The typography grows an eleventh style
+  instead — **Overline** (12/16, regular, set in capitals by the style) with the
+  class `vt-overline` — and the two classes stay as its names: `vt-label` is
+  Body/SM in the primary colour (`vt-label vt-label-sm` is Caption) and
+  `vt-section-label` is Overline in the muted colour. Markup does not change.
+  In Figma the Label and SectionLabel sets are gone: an Input's or Textarea's
+  label, a List's heading and a Sidebar Nav's group headings are text layers
+  bound to the style, and their text is a property of the component (Label,
+  Heading, Group 1/2 Label). The field wrapper (`vt-field`, its description,
+  error and success lines) is its own CSS recipe, Field.
+- **`vt-overline` is the Overline style.** It used to be a text-decoration
+  utility (a line over the text) while the docs and the MCP guidelines already
+  called it the uppercase eyebrow; it now is one. Nothing in the library drew
+  a line over text.
+
+### Deprecated
+
+- **`vt-btn-link` is deprecated — use the Link component (`vt-link`).** A
+  button that looks like a link is a link: `<a class="vt-link">`. The
+  `.vt-btn-link` rule stays in the package so existing markup keeps working,
+  but it is gone from the Button docs, the Figma plugin (the Button set no
+  longer has a Link variant) and the MCP server, whose `validate_markup` now
+  warns on it. It will be removed in the next major version.
+- **`[data-password-toggle]` is deprecated — a password field is a plain
+  `<input type="password" class="vt-input">`.** The show/hide button is gone
+  from the Input and Auth docs, the Figma plugin (Input no longer has a
+  Type=Password variant; Auth's password fields are plain inputs) and the MCP
+  server, whose `validate_markup` now warns on it. The bundle still wires the
+  attribute, so 1.x markup keeps working; it will be removed in the next major
+  version.
+- **`vt-textarea-sm`, `vt-textarea-lg` and `vt-textarea-xl` are deprecated.**
+  They draw the one Textarea size; drop them from markup. They will be removed
+  in the next major version.
+
+### Removed
+
+- **Figma plugin: no account, no sync.** Sign-in (device flow), the
+  project/release picker, the "new version" banner and three-way review, the
+  audit's "Propose" upload, the document's link to a release, the stored
+  account token and the Supabase domain in `manifest.json` are gone, with
+  their tests (`plugin-cloud.spec.js`, `three-way`, `sha256`, `var-map`).
+
+- **The standalone wizard is gone; the editor lives only in Studio.**
+  `/wizard` — the service copy of the old `/create` wizard — now forwards
+  to `/studio` the same way `/create` does, carrying a `#s=` share link
+  along (`StudioRedirect`). With no second host, the editor dropped what only
+  the wizard used: its top stepper, its own Save / Release / sign-in and
+  conflict dialogs, the leave-page warning, the `#step-N` address and the
+  "From your Figma file" proposals block (hidden in Studio all along). Studio
+  saves the system itself, so a typography-only edit now survives a reload
+  instead of asking to leave. The editor's contract tests run against a Studio
+  guest system.
+
+- **Kbd and Pill.** `vt-kbd` and `vt-pill` (`vt-pill-sm`, `vt-pill-lg`) are
+  gone from the CSS, the shadcn registry (`/r/kbd.json`, `/r/pill.json`) and
+  the MCP server. Use Badge for a static tag, Chip for a removable one, and
+  `vt-code-inline` for a key or a shortcut.
+- **The docs site's own chrome is no longer in `veritheme.min.css`** (−32 KB).
+  The public bundle used to carry the site's sidebar, table of contents,
+  top bar, example blocks, API tables, mode buttons, anatomy blocks,
+  component cards, colour swatches and the generated rules of the site's
+  pages: `vt-sidebar-*`, `vt-toc-*`, `vt-topbar-*`, `vt-example-*`,
+  `vt-api-table`, `vt-mode-btn`, `vt-anatomy*`, `vt-component-card`,
+  `vt-color-swatch`, `vt-theme-toggle`, `vt-search-input`, `vt-list-check`,
+  `vt-inline-*` and the like. None of them was a library component; they now
+  load only on veritheme.com. Their shadcn registry items (`/r/anatomy.json`,
+  `/r/api-table.json`, `/r/color-swatch.json`, `/r/component-card.json`,
+  `/r/example-block.json`, `/r/mode-btn.json`, `/r/sidebar.json`,
+  `/r/toc.json`) and MCP specs went with them.
+- **Stale MCP specs and registry items.** `label` and `section-label` (text
+  styles now, see Changed), `dropdown-wrap` and `feature-item` are no longer
+  offered by `get_component` or the shadcn registry; `vt-dropdown-wrap` and
+  `vt-feature-item` stay in the CSS as parts of Dropdown Menu and Feature
+  Section. The MCP build now drops
+  any spec whose component is not in the library, instead of keeping it
+  forever.
+- **The separate DatePicker component:** its registry entry, Figma set, MCP
+  spec and `/r/date-picker.json`. Everything it did is in Calendar (see
+  Changed).
+- **Figma variants for removed or deprecated looks:** Button's Link variant,
+  Input's Type=Password, Textarea's Size, and the Label and SectionLabel sets.
+
+### Fixed
+
+- **A color picked for a pure-gray scale tints the whole ramp.** On a family
+  whose saturation curve is 0 (Grays "pure"), only the anchor step took the
+  color and every other step stayed gray; the ramp now carries the picked
+  saturation throughout. A gray stays gray.
+
+- **Dragging a scale's color no longer drags roles along.** Roles followed
+  the anchor step and were collected on the way: pulling Neutral to black
+  moved the neutral fill, surfaces and disabled text onto step 950 and the
+  preview turned black. Neutral roles no longer follow the anchor; on other
+  scales only the roles that sat on the anchor move with it.
+
+- **Accordion opens in one smooth slide.** The panel used to pop open by its
+  16px padding first and only then slide; padding and height now grow
+  together.
+
+- **A composite's rebind stops at its nested components, in code as in
+  Figma.** A rebind is a custom property on the component, and custom
+  properties inherit: a calendar's `radius-md → radius-full` also turned its
+  prev/next buttons into pills, while in Figma the nested Button instances
+  kept their own bindings. Now nested components get the system value back
+  (`:where(.vt-calendar .vt-btn)`, zero specificity, so a Button rebind of its
+  own still applies). A nested component the composite styles itself —
+  Button group's buttons, Tabs' triggers — is its part: the rebind still
+  reaches it, as the plugin overrides those instances
+  (`packages/generator/data/component-nested.mjs`).
+
+- **Studio colours reach Figma.** A background, text or stroke colour set in
+  Studio is a CSS role (`success-fill`); the plugin looked it up as is, missed
+  its own name (`success/fill`) and left the recipe's colour in place — the
+  CSS changed, the Figma component did not. Shadow (the theme's effect style)
+  and font size (the text style's size variable) now reach Figma as well.
+
+- **Studio: parameter edits show on components without a variant canvas.**
+  Breadcrumb, Dialog and the other components shown as a plain example took
+  the change (the field updated) but the preview stayed the same — only the
+  canvas applied the parameter CSS. The example now gets it too.
+
+- **Studio: Pagination, List, Timeline, Carousel and Tree view take their
+  parameters.** Their live previews came from a stale docs build whose demos
+  were utilities without the component's root class (`.vt-pagination`…), so
+  a gap or padding set in Studio had nothing to land on. The previews are
+  rebuilt from the current docs pages, which use the root class.
+
+- **Studio shows every Figma variant, drawn the way Figma draws it.** The
+  canvas used to take one docs example and swap the code's axis classes on
+  it, so anything Figma varies another way never reached Studio: Tabs'
+  Underline style, Table's Compact density, Chip's SM size, Breadcrumb's "/"
+  separator, Pagination's four styles and 30-odd more. Each cell is now the
+  markup of its Figma variant, built by the same anatomy engine that builds
+  the component set (`anatomyMarkup` in `scripts/lib/anatomy-engine.mjs`,
+  `scripts/lib/studio-variants.mjs`) — axis classes, parts per variant,
+  repeats, fixed states, nested components with their properties, Lucide
+  icons by name. A Figma property the code has no axis for becomes a Studio
+  axis of its own; it can be shown and put in columns, and switching its
+  values off is left disabled until the plugin can skip them. A parameter
+  edit on a value that has no class (Breadcrumb's Slash) applies to the whole
+  component and says so. Components without an anatomy keep the docs example.
+
+- **Studio canvas rows are the Figma states.** Rows used to come only from
+  pseudo-classes in the component's CSS, so a state the code sets with a class
+  never showed: Checkbox had no Checked or Disabled, Chip no Active, Switch no
+  On, Collapsible no Open. Now the rows are the component set's State values,
+  in Figma's order and with Figma's names (Unchecked, Checked, Focus,
+  Disabled), each shown the way the anatomy's state map says —
+  `"State=Checked": ".checked"` puts the class on the instance,
+  `"State=Hover": ":hover"` uses the state's CSS as before. A colour set on
+  such a row is its own level (`is`), exported as `.vt-checkbox.checked…`
+  with the strength of an explicit state; the Figma plugin applies it to the
+  variant in that state. Components with states but no variants (Check label,
+  Collapsible, Select) get a canvas too.
+
+- **Studio canvas: parts that are other components are drawn.** A property
+  whose part is a nested component or a group — the ghost × button that
+  closes Alert, Banner and Card, Alert's actions, Carousel's dots — did
+  nothing or showed its name as text. The part is now built from the anatomy:
+  the nested component with its Figma property classes (Ghost, SM, icon
+  only), its label or icon from `set`, repeats and fixed states.
+
+- **Studio: the inspector reads components without a canvas.** Dialog,
+  Command, Check label and the like showed "system" in their fields — the
+  inspector looked for an instance only in canvas cells. It now reads the
+  example on the stage. Properties are offered only where there is a canvas
+  for them to change.
+
+- **Studio: an open menu in a preview stays open.** The library's bundle
+  closes every open dropdown and popover on any click on the page, so the
+  Combobox and Dropdown menu examples collapsed at the first click anywhere
+  in Studio. The bundle itself now leaves alone what is shown open on
+  purpose — a docs example's `open` class, a preview inside `[inert]` (the
+  Studio canvas), or `data-keep-open` — on an outside click and on Escape.
+  Menus a person opens close as before. This also keeps the examples in the
+  `/wizard` stage open.
+
+- **Studio canvas: what the Figma variants leave out is still drawn.**
+  - A property set on a nested component (Close on Alert, Banner, Card and
+    Toast; Avatar, Rating and Logo on Testimonial; More on Avatar group) now
+    marks it in the variant markup, so its switch hides and shows it.
+  - A part the variant markup cannot hold — the icons of a text field, which
+    sit next to `<input>`, not inside it — is drawn as before.
+  - An axis value Figma has no variant for (Card's SM, Dot's Current and
+    Pulse, Skeleton's Default, Scroll view's Autohide, Stats card's Down
+    trend) gets its class on the cell; it used to repeat the base variant.
+  - A status icon with no name in the anatomy follows the variant: Success
+    shows a check, Warning a triangle, Danger a cross (Alert, Dialog, Toast),
+    not the docs example's "i" or a "+". A checked checkbox shows its check.
+  - An open menu from a variant (Combobox, Dropdown menu) stays open after a
+    click in the inspector.
+
+- **Studio: the canvas is just the components, on dotted paper.** The stage
+  header (name and class — the code is in the inspector) and the section's
+  intro text are gone; the light/dark and color-vision controls sit
+  in the page header, left of Remove. The canvas has no card of its own: it
+  spans the whole width between the sidebars, the components sit centred at
+  its top, and in light mode the work area is Studio's warm paper with faint
+  dots; in dark mode it is the system's dark surface with dots to match.
+  Cells in a row line up at the top, not around the row's middle (Combobox's
+  variants of different heights). A grid wider than the canvas (Dialog's four
+  intents) is scaled to fit, down to 50%, instead of scrolling sideways. A
+  docs example on a backdrop (Command) gets the same padding at the sides
+  as at the top, instead of a narrow strip.
+
+- **Studio: Variants is a panel on the canvas.** It used to be a row of
+  dropdowns in the inspector, so the other sizes and shapes were hidden
+  behind a click. Now a small panel in the canvas's top-left corner lists
+  every value of every axis: click a value to show it on the canvas, tick
+  the checkbox on its left to keep it in the system or untick it to drop
+  it. The axis in columns (or rows) shows only the checkboxes — all its
+  values are on the canvas already. The panel folds to its title, and the
+  canvas moves right while it is open so it covers nothing.
+
+- **Studio: one layout for every canvas — components in columns, blocks in
+  rows.** Combobox, Dialog and Dropdown menu spread their variants across,
+  like Breadcrumb and every other component. A block is too wide for
+  columns, so its main axis goes down in rows — Header's Marketing and App
+  (the axis that decides its parts: Search, Notifications and Avatar are
+  App's, so every property is on the canvas), Footer's layouts, Auth's
+  screens. The axis reads "In rows" in the inspector.
+
+- **Studio: small inspector and canvas fixes.**
+  - Combobox's Groups items show their own 16px icons (Calendar, Search,
+    Settings — a Lucide icon named like the item) instead of 24px checks
+    borrowed from the docs example; an icon taken from the example keeps the
+    part's own class and size.
+  - Combobox's menu sits under its field inside the cell; the field shows its
+    placeholder (a `::placeholder` layer becomes the `placeholder`
+    attribute in the variant markup — Input and Textarea too).
+  - Selecting Slash in Breadcrumb and changing Gap changes every separator:
+    Slash has no class of its own in code. Layout now says so ("All
+    separators") instead of "Component".
+  - Gap's icon follows the layout: vertical for a column (CTA, Card),
+    horizontal for a row. Height's icon was a width icon; it is vertical now.
+  - Scroll view is shorter than its content on the canvas, so the scrollbar
+    shows: Default has it, Hidden doesn't, Autohide shows it on Hover.
+
+- **Studio canvas rows: every Figma state, shown the way the code shows it.**
+  A state with no entry in the anatomy's state map was dropped: Input and
+  Textarea had no Error or Success, Check label no Checked, Resizable no
+  Hover. A row now takes the class the variant adds to the component
+  (`.vt-input-error`), a pseudo-class the CSS has by name (Focus →
+  `:focus-visible`, including a part's own — `.vt-resize-handle:hover`), or
+  the variant's markup as is. The code axis that is the same thing as the
+  Figma state (Input's and OTP input's `state`) is no longer a second
+  control in the inspector.
+
+- **Studio: Dialog, Combobox, Dropdown menu and the blocks have a canvas.**
+  They showed only the docs example, so their Figma variants (Dialog's
+  intents, Header's layouts and types, Footer's layouts, Auth's screens) were
+  out of reach. They now show one cell, and the variant is picked in the
+  inspector.
+
+- **Studio canvas: cells take their size from the Figma frame.** Progress
+  is 240 px, Skeleton's Line 240 and Card 320, Scroll view 320 — the
+  anatomy's `figma.width/height`, as on the Figma canvas — instead of a
+  12rem guess after layout. Icons in the variant markup travel once per page
+  (a map of Lucide outlines) rather than inline in every variant.
+
+- **Studio: Calendar offers Gap and Padding.** Its root
+  rule is a list (`.vt-calendar, .vt-date-picker`), and Studio read only
+  single-selector rules.
+
+- **Studio: Radius on Calendar works; Height is gone from Tabs.** Calendar's
+  first CSS rule is a list (`.vt-calendar, .vt-date-picker`), so its rebinds
+  went to the next single selector, `.vt-calendar-cell`. Tabs offered Height
+  for a token only its SM modifier reads, while Tabs has no size axis.
+
+- **A component's rebinds reach its whole anatomy root.** When the root of
+  the anatomy is another element that reads tokens itself — Table's
+  `.vt-table-wrap` holds its corners, List's `.vt-list-section`, Spinner's
+  `.vt-spinner-status` — rebinds were written on the inner class and never
+  reached it: Radius did nothing on a table. The rebind scope is now both
+  (`.vt-table-wrap, .vt-table`), in Studio and in the export alike
+  (`scripts/lib/rebind-scope.mjs`).
+
+- **Studio canvas: every component shows up in its cell.**
+  - Popover (and anything else placed from a trigger — tooltip, menu, toast)
+    is positioned absolutely off its trigger; on the canvas there is no
+    trigger, so it slid out of its cell and left an empty space. The
+    instance now sits in the cell's flow, like a component on a Figma canvas.
+  - Tooltip showed only its target button — the bubble is transparent until
+    the wrapper is hovered. A component the anatomy marks as always shown in
+    one state (`is: { "*": ":hover" }` — Tooltip; `.vt-open` — Popover,
+    Dropdown menu) is now drawn in that state, and a hover-shown one without
+    its target: the bubble alone for each placement, as on the Figma canvas.
+  - Progress, Separator and Skeleton stretch to their container and came out
+    0 px wide in a cell that fits its content; such a cell now gets a width
+    (and Skeleton a line's height).
+  - A part turned on by a property is taken from the example when it has one
+    (the chip's real × button from its "Removable" chip) or built from the
+    anatomy with its icon — the chip used to show the word "Remove" instead.
+
+- **Studio: canvas rows are the component's own states only.** A state was
+  a row whenever its pseudo-class appeared anywhere in the component's CSS,
+  so Button group showed Hover, Active and Focus rows that all looked the same
+  — the hover belongs to the buttons inside it, not to the group. Now a state
+  counts only when it sits on the root or one of its modifiers
+  (`.vt-btn:hover`, `.vt-btn-primary:hover`). This drops the child-only rows
+  of 14 components (Button group, Accordion, Breadcrumb, Card, Combobox,
+  File upload, Header, Resizable, Slider, Table, Toolbar, Tooltip…); Number
+  input keeps Focus and Disabled, which are its own.
+
+- **Studio: the preview no longer drives Studio.** A link inside a component
+  preview (the breadcrumb's `href="#"`) sent Studio's hash router to Colors,
+  and a form could reload the page. Clicks on links and form submits inside
+  the stage now do nothing; selecting a canvas cell works as before.
+
+- **Studio thumbnails no longer fold up on a click.** Any click on the page
+  closed every open popover and dropdown, including the ones drawn in the
+  thumbnails, leaving a bare button in the card.
+
+- **Corner radius keeps a different radius for each size.** Choosing a radius
+  used to put every size of a button on that one value. Now it sets the default
+  size and moves the others by the same number of steps, so SM stays smaller
+  than MD; each size can also be tuned on its own from the canvas.
+
+- **Component rebinds no longer chain in CSS.** `--radius-sm: var(--radius-md)`
+  resolved against the component's own, also rebound `--radius-md`, so a
+  shifted ladder sent SM two steps up. A target rebound in the same component
+  is now read from a copy of the system value (`--rebind-base-*` on `:root`),
+  in the exported CSS, the MCP exports and every Studio preview — the same
+  result Figma, which binds variables directly, already gave.
+
+- **Density shows real heights.** The Size control (now Density) labelled
+  System from a constant and could offer "Comfortable · 36 px" below
+  "System · 40 px"; both now come from the system's own values.
+
+- **Removed properties and component parameters reach the Figma plugin.**
+  The plugin's token import kept only the extension fields it knew
+  (`components`, `variants`), so `props` and `params` from Studio were dropped
+  on the way in.
+
+- **Input's properties show on the canvas.** Its example is a bare `<input>`:
+  the label and helper text had no field to go into, and the icons, which
+  can't sit inside an input, did nothing. The canvas now builds the field and
+  the input group the way the docs mark them up, and the right icon is placed
+  on the right.
+
+- **Radio Group's thumbnail is centred.**
+
+- **The Disabled state shows in the component preview.** A rule written as
+  `.vt-btn:disabled, .vt-btn.vt-disabled` was read as a combination of states
+  and dropped, so Disabled looked like Default.
+
+- **The component column in Studio reads as one list.** Composition; Shape,
+  size and variants; Colours it reads; HTML; Scoped overrides — all five
+  headings now share one style (HTML and Scoped overrides were smaller,
+  sentence-case sub-headings), and every block has its own divider, so two
+  folded blocks in a row are no longer run together.
+
+- **Check Label's example shows the check mark.** Its snippet had a
+  placeholder `<svg>…</svg>` where the icon goes; the preview dropped it and
+  drew an empty "checked" box, and agents got the placeholder too. It is now a
+  real check icon.
+
+- **DTCG import reads every 2025.10 file the official test suite covers.**
+  Checked against the Design Tokens Community Group's own fixtures: 72 of 93
+  valid files lost data, now all 93 import — in the site, the Figma plugin and
+  the MCP server alike. References inside shadows and typography resolve
+  instead of landing in CSS as `{colors.black}`; `$extends`, `$root` tokens and
+  JSON Pointer `$ref` are understood; colours in any of the fourteen DTCG
+  colour spaces convert (Tailwind v4's oklch themes used to import empty), with
+  the author's `hex` preferred when a colour falls outside sRGB.
+
+- **Deleting an account no longer fails for anyone who published a release.**
+  Clearing `releases.created_by` is an ordinary UPDATE, which the immutability
+  guard rejected, so Supabase answered `Database error deleting user`. The
+  guard now allows exactly one change — an author becoming nobody — and the
+  RLS test covers both outcomes: an owner's own project goes with them, while a
+  release they made in someone else's project stays, minus its author.
+
+- **Creating a cloud project no longer fails its own RLS check.** The row-level
+  check for `RETURNING` runs before the `AFTER INSERT` trigger that grants the
+  creator membership, so `insert().select()` on `projects` answered `42501`
+  while the row was in fact created. Projects are now created through the
+  `create_project` RPC, which writes the project and the membership in one
+  transaction and takes `created_by` from `auth.uid()`; the direct insert path
+  is gone. `npm run test:rls` is green.
+
+### Security
+
+- **The site bundle no longer carries the whole `package.json`.** The
+  editor imported it to read the version, and with it went the package's
+  repository and issue links into the public JavaScript; it now imports
+  `version` alone.
+
+- **Auth settings for the cloud project come from `supabase/config.toml`.**
+  `site_url` points at the staging site rather than `localhost`, so a sign-in
+  that falls back to it cannot be redirected to a developer machine; the signup
+  email throttle stays at one minute instead of the CLI's one second, and TOTP
+  enrolment is left enabled.
+
 ## [1.1.1] — 2026-09-13
 
 ### Added
@@ -800,25 +1497,6 @@ Lockstep npm release of `veritheme` + `@veritheme/mcp-server` — same version e
 ### Changed
 - **Calendar examples polish.** Month/week example headers use a square page-btn for search and a full-size primary "New event"; preview snapshots re-shot to match.
 
-## [1.0.8] — 2026-07-21
-
-npm-only lockstep release of `veritheme` + `@veritheme/mcp-server` (published from `feat/florin`; site deploy and git tag follow with the branch merge). Core package content is unchanged — the version moves in lockstep with the MCP server by owner's rule.
-
-### Added — MCP server
-- **4 new tools**: `get_guidelines` (full AI-generation rulebook), `get_starter` (exact CDN page skeleton, dark-mode boot, theming), `validate_markup` (lints HTML against a 2119-class registry: off-scale/unknown classes, arbitrary values, sub-12px text, nested cards, multiple primaries, unlabeled icon buttons, dead hover-only controls — plus a logic-walkthrough questionnaire), `get_theme_css` (preset/custom theme → ready CSS with derived brand scale via vendored theme-css/brand-scale modules).
-- **Generation protocol** (§0 of the rulebook): spec the page model (regions, every control + scope + effect, data invariants) before markup; walkthrough + whole-page re-audit after every edit. New rules: control scope integrity, data coherence, control-cluster consistency, no dead controls.
-- **Behavior contracts on all 24 patterns** (what each control does at what scope), authored in `scripts/mcp-pattern-behaviors.json`, merged by the pattern builder, rendered by `get_pattern`.
-- **JS-bundle wiring docs** on 18 interactive components (`js` field → `## JS wiring`), **gotchas** expanded 6→20 components, **search aliases** on 46 components (modal→dialog, loader→spinner, …), normalized `get_component` lookup.
-- Snippets for radio, pill, icon-badge, list-item, nav-item, section-label, count-badge via new `$mcp.snippet` recipe support (70→82 snippets).
-
-### Changed — MCP server
-- **Server `instructions` cut ~7 KB → ~2.2 KB core** (clients truncate long instruction blobs — the old one was cut mid-way); the full rulebook moved to `get_guidelines`, with checklist footers on `list_components`/`list_patterns` as a safety net.
-- Stale interaction docs rewritten where they contradicted the JS bundle ("ships NO JS — you wire it" on dialog/select/dropdown-menu; "there is NO .vt-dropdown-menu class").
-- Component data hygiene: 5 duplicate dashless spec keys merged, 27 keys renamed to canonical dashed ids (generator slug now derives from the recipe file name), 53 missing descriptions written, 9 docs-site internal widgets hidden from the catalog.
-
-### Fixed — MCP server
-- `componentCatalog` resource crashed on composite components without a `classes` block.
-
 ## [1.0.6] — 2026-07-18
 
 ### Added
@@ -1076,7 +1754,8 @@ First stable release.
 - **WCAG contrast**: 32 token pairs fall below AA across editorial/rounded-sans themes. Default theme addressed; remaining themes queued for v1.1.
 - **Scope**: 18 components (Dialog, Accordion, Slider, Button Group, Popover, Sheet, Sidebar, mini-variants) remain in `main.scss` pending recipe-engine extensions (`rawRules`, `@keyframes`, `[data-*]` selectors). Scheduled for v1.1.
 
-[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.2.0
 [1.1.1]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.1.1
 [1.1.0]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.1.0
 [1.0.7]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.7

@@ -2,19 +2,7 @@
   {
     "name": "default",
     "label": "Default",
-    "fontFamily": "Inter, system-ui, sans-serif",
-    "hasDark": true
-  },
-  {
-    "name": "editorial",
-    "label": "Editorial",
-    "fontFamily": "'Source Serif 4', Georgia, serif",
-    "hasDark": true
-  },
-  {
-    "name": "rounded-sans",
-    "label": "Rounded Sans",
-    "fontFamily": "Manrope, Inter, system-ui, sans-serif",
+    "fontFamily": "Onest, system-ui, sans-serif",
     "hasDark": true
   }
 ]

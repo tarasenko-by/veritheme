@@ -1,5 +1,5 @@
 /*!
- * veritheme.js v1.1.1
+ * veritheme.js v1.2.0
  * https://veritheme.com
  * MIT License
  */
@@ -41,9 +41,15 @@ var UCAccordion = {
       content.style.transition = 'none';
       content.style.maxHeight = 'none';
       var target = content.scrollHeight; // includes the final padding-bottom
+      // …and back to the collapsed start, padding included: `.open` set under
+      // `transition: none` jumped the padding to its end value at once, so the
+      // panel first popped open by 16px and only then slid — the twitch on
+      // every open. Starting from padding 0 lets both grow together.
+      content.classList.remove('open');
       content.style.maxHeight = prevMaxHeight || '0px';
       void content.offsetHeight; // commit the collapsed start value
       content.style.transition = prevTransition;
+      content.classList.add('open');
       content.style.maxHeight = target + 'px';
 
       // Высота в пикселях — снимок одного момента. Стоит после раскрытия
@@ -144,6 +150,13 @@ var UCCalendar = {
       cal.dataset.calendarBound = 'true';
 
       var grid = cal.querySelector('[data-calendar-grid]') || cal;
+      // A calendar lays its days out as week rows (.vt-calendar-week inside
+      // .vt-calendar-days, or the older .vt-date-picker-week / -days); an
+      // older flat grid takes the days as direct children.
+      // data-week-start="1" starts the week on Monday.
+      var byWeek = grid.classList.contains('vt-calendar-days') || grid.classList.contains('vt-date-picker-days');
+      var weekClass = grid.classList.contains('vt-calendar-days') ? 'vt-calendar-week' : 'vt-date-picker-week';
+      var weekStart = Number(cal.dataset.weekStart || 0);
       var heading = cal.querySelector('[data-calendar-heading]');
       var monthKey = cal.dataset.calendarMonth || new Date().toISOString().slice(0, 7);
       var parts = monthKey.split('-').map(Number);
@@ -193,12 +206,23 @@ var UCCalendar = {
         all.forEach(function(day) { day.tabIndex = day === target ? 0 : -1; });
       }
 
+      function dayButton(date, outside) {
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = outside ? 'vt-calendar-day vt-outside' : 'vt-calendar-day';
+        button.textContent = String(date.getDate());
+        button.dataset.date = stamp(date);
+        return button;
+      }
+
       function paint() {
         days().forEach(function(day) {
           var value = day.dataset.date;
           var selected = value === start || value === end;
           day.classList.toggle('vt-active', selected);
           day.classList.toggle('vt-range-middle', !!(start && end && value > start && value < end));
+          day.classList.toggle('vt-range-start', !!(start && end) && value === start);
+          day.classList.toggle('vt-range-end', !!(start && end) && value === end);
           day.classList.remove('vt-bg-brand-fill/10');
           day.setAttribute('aria-pressed', String(selected));
         });
@@ -211,7 +235,9 @@ var UCCalendar = {
       var authoredMonth = monthOf(view);
       var authoredGrid = grid.innerHTML;
 
-      var active = days().filter(function(day) { return day.classList.contains('vt-active'); });
+      var active = days().filter(function(day) {
+        return day.classList.contains('vt-active') || day.classList.contains('vt-range-start') || day.classList.contains('vt-range-end');
+      });
       if (active[0]) start = active[0].dataset.date;
       if (active.length > 1) end = active[active.length - 1].dataset.date;
 
@@ -225,15 +251,24 @@ var UCCalendar = {
           grid.innerHTML = authoredGrid;
         } else {
           grid.replaceChildren();
-          for (var pad = 0; pad < view.getDay(); pad++) grid.append(document.createElement('span'));
+          var lead = (view.getDay() - weekStart + 7) % 7;
           var count = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate();
-          for (var n = 1; n <= count; n++) {
-            var button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'vt-calendar-day';
-            button.textContent = String(n);
-            button.dataset.date = stamp(new Date(view.getFullYear(), view.getMonth(), n));
-            grid.append(button);
+          if (byWeek) {
+            // Whole weeks: the neighbouring months' days fill the first and
+            // last rows, dimmed and disabled, as in the authored month.
+            var cells = [];
+            for (var back = lead; back > 0; back--) cells.push(dayButton(new Date(view.getFullYear(), view.getMonth(), 1 - back), true));
+            for (var d = 1; d <= count; d++) cells.push(dayButton(new Date(view.getFullYear(), view.getMonth(), d), false));
+            for (var after = 1; cells.length % 7; after++) cells.push(dayButton(new Date(view.getFullYear(), view.getMonth() + 1, after), true));
+            for (var w = 0; w < cells.length; w += 7) {
+              var week = document.createElement('div');
+              week.className = weekClass;
+              cells.slice(w, w + 7).forEach(function(cell) { week.append(cell); });
+              grid.append(week);
+            }
+          } else {
+            for (var pad = 0; pad < lead; pad++) grid.append(document.createElement('span'));
+            for (var n = 1; n <= count; n++) grid.append(dayButton(new Date(view.getFullYear(), view.getMonth(), n), false));
           }
         }
         prepare();
@@ -478,20 +513,31 @@ var UCCollapsible = {
   }
 };
 
-// UCCombobox — searchable single/multi-select with tags
+// UCCombobox — searchable single/multi-select with tags. Options are MenuItem
+// rows (.vt-command-item) whose check mark shows from aria-selected; the older
+// .vt-combobox-item rows with a swapped .vt-combobox-icon still work. Tags are
+// small chips (.vt-chip.vt-chip-sm with a .vt-chip-remove button) and the
+// button trigger is a Select trigger (.vt-select-trigger); the older
+// .vt-combobox-tag and .vt-combobox-trigger/.vt-combobox-button-label markup
+// still works, and a tag field that holds old tags gets old tags.
 var UCCombobox = {
+  ITEM: '.vt-command-item, .vt-combobox-item',
+  TAG: '.vt-chip, .vt-combobox-tag',
+
   init: function() {
+    var ITEM = UCCombobox.ITEM;
     var checkSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-w-4 vt-h-4 vt-shrink-0 vt-text-brand-fill vt-combobox-icon"><path d="M20 6 9 17l-5-5"/></svg>';
     var emptySpacer = '<span class="vt-w-4 vt-h-4 vt-shrink-0 vt-combobox-icon"></span>';
-    var xTagSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-w-3 vt-h-3"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+    var xTagSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
 
     // Close on click outside
-    if (!document.body.hasAttribute('data-combobox-outside-init')) {
-      document.body.setAttribute('data-combobox-outside-init', 'true');
+    if (!window.__vtComboboxEvents) {
+      window.__vtComboboxEvents = true; // per window: <body> is replaced on a client-side swap, the document listener is not
       document.addEventListener('click', function(e) {
         if (!e.target.closest('.vt-combobox-wrapper')) {
           document.querySelectorAll('[data-combobox-content]').forEach(function(el) {
-            el.classList.remove('vt-open');
+            // Shown open on purpose (docs `open`, [inert] preview, data-keep-open) is kept.
+            if (!el.closest('[data-keep-open], .open, [inert]')) el.classList.remove('vt-open');
           });
         }
       });
@@ -511,14 +557,14 @@ var UCCombobox = {
     window.filterCombobox = function(input, id) {
       var dropdown = document.getElementById(id);
       var query = input.value.toLowerCase();
-      var items = dropdown.querySelectorAll('.vt-combobox-item');
+      var items = dropdown.querySelectorAll(ITEM);
       var groups = dropdown.querySelectorAll('[data-combobox-group]');
       var emptyEl = dropdown.querySelector('.vt-combobox-empty');
       var totalVisible = 0;
 
       if (groups.length > 0) {
         groups.forEach(function(group) {
-          var groupItems = group.querySelectorAll('.vt-combobox-item');
+          var groupItems = group.querySelectorAll(ITEM);
           var groupVisible = 0;
           groupItems.forEach(function(item) {
             if (item.textContent.toLowerCase().includes(query)) {
@@ -547,7 +593,12 @@ var UCCombobox = {
       }
     };
 
+    // The chosen option: highlighted (.vt-selected) and announced
+    // (aria-selected), which also shows its check mark. Legacy rows swap
+    // their .vt-combobox-icon between a check and a spacer.
     function setItemIcon(item, checked) {
+      item.classList.toggle('vt-selected', checked);
+      item.setAttribute('aria-selected', String(checked));
       var icon = item.querySelector('.vt-combobox-icon');
       if (icon) icon.outerHTML = checked ? checkSvg : emptySpacer;
     }
@@ -561,12 +612,12 @@ var UCCombobox = {
 
       input.value = text;
 
-      dropdown.querySelectorAll('.vt-combobox-item').forEach(function(i) {
-        i.classList.remove('vt-selected');
-        if (!keepIcons) setItemIcon(i, false);
+      dropdown.querySelectorAll(ITEM).forEach(function(i) {
+        if (keepIcons) { i.classList.remove('vt-selected'); i.setAttribute('aria-selected', 'false'); }
+        else setItemIcon(i, false);
       });
-      item.classList.add('vt-selected');
-      if (!keepIcons) setItemIcon(item, true);
+      if (keepIcons) { item.classList.add('vt-selected'); item.setAttribute('aria-selected', 'true'); }
+      else setItemIcon(item, true);
 
       dropdown.classList.remove('vt-open');
     };
@@ -574,24 +625,29 @@ var UCCombobox = {
     window.selectComboboxButton = function(item, dropdownId) {
       var text = item.textContent.trim();
       var wrapper = item.closest('.vt-combobox-wrapper');
-      var label = wrapper.querySelector('.vt-combobox-button-label');
+      var legacyLabel = wrapper.querySelector('.vt-combobox-button-label');
+      var label = legacyLabel || wrapper.querySelector('.vt-select-trigger > span');
       var dropdown = document.getElementById(dropdownId);
 
       label.textContent = text;
-      label.classList.remove('vt-text-foreground-disabled', 'vt-text-foreground-muted');
+      // A value, not the placeholder: the Select trigger's span loses
+      // .placeholder; the older label reads .vt-selected in the primary colour.
+      label.classList.remove('placeholder');
+      if (legacyLabel) {
+        label.classList.add('vt-selected');
+        label.classList.remove('vt-text-foreground-disabled', 'vt-text-foreground-muted');
+      }
 
-      dropdown.querySelectorAll('.vt-combobox-item').forEach(function(i) {
-        i.classList.remove('vt-selected');
+      dropdown.querySelectorAll(ITEM).forEach(function(i) {
         setItemIcon(i, false);
       });
-      item.classList.add('vt-selected');
       setItemIcon(item, true);
 
       dropdown.classList.remove('vt-open');
     };
 
     window.toggleMultiComboboxItem = function(item) {
-      var isSelected = item.classList.toggle('vt-selected');
+      var isSelected = !item.classList.contains('vt-selected');
       setItemIcon(item, isSelected);
 
       var wrapper = item.closest('.vt-combobox-wrapper');
@@ -599,13 +655,15 @@ var UCCombobox = {
       var text = item.textContent.trim();
 
       if (isSelected) {
+        var legacy = !!tagContainer.querySelector('.vt-combobox-tag');
         var tag = document.createElement('span');
-        tag.className = 'vt-combobox-tag vt-inline-flex vt-items-center vt-gap-1 vt-rounded vt-bg-surface-subtle vt-px-2 vt-py-0.5 vt-text-xs vt-font-medium';
+        tag.className = legacy ? 'vt-combobox-tag' : 'vt-chip vt-chip-sm';
         tag.setAttribute('data-tag-value', text);
         tag.appendChild(document.createTextNode(text));
         var removeBtn = document.createElement('button');
         removeBtn.type = 'button';
-        removeBtn.className = 'vt-ml-0.5 vt-rounded-sm vt-hover:bg-surface-moderate vt-transition-colors';
+        removeBtn.className = legacy ? 'vt-combobox-tag-remove' : 'vt-chip-remove';
+        removeBtn.setAttribute('aria-label', 'Remove ' + text);
         removeBtn.innerHTML = xTagSvg;
         removeBtn.addEventListener('click', function(event) {
           event.stopPropagation();
@@ -627,7 +685,7 @@ var UCCombobox = {
     };
 
     window.removeComboboxTag = function(btn) {
-      var tag = btn.closest('.vt-combobox-tag');
+      var tag = btn.closest(UCCombobox.TAG);
       if (!tag) return;
       var value = tag.getAttribute('data-tag-value');
       var wrapper = tag.closest('.vt-combobox-wrapper');
@@ -635,11 +693,8 @@ var UCCombobox = {
 
       var dropdown = wrapper.querySelector('[data-combobox-content]');
       if (dropdown) {
-        dropdown.querySelectorAll('.vt-combobox-item').forEach(function(item) {
-          if (item.textContent.trim() === value) {
-            item.classList.remove('vt-selected');
-            setItemIcon(item, false);
-          }
+        dropdown.querySelectorAll(ITEM).forEach(function(item) {
+          if (item.textContent.trim() === value) setItemIcon(item, false);
         });
       }
 
@@ -649,7 +704,7 @@ var UCCombobox = {
 
   _updateMultiPlaceholder: function(wrapper) {
     var input = wrapper.querySelector('input');
-    var tags = wrapper.querySelectorAll('.vt-combobox-tag');
+    var tags = wrapper.querySelectorAll('.vt-combobox-tags [data-tag-value], .vt-combobox-tag');
     if (input) {
       input.placeholder = tags.length > 0 ? '' : 'Add framework...';
     }
@@ -758,25 +813,35 @@ var UCCarousel = {
       var maxIndex = total - visible;
       var current = 0;
 
+      // A button of the system (vt-btn) is disabled at either end; an older
+      // vt-carousel-nav-btn only fades, as it always did.
+      function edge(btn, atEdge) {
+        if (!btn) return;
+        if (btn.classList.contains('vt-btn')) btn.disabled = atEdge;
+        else btn.style.opacity = atEdge ? '0.4' : '1';
+      }
+
       function update() {
-        if (visible === 1) {
-          track.style.transform = 'translateX(-' + (current * 100) + '%)';
-        } else {
-          var slide = track.children[0];
-          var gap = parseFloat(getComputedStyle(track).gap) || 0;
-          var offset = current * (slide.offsetWidth + gap);
-          track.style.transform = 'translateX(-' + offset + 'px)';
-        }
+        // One step is a slide plus the gap after it: (track + gap) / visible.
+        // In percent of the track, so it stays right when the page resizes.
+        var gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+        track.style.transform = current === 0 ? '' :
+          'translateX(calc(' + (-current) + ' * (100% + ' + gap + 'px) / ' + visible + '))';
 
         if (dotsContainer) {
           dotsContainer.querySelectorAll('[data-dot]').forEach(function(dot) {
-            var idx = parseInt(dot.dataset.dot || '0');
-            dot.className = 'vt-w-2 vt-h-2 vt-rounded-full vt-transition-colors ' + (idx === current ? 'vt-bg-brand-fill' : 'vt-bg-surface-moderate');
+            var on = parseInt(dot.dataset.dot || '0') === current;
+            if (dot.classList.contains('vt-carousel-dot')) {
+              dot.classList.toggle('vt-active', on);
+              dot.setAttribute('aria-current', on ? 'true' : 'false');
+            } else {
+              dot.className = 'vt-w-2 vt-h-2 vt-rounded-full vt-transition-colors ' + (on ? 'vt-bg-brand-fill' : 'vt-bg-surface-moderate');
+            }
           });
         }
 
-        if (prevBtn) prevBtn.style.opacity = current === 0 ? '0.4' : '1';
-        if (nextBtn) nextBtn.style.opacity = current >= maxIndex ? '0.4' : '1';
+        edge(prevBtn, current === 0);
+        edge(nextBtn, current >= maxIndex);
       }
 
       if (prevBtn) {
@@ -831,7 +896,9 @@ var UCDropdown = {
   closeAll: function(restoreFocus, except) {
     document.querySelectorAll('.vt-dropdown-menu.vt-open').forEach(function(menu) {
       // Combobox panels manage their own open state.
-      if (menu !== except && !menu.closest('.vt-combobox-wrapper')) UCDropdown.close(menu, restoreFocus);
+      // Shown open on purpose (a docs example's `open`, a preview in [inert],
+      // `data-keep-open`) is kept open.
+      if (menu !== except && !menu.closest('.vt-combobox-wrapper') && !menu.closest('[data-keep-open], .open, [inert]')) UCDropdown.close(menu, restoreFocus);
     });
   },
 
@@ -860,11 +927,14 @@ var UCDropdown = {
 
     menu.querySelectorAll('.vt-command-item,.vt-dropdown-item').forEach(function(item) {
       item.tabIndex = -1;
-      var checkbox = item.querySelector('.checkbox-indicator');
-      var radio = item.querySelector('.radio-indicator');
-      item.setAttribute('role', checkbox ? 'menuitemcheckbox' : radio ? 'menuitemradio' : 'menuitem');
-      if (checkbox) item.setAttribute('aria-checked', String(checkbox.classList.contains('vt-bg-brand-fill')));
-      if (radio) item.setAttribute('aria-checked', String(!!radio.children.length));
+      var checkbox = item.querySelector(CHECKBOX_INDICATOR);
+      var radio = item.querySelector(RADIO_INDICATOR);
+      var mark = item.querySelector('.vt-command-item-check');
+      item.setAttribute('role', checkbox || mark ? 'menuitemcheckbox' : radio ? 'menuitemradio' : 'menuitem');
+      if (checkbox) item.setAttribute('aria-checked', String(indicatorOn(checkbox)));
+      if (radio) item.setAttribute('aria-checked', String(indicatorOn(radio)));
+      // A check mark row says its state itself (aria-checked in the markup).
+      if (mark && !item.hasAttribute('aria-checked')) item.setAttribute('aria-checked', 'false');
     });
 
     trigger.addEventListener('click', function(e) {
@@ -934,31 +1004,57 @@ var UCDropdown = {
 
 var CHECK_ICON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
 
+// Checkable rows carry the system's own atoms: .vt-checkbox (.checked) and
+// .vt-radio (.selected, with a .vt-dot). The older markup drew them with
+// utilities (.checkbox-indicator / .radio-indicator) and still works.
+var CHECKBOX_INDICATOR = '.vt-checkbox, .checkbox-indicator';
+var RADIO_INDICATOR = '.vt-radio, .radio-indicator';
+
+function indicatorOn(indicator) {
+  if (indicator.classList.contains('vt-checkbox')) return indicator.classList.contains('checked');
+  if (indicator.classList.contains('vt-radio')) return indicator.classList.contains('selected');
+  if (indicator.classList.contains('checkbox-indicator')) return indicator.classList.contains('vt-bg-brand-fill');
+  return !!indicator.children.length;
+}
+
 // Checkbox menu item: the visual indicator and aria-checked always agree.
 function toggleCheckbox(item) {
   if (item.getAttribute('aria-disabled') === 'true') return;
-  var indicator = item.querySelector('.checkbox-indicator');
-  if (!indicator) return;
+  var indicator = item.querySelector(CHECKBOX_INDICATOR);
+  var mark = item.querySelector('.vt-command-item-check');
+  if (!indicator && !mark) return;
 
   var wasChecked = item.getAttribute('aria-checked') === 'true';
-  indicator.classList.remove('vt-bg-info-fill');
-  ['vt-bg-brand-fill', 'vt-text-generic-white', 'vt-border-transparent'].forEach(function(cls) {
-    indicator.classList.toggle(cls, !wasChecked);
-  });
-  indicator.innerHTML = wasChecked ? '' : CHECK_ICON;
+  if (indicator && indicator.classList.contains('vt-checkbox')) {
+    indicator.classList.toggle('checked', !wasChecked);
+    if (!indicator.querySelector('.check-icon')) indicator.insertAdjacentHTML('beforeend', CHECK_ICON.replace('<svg ', '<svg class="check-icon" '));
+  } else if (indicator) {
+    indicator.classList.remove('vt-bg-info-fill');
+    ['vt-bg-brand-fill', 'vt-text-generic-white', 'vt-border-transparent'].forEach(function(cls) {
+      indicator.classList.toggle(cls, !wasChecked);
+    });
+    indicator.innerHTML = wasChecked ? '' : CHECK_ICON;
+  }
+  // A check mark (.vt-command-item-check) shows from aria-checked alone.
   item.setAttribute('aria-checked', String(!wasChecked));
 }
 
 // Radio menu item: one selected indicator per menu.
 function selectMenuRadio(item) {
   if (item.getAttribute('aria-disabled') === 'true') return;
-  item.closest('.vt-dropdown-menu').querySelectorAll('.radio-indicator').forEach(function(indicator) {
-    var selected = indicator.parentElement === item;
-    indicator.classList.remove('vt-border-info-fill', 'vt-border-input');
-    indicator.classList.toggle('vt-border-brand-fill', selected);
-    indicator.classList.toggle('vt-border-border-strong', !selected);
-    indicator.parentElement.setAttribute('aria-checked', String(selected));
-    indicator.innerHTML = selected ? '<span class="vt-w-2 vt-h-2 vt-rounded-full vt-bg-brand-fill"></span>' : '';
+  item.closest('.vt-dropdown-menu').querySelectorAll(RADIO_INDICATOR).forEach(function(indicator) {
+    var row = indicator.closest('.vt-command-item,.vt-dropdown-item') || indicator.parentElement;
+    var selected = row === item;
+    if (indicator.classList.contains('vt-radio')) {
+      indicator.classList.toggle('selected', selected);
+      if (!indicator.querySelector('.vt-dot')) indicator.insertAdjacentHTML('beforeend', '<span class="vt-dot"></span>');
+    } else {
+      indicator.classList.remove('vt-border-info-fill', 'vt-border-input');
+      indicator.classList.toggle('vt-border-brand-fill', selected);
+      indicator.classList.toggle('vt-border-border-strong', !selected);
+      indicator.innerHTML = selected ? '<span class="vt-w-2 vt-h-2 vt-rounded-full vt-bg-brand-fill"></span>' : '';
+    }
+    row.setAttribute('aria-checked', String(selected));
   });
 }
 
@@ -1103,6 +1199,10 @@ var UCNumberInput = {
 
 // UCPopover — toggle popover panels with outside-click close
 var UCPopover = {
+  // Shown open on purpose — a docs example's `open`, a preview inside [inert],
+  // `data-keep-open` — is closed neither by an outside click nor by Escape.
+  pinned: function(el) { return Boolean(el.closest('[data-keep-open], .open, [inert]')); },
+
   init: function() {
     document.querySelectorAll('[data-popover-trigger]').forEach(function(btn) {
       var id = btn.getAttribute('data-popover-trigger');
@@ -1118,7 +1218,7 @@ var UCPopover = {
         var isOpen = el.classList.contains('vt-open');
 
         document.querySelectorAll('.vt-popover-content').forEach(function(p) {
-          p.classList.remove('vt-open');
+          if (!UCPopover.pinned(p)) p.classList.remove('vt-open');
         });
         document.querySelectorAll('[data-popover-trigger]').forEach(function(t) {
           t.setAttribute('aria-expanded', 'false');
@@ -1131,13 +1231,13 @@ var UCPopover = {
       };
     });
 
-    if (!document.body.hasAttribute('data-popover-outside-init')) {
-      document.body.setAttribute('data-popover-outside-init', 'true');
+    if (!window.__vtPopoverEvents) {
+      window.__vtPopoverEvents = true; // per window: <body> is replaced on a client-side swap, the document listener is not
       document.addEventListener('click', function(e) {
         var target = e.target;
         if (!target.closest('.vt-popover-content') && !target.closest('[data-popover-trigger]')) {
           document.querySelectorAll('.vt-popover-content').forEach(function(p) {
-            p.classList.remove('vt-open');
+            if (!UCPopover.pinned(p)) p.classList.remove('vt-open');
           });
           document.querySelectorAll('[data-popover-trigger]').forEach(function(t) {
             t.setAttribute('aria-expanded', 'false');
@@ -1147,7 +1247,7 @@ var UCPopover = {
       document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
           document.querySelectorAll('.vt-popover-content').forEach(function(p) {
-            p.classList.remove('vt-open');
+            if (!UCPopover.pinned(p)) p.classList.remove('vt-open');
           });
           document.querySelectorAll('[data-popover-trigger]').forEach(function(t) {
             t.setAttribute('aria-expanded', 'false');
@@ -1161,8 +1261,8 @@ var UCPopover = {
 // UCSelect — custom select dropdown with single selection
 var UCSelect = {
   init: function() {
-    if (document.body.hasAttribute('data-select-init')) return;
-    document.body.setAttribute('data-select-init', 'true');
+    if (window.__vtSelectEvents) return;
+    window.__vtSelectEvents = true; // per window: <body> is replaced on a client-side swap, the document listener is not
 
     document.addEventListener('click', function(e) {
       if (!e.target.closest('.vt-select-wrapper')) {
@@ -1242,27 +1342,28 @@ var UCToast = {
     var id = 'toast-' + (++UCToast._count);
     var configs = {
       default: { title: 'Scheduled: Catch up', desc: 'Friday, February 14, 2026 at 5:57 PM', icon: '', btn: 'Undo' },
-      success: { title: 'Success', desc: 'Your changes have been saved.', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-w-5 vt-h-5 vt-text-brand-fill"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>', btn: '' },
-      error: { title: 'Error', desc: 'Something went wrong. Please try again.', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-w-5 vt-h-5 vt-text-error-fill"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>', btn: 'Retry' },
+      success: { title: 'Success', desc: 'Your changes have been saved.', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-toast-icon" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>', btn: '' },
+      error: { title: 'Error', desc: 'Something went wrong. Please try again.', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-toast-icon" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>', btn: 'Retry' },
       action: { title: 'Event created', desc: 'Sunday, December 03, 2023', icon: '', btn: 'Undo' }
     };
 
     var c = configs[type] || configs.default;
     var toast = document.createElement('div');
     toast.id = id;
-    toast.className = 'vt-flex vt-items-start vt-gap-3 vt-w-80 vt-p-4 vt-rounded-lg vt-border vt-border-border-default vt-bg-surface-card vt-shadow-lg vt-mb-2';
+    // The toast's own classes (components/toast.json): the look lives in the CSS.
+    toast.className = 'vt-toast vt-mb-2' + (type === 'success' ? ' vt-toast-success' : type === 'error' ? ' vt-toast-danger' : '');
     toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
     toast.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
     toast.setAttribute('aria-atomic', 'true');
     toast.innerHTML =
-      (c.icon ? '<div class="vt-flex-shrink-0 vt-mt-0.5">' + c.icon + '</div>' : '') +
-      '<div class="vt-flex-1 vt-min-w-0">' +
-        '<p class="vt-text-sm vt-font-semibold">' + c.title + '</p>' +
-        '<p class="vt-text-xs vt-text-foreground-muted vt-mt-0.5">' + c.desc + '</p>' +
+      c.icon +
+      '<div class="vt-toast-content">' +
+        '<p class="vt-toast-title">' + c.title + '</p>' +
+        '<p class="vt-toast-description">' + c.desc + '</p>' +
       '</div>' +
-      (c.btn ? '<button onclick="this.parentElement.remove()" class="vt-flex-shrink-0 vt-inline-flex vt-items-center vt-justify-center vt-rounded-lg vt-text-xs vt-font-medium vt-h-7 vt-px-2 vt-border vt-border-border-strong vt-bg-surface-card vt-hover:bg-surface-subtle vt-transition-colors">' + c.btn + '</button>' : '') +
-      '<button onclick="this.parentElement.remove()" aria-label="Close" class="vt-flex-shrink-0 vt-p-0.5 vt-text-foreground-muted vt-hover:text-foreground-primary vt-transition-colors">' +
-        '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-w-3.5 vt-h-3.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
+      (c.btn ? '<button onclick="this.parentElement.remove()" class="vt-btn vt-btn-bordered vt-btn-sm">' + c.btn + '</button>' : '') +
+      '<button onclick="this.parentElement.remove()" aria-label="Close" class="vt-btn vt-btn-ghost vt-btn-icon vt-btn-sm">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
       '</button>';
 
     container.appendChild(toast);
@@ -1354,7 +1455,8 @@ var UCTreeView = {
 };
 
 // UCFields — small field behaviours declared with data-attributes:
-// `[data-password-toggle]`, `[data-pricing]` period switches and `[data-otp]` groups.
+// `[data-pricing]` period switches, `[data-otp]` groups and the deprecated
+// `[data-password-toggle]`.
 var UCFields = {
   init: function() {
     UCFields.initPasswordToggles();
@@ -1362,6 +1464,10 @@ var UCFields = {
     UCFields.initOtp();
   },
 
+  // DEPRECATED (25.09.2026): the docs, Figma and the MCP server no longer
+  // offer a show/hide password button — a password field is a plain
+  // <input type="password" class="vt-input">. The toggle shipped in 1.1.1, so
+  // the bundle keeps wiring it for 1.x markup; remove it in the next major.
   initPasswordToggles: function() {
     document.querySelectorAll('[data-password-toggle]').forEach(function(button) {
       if (button.dataset.fieldBound) return;
@@ -1397,8 +1503,9 @@ var UCFields = {
         var isYearly = toggle.getAttribute('aria-checked') !== 'true';
         toggle.setAttribute('aria-checked', String(isYearly));
         toggle.classList.toggle('vt-active', isYearly);
-        toggle.classList.toggle('vt-bg-brand-fill', isYearly);
-        toggle.classList.toggle('vt-bg-surface-moderate', !isYearly);
+        // The switch colours itself by .vt-active; older markup recoloured it
+        // with utilities, which would pin one colour — drop them.
+        toggle.classList.remove('vt-bg-brand-fill', 'vt-bg-surface-moderate');
         var period = isYearly ? yearly : monthly;
         price.textContent = period.price;
         if (description) description.textContent = period.description;
@@ -1441,7 +1548,10 @@ var UCFields = {
       }
 
       cells.forEach(function(cell, index) {
-        cell.setAttribute('aria-label', 'Digit ' + (index + 1) + ' of ' + cells.length);
+        // Each digit is its own field; an author's own (e.g. translated) name wins.
+        if (!cell.hasAttribute('aria-label') && !cell.hasAttribute('aria-labelledby')) {
+          cell.setAttribute('aria-label', 'Digit ' + (index + 1) + ' of ' + cells.length);
+        }
         cell.autocomplete = index === 0 ? 'one-time-code' : 'off';
 
         cell.addEventListener('input', function() {
@@ -1550,7 +1660,10 @@ var UCCommand = {
 
   select: function(item, input) {
     var wrapper = input.closest('.vt-command-wrapper');
-    var label = item.textContent.trim();
+    // The label without the shortcut hint (⌘P) at the end of the item.
+    var copy = item.cloneNode(true);
+    copy.querySelectorAll('.vt-command-shortcut').forEach(function(kbd) { kbd.remove(); });
+    var label = copy.textContent.trim();
     var status = wrapper.querySelector('[data-command-status]');
     if (status) status.textContent = 'Selected: ' + label;
     item.dispatchEvent(new CustomEvent('vt:commandselect', { bubbles: true, detail: UCCommand.itemText(item) }));
@@ -1565,10 +1678,12 @@ var UCCommand = {
   }
 };
 
-// UCSidebarNav — collapsible sections inside `[data-sidebar-demo]` navigation.
+// UCSidebarNav — collapsible sections of a sidebar nav (.vt-side-nav, or the
+// older [data-sidebar-demo] wrapper): the section's toggle button opens and
+// closes it; the CSS shows .vt-side-nav-children and turns the chevron.
 var UCSidebarNav = {
   init: function() {
-    document.querySelectorAll('[data-sidebar-demo]').forEach(function(nav) {
+    document.querySelectorAll('.vt-side-nav, [data-sidebar-demo]').forEach(function(nav) {
       if (nav.dataset.sidebarBound) return;
       nav.dataset.sidebarBound = 'true';
 
@@ -1611,20 +1726,27 @@ var UCSidebarNav = {
     UCSidebarNav.init();
   }
 
+  // Markup added after load — a rendered preview, a fetched fragment, a
+  // client-side route — has to be wired the same way. Every component's init
+  // is written to be re-run safely (per-element guards, document listeners
+  // bound once per window), so calling this again is cheap and idempotent.
+  window.veritheme = window.veritheme || {};
+  window.veritheme.init = initAll;
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initAll);
   } else {
     initAll();
   }
 
-  document.addEventListener('astro:after-swap', function() {
-    initAll();
-  });
-
-  // Markup added after load — a rendered preview, a fetched fragment, a
-  // client-side route — has to be wired the same way. Every component's init
-  // is written to be re-run safely (per-element guards, document listeners
-  // bound once), so calling this again is cheap and idempotent.
-  window.veritheme = window.veritheme || {};
-  window.veritheme.init = initAll;
+  // The bundle may be evaluated more than once in one window (a client-side
+  // router re-running the script, two script tags). The swap listener is
+  // bound only by the first run and always calls the latest init, so every
+  // navigation wires the new page exactly once.
+  if (!window.veritheme.__swapBound) {
+    window.veritheme.__swapBound = true;
+    document.addEventListener('astro:after-swap', function() {
+      window.veritheme.init();
+    });
+  }
 })();
