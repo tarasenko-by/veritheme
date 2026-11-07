@@ -1,6 +1,6 @@
 {
   "name": "veritheme",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "UI component library — pure CSS utility classes, design tokens, dark mode, vanilla JS bundle.",
   "license": "MIT",
   "author": "Taras Tarasenko <by.tarasenko@gmail.com>",
@@ -33,6 +33,9 @@
     "./js/unminified": "./veritheme.js",
     "./veritheme.css": "./veritheme.css",
     "./veritheme.min.css": "./veritheme.min.css",
+    "./base": "./veritheme-base.min.css",
+    "./veritheme-base.css": "./veritheme-base.css",
+    "./veritheme-base.min.css": "./veritheme-base.min.css",
     "./veritheme.js": "./veritheme.js",
     "./veritheme.min.js": "./veritheme.min.js",
     "./theme-manifest": "./theme-manifest.json",
@@ -43,6 +46,8 @@
   "files": [
     "veritheme.css",
     "veritheme.min.css",
+    "veritheme-base.css",
+    "veritheme-base.min.css",
     "veritheme.js",
     "veritheme.min.js",
     "theme-manifest.json",

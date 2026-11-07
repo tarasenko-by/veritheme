@@ -140,18 +140,18 @@
     "presetFade": "opacity 200ms cubic-bezier(0.4, 0, 0.2, 1)"
   },
   "intent": {
-    "success": "var(--success-fill)",
-    "warning": "var(--warning-fill)",
-    "danger": "var(--error-fill)",
-    "info": "var(--info-fill)"
+    "success": "var(--vt-success-fill)",
+    "warning": "var(--vt-warning-fill)",
+    "danger": "var(--vt-error-fill)",
+    "info": "var(--vt-info-fill)"
   },
   "elevation": {
     "0": "none",
-    "1": "var(--shadow-sm)",
-    "2": "var(--shadow-default)",
-    "3": "var(--shadow-md)",
-    "4": "var(--shadow-lg)",
-    "5": "var(--shadow-xl)"
+    "1": "var(--vt-shadow-sm)",
+    "2": "var(--vt-shadow-default)",
+    "3": "var(--vt-shadow-md)",
+    "4": "var(--vt-shadow-lg)",
+    "5": "var(--vt-shadow-xl)"
   },
   "colors": {
     "genericWhite": "0 0% 100%",

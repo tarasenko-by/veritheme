@@ -41,11 +41,23 @@ import 'veritheme/veritheme.min.css';
 import 'veritheme'; // initializes interactive components
 ```
 
+`veritheme.css` only styles `vt-*` elements and what is inside them, and every custom property starts with `--vt-`, so it can join an existing app. Starting a new page on Veritheme? Add the optional global reset and the stepped root font size (14px, 16px from 768px) first:
+
+```js
+import 'veritheme/veritheme-base.min.css';
+import 'veritheme/veritheme.min.css';
+```
+
+The library lives in the `veritheme.base` and `veritheme.components` cascade layers, so any unlayered CSS of yours wins over it. That includes old global rules: a stray `button { padding: 0 }` beats `.vt-btn`. Put such CSS in a layer of its own, declared first: `@layer legacy, veritheme;`.
+
+Supported browsers: Chrome and Edge 105+, Firefox 121+, Safari 16+.
+
 ## What's in this package
 
 | File | Description |
 |------|-------------|
 | `veritheme.min.css` / `veritheme.css` | All components + vt- utility classes + design tokens (minified / readable) |
+| `veritheme-base.min.css` / `veritheme-base.css` | Optional: page-wide reset and root font size |
 | `veritheme.min.js` / `veritheme.js` | Vanilla JS for interactive components, zero dependencies |
 | `themes/*.json` | Theme token file — `default` (the one theme that ships) |
 | `theme-manifest.json` | Index of available themes (name, label, font, dark-mode support) |
@@ -85,10 +97,10 @@ The **Default** theme applies with no attribute. A custom theme (from the design
 Markup uses `data-*` attributes as hooks; the JS bundle initializes them automatically:
 
 ```html
-<div data-accordion="single">
-  <div data-accordion-item>
-    <button data-accordion-trigger>Title</button>
-    <div data-accordion-content>Content</div>
+<div data-vt-accordion="single">
+  <div data-vt-accordion-item>
+    <button data-vt-accordion-trigger>Title</button>
+    <div data-vt-accordion-content>Content</div>
   </div>
 </div>
 ```

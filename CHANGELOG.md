@@ -11,6 +11,141 @@ _Add entries here as you work. `npm run release` freezes this section into a
 dated version block. Use the Keep a Changelog headings: Added / Changed /
 Deprecated / Removed / Fixed / Security._
 
+## [1.2.1] — 2026-11-07
+
+### Breaking
+
+Released as a patch, 1.2.1, by the owner's decision: nobody builds on the renamed
+tokens and selectors yet. Update your markup and CSS as listed here.
+
+- **Every custom property now starts with `--vt-`:** `--brand-fill` is
+  `--vt-brand-fill`, `--radius-md` is `--vt-radius-md`, `--btn-bg` is
+  `--vt-btn-bg`. A host application's own `--radius-md` no longer restyles
+  Veritheme, and Veritheme no longer overwrites it. To migrate your CSS, replace
+  `var(--name` and `--name:` for Veritheme's tokens, and export your theme again:
+  a `theme.css` from an earlier version sets the old names, which nothing reads.
+  Saved systems keep working, because they store token names without the prefix.
+  Figma variable names (`brand/fill`) and utility classes (`vt-bg-brand-fill`) do
+  not change. The Tailwind export keeps Tailwind's own `@theme` names, such as
+  `--color-brand-fill` and `--radius-md`, and reads `--vt-*` behind them.
+- **`veritheme.css` no longer touches markup it doesn't own.** The global reset
+  and the root `font-size` moved to the new optional `veritheme-base.css`. A page
+  built on Veritheme should load it first; a `vt-*` component looks the same
+  with or without it. Without it, the root stays at the browser's size, so rem
+  tokens are not stepped down to 14px on small screens.
+- **Slider:** `input[type="range"]` is no longer styled globally. Add the class:
+  `<input class="vt-slider" type="range">`. The script now reads `.vt-slider`.
+- **Every data attribute the script reads now starts with `data-vt-`:**
+  `data-accordion*`, `data-tab-group`, `data-tab`, `data-panel`,
+  `data-dropdown-trigger`, `data-popover-trigger`, `data-collapsible*`, `data-tree`,
+  `data-carousel*`, `data-calendar*` and the rest. Your own `data-tree` or
+  `data-group` no longer wakes up Veritheme's behavior. Add the prefix to your markup.
+- **`veritheme.js` leaves one global, `window.veritheme`.** Call
+  `veritheme.openDialog()`, `veritheme.closeDialog()`, `veritheme.showToast()` and the
+  other functions on it, including in `onclick`. Bare `openDialog()` and `UCDialog`
+  are gone, so they no longer overwrite your own functions of those names.
+- **Removed legacy classes** `.dialog-overlay`, `.dialog-content`,
+  `.popover-content`, `.popover-wrapper` and `.popover-{top,right,bottom,left,…}`.
+  Use their `.vt-` versions with `.vt-open`.
+- **Removed** the unused `[&::-webkit-slider-thumb]:*` utilities. `.!block` and
+  `.!bg-transparent` are now `.vt-!block` and `.vt-!bg-transparent`.
+- **Keyframes** `dialogIn` and `popFadeIn` are now `vt-dialog-in` and
+  `vt-pop-fade-in`.
+- **Cascade layers:** the library is in `veritheme.components` and
+  `veritheme.base` instead of `veritheme`. `@layer veritheme` still orders both.
+
+### Removed
+
+- **`vt-btn-link`** (use `vt-link`) and the show/hide password button
+  `[data-vt-password-toggle]` (a password field is a plain `vt-input`).
+- **The older combobox markup:** `.vt-combobox-tag`, `.vt-combobox-tag-remove`,
+  `.vt-combobox-trigger` and `.vt-combobox-button-label`.
+- **Three things Figma did not have, so that code and Figma match:**
+  `.vt-carousel-nav-btn` (use `vt-btn vt-btn-bordered vt-btn-icon vt-btn-sm vt-carousel-nav`),
+  `.vt-notification-btn` (use an icon-only `vt-btn` with `vt-notification-badge`) and the
+  Not Found page (build a 404 from Empty State; its page shows how). `npm run audit:all` now
+  fails on anything in the library that Figma does not have.
+- **About 250 one-off utilities nothing used**, such as `vt-from-info-fill/30` and
+  `vt-hover:bg-black/5`, and `vt-bg-purple-500`, which no token backs. The spacing
+  and sizing scales stay complete.
+- **The refusal of theme files with pre-September 2026 token names.**
+- **`/themes-legacy` and `/wizard`**, three one-off migration scripts and the
+  `palette-shots` folder.
+
+### Fixed
+
+- **Text keeps its color on a dark page.** The Auth, Card, EmptyState and StatsCard titles,
+  Avatar, Chip and Table cells had no color of their own and took the page's, so a project
+  that sets none got black text on the dark theme. They now use `foreground-primary`, as
+  their Figma layers do.
+- **Overlays stack by the `--vt-z-*` tokens.** Dialog, dropdown, select, calendar,
+  popover and tooltip all sat at `z-index: 50`, so DOM order decided which was on top.
+- **Color utilities follow the tokens:** `vt-bg-blue-500`, `vt-bg-white`,
+  `vt-text-white` and their kin were fixed colors.
+- **Focus stays visible in forced-colors mode.** Focus rings used `outline: none`
+  plus a `box-shadow`, which forced-colors mode removes, so a focused button
+  looked unfocused.
+- **Focus rings meet 3:1 contrast.** Button, button group, checkbox, radio and
+  switch rings were 25% opaque, about 1.3:1 on the page background.
+- **The slider and the number input now show focus.**
+- **The studio's own editor opens on Colors again.** A rename of the `colours`
+  section id left it on an empty "Overview". Its 17 browser tests had been failing
+  since `/start/` took over the path, which also hid this; they run again.
+- **Reduced motion no longer stops the host page's animations**, and no longer
+  overrides the spinner's own reduced version.
+- **`veritheme.min.css` is fully minified**, about 17% smaller: component files
+  used to be inlined after compression.
+- **Removed `@charset` from inside the layer block**, where it is invalid, and the
+  Astro view-transition styles, which only the docs site needs.
+
+### Added
+
+- **`npm run check:js-isolation`** runs the bundle and fails on any global but
+  `veritheme`, an unprefixed data attribute, or a document-wide selector outside the
+  library.
+- **`npm run check:css-isolation`** fails the build on a global selector, a root
+  `font-size`, an unprefixed `@keyframes` or custom property in the main bundle,
+  and on a focus rule that hides focus in forced-colors mode.
+- **`browserslist`** in `package.json` states the supported browsers.
+- **Type checks cover the whole project.** `npm run typecheck` runs on the site,
+  every `.astro` file, the Figma plugin and the MCP server. All of them are at zero
+  errors, and `npm test` keeps them there.
+- **A contract for every component.** `get_component` now says what an agent may
+  change: axes and defaults, the custom properties a component exposes, and the nested
+  components it restyles, with the Figma layer each setting paints. A component with none
+  says so. `validate_markup` warns about a
+  `--vt-*` variable nothing reads, and `audit:contract` fails on a component that sets
+  custom properties without declaring them.
+- **Figma to code through MCP.** `get_figma_reader` gives a read-only script for the Figma
+  MCP, and `figma_to_markup` turns its result into HTML with Veritheme classes: instances
+  become components, a changed layer becomes a contract slot, and whatever cannot be
+  translated is listed, not guessed. A change to a main component or a theme variable in the
+  Figma file comes back as CSS for the project's stylesheet. The `figma-to-page` prompt does
+  all of it from one link, and `audit:figma-markup` checks every variant of every component.
+  `get_snippet` now serves every example on a docs page.
+- **Keyboard for select, combobox and radio groups.** Arrow keys, Enter and Escape work, with
+  the roles and states assistive technology reads.
+- **ESLint.** `npm run lint` checks the whole repository at zero findings, and
+  `npm test` runs it. Unused code the first run found is gone.
+- **CI and one command for every check.** `npm test` builds the project and runs
+  type checks, audits, unit and browser tests; `npm run verify` skips the build
+  and the browser. The GitHub Actions workflow runs them when started by hand, and
+  fails when generated files were not committed. It can compare screenshots on macOS too.
+- **A browser test of the path visitors take:** naming a system in the studio,
+  building it in `/start/`, saving it and downloading its `theme.css`.
+
+### Changed
+
+- **New social preview.** `og-image.png` (the card shown when a Veritheme link
+  is shared) is now a light, tilted board of real components — color scales,
+  corner radius, dark mode, charts, chips, forms — with the logo, the
+  "Design systems, generated." headline and the feature tags on a frosted
+  panel. The panel sits in the middle 630×630, so apps that crop previews to
+  a square (Slack, WhatsApp, Telegram) still show all of it. It replaces the
+  dark text-only card and its stale "66 Components". The image URL now
+  carries a hash of the file (`og-image.png?v=…`), so social networks that
+  cache previews by URL pick up a new image as soon as it changes.
+
 ## [1.2.0] — 2026-11-03
 
 ### Added
@@ -1719,7 +1854,7 @@ was `@uicraft/core@1.4.4`.
 - `release` now publishes `@veritheme/mcp-server` to npm alongside `veritheme` (and syncs its bundled data before committing) so the two packages never drift in version again.
 - Bumped the MCP SDK to `^1.29.0` and migrated the server to the `registerTool`/`registerResource` API.
 
-## [1.2.1] — 2026-06-24
+## 1.2.1 (old numbering) — 2026-06-24
 
 ### Added
 - Per-accent on-color tokens (`on-brand` / `on-error` / `on-success` / `on-warning` / `on-info`) for correct text contrast on each accent surface.
@@ -1754,7 +1889,8 @@ First stable release.
 - **WCAG contrast**: 32 token pairs fall below AA across editorial/rounded-sans themes. Default theme addressed; remaining themes queued for v1.1.
 - **Scope**: 18 components (Dialog, Accordion, Slider, Button Group, Popover, Sheet, Sidebar, mini-variants) remain in `main.scss` pending recipe-engine extensions (`rawRules`, `@keyframes`, `[data-*]` selectors). Scheduled for v1.1.
 
-[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.2.1
 [1.2.0]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.2.0
 [1.1.1]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.1.1
 [1.1.0]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.1.0
@@ -1771,5 +1907,4 @@ First stable release.
 [1.4.1]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.4.1
 [1.4.0]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.4.0
 [1.3.0]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.3.0
-[1.2.1]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.2.1
 [1.0.0]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.0

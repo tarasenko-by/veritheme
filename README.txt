@@ -2,6 +2,7 @@ Veritheme Design System Bundle
 
 - veritheme.css: expanded bundle
 - veritheme.min.css: minified bundle
+- veritheme-base.css / .min.css: optional page-wide reset and root font-size
 - theme-manifest.json: selectable themes
 - themes/: source theme json files
 

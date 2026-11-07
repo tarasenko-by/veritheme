@@ -1,17 +1,19 @@
 /*!
- * veritheme.js v1.2.0
+ * veritheme.js v1.2.1
  * https://veritheme.com
  * MIT License
  */
 
-// UCAccordion — expand/collapse with single and multi mode
-var UCAccordion = {
+(function () {
+var veritheme = window.veritheme = window.veritheme || {};
+// VtAccordion — expand/collapse with single and multi mode
+var VtAccordion = {
   init: function() {
     var uid = 0;
-    document.querySelectorAll('[data-accordion-item]').forEach(function(item) {
+    document.querySelectorAll('[data-vt-accordion-item]').forEach(function(item) {
       uid++;
-      var trigger = item.querySelector('[data-accordion-trigger]');
-      var content = item.querySelector('[data-accordion-content]');
+      var trigger = item.querySelector('[data-vt-accordion-trigger]');
+      var content = item.querySelector('[data-vt-accordion-content]');
       if (trigger && content) {
         var tId = 'acc-trigger-' + uid;
         var cId = 'acc-content-' + uid;
@@ -90,32 +92,32 @@ var UCAccordion = {
       });
     }
 
-    document.querySelectorAll('[data-accordion-content]').forEach(function(content) {
+    document.querySelectorAll('[data-vt-accordion-content]').forEach(function(content) {
       if (!content.classList.contains('vt-hidden') && !content.classList.contains('hidden')) {
         openContent(content);
       }
     });
 
-    document.querySelectorAll('[data-accordion-trigger]').forEach(function(trigger) {
-      if (trigger.hasAttribute('data-accordion-init')) return;
-      trigger.setAttribute('data-accordion-init', 'true');
+    document.querySelectorAll('[data-vt-accordion-trigger]').forEach(function(trigger) {
+      if (trigger.hasAttribute('data-vt-accordion-init')) return;
+      trigger.setAttribute('data-vt-accordion-init', 'true');
 
       trigger.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); trigger.click(); }
       });
       trigger.addEventListener('click', function() {
-        var item = trigger.closest('[data-accordion-item]');
-        var accordion = trigger.closest('[data-accordion]');
-        var mode = accordion.getAttribute('data-accordion');
-        var content = item.querySelector('[data-accordion-content]');
-        var icon = trigger.querySelector('[data-accordion-icon]');
+        var item = trigger.closest('[data-vt-accordion-item]');
+        var accordion = trigger.closest('[data-vt-accordion]');
+        var mode = accordion.getAttribute('data-vt-accordion');
+        var content = item.querySelector('[data-vt-accordion-content]');
+        var icon = trigger.querySelector('[data-vt-accordion-icon]');
         var isOpen = !content.classList.contains('vt-hidden') && !content.classList.contains('hidden') && content.classList.contains('open');
 
         if (mode === 'single') {
-          accordion.querySelectorAll('[data-accordion-item]').forEach(function(otherItem) {
-            var otherContent = otherItem.querySelector('[data-accordion-content]');
-            var otherTrigger = otherItem.querySelector('[data-accordion-trigger]');
-            var otherIcon = otherItem.querySelector('[data-accordion-trigger] [data-accordion-icon]');
+          accordion.querySelectorAll('[data-vt-accordion-item]').forEach(function(otherItem) {
+            var otherContent = otherItem.querySelector('[data-vt-accordion-content]');
+            var otherTrigger = otherItem.querySelector('[data-vt-accordion-trigger]');
+            var otherIcon = otherItem.querySelector('[data-vt-accordion-trigger] [data-vt-accordion-icon]');
             if (otherItem !== item && !otherContent.classList.contains('vt-hidden') && !otherContent.classList.contains('hidden')) {
               closeContent(otherContent);
               if (otherIcon) otherIcon.classList.remove('vt-rotate-180');
@@ -130,7 +132,7 @@ var UCAccordion = {
           trigger.setAttribute('aria-expanded', 'false');
         } else {
           content.classList.remove('vt-hidden');
-          content.offsetHeight;
+          void content.offsetHeight;
           openContent(content);
           if (icon) icon.classList.add('vt-rotate-180');
           trigger.setAttribute('aria-expanded', 'true');
@@ -140,25 +142,25 @@ var UCAccordion = {
   }
 };
 
-// UCCalendar — month navigation, single/range selection and roving keyboard
-// focus for `[data-calendar]` cards. Selection is tracked by date, not by grid
+// VtCalendar — month navigation, single/range selection and roving keyboard
+// focus for `[data-vt-calendar]` cards. Selection is tracked by date, not by grid
 // position, so it survives navigating between months.
-var UCCalendar = {
+var VtCalendar = {
   init: function() {
-    document.querySelectorAll('[data-calendar]').forEach(function(cal) {
-      if (cal.dataset.calendarBound) return;
-      cal.dataset.calendarBound = 'true';
+    document.querySelectorAll('[data-vt-calendar]').forEach(function(cal) {
+      if (cal.dataset.vtCalendarBound) return;
+      cal.dataset.vtCalendarBound = 'true';
 
-      var grid = cal.querySelector('[data-calendar-grid]') || cal;
+      var grid = cal.querySelector('[data-vt-calendar-grid]') || cal;
       // A calendar lays its days out as week rows (.vt-calendar-week inside
       // .vt-calendar-days, or the older .vt-date-picker-week / -days); an
       // older flat grid takes the days as direct children.
-      // data-week-start="1" starts the week on Monday.
+      // data-vt-week-start="1" starts the week on Monday.
       var byWeek = grid.classList.contains('vt-calendar-days') || grid.classList.contains('vt-date-picker-days');
       var weekClass = grid.classList.contains('vt-calendar-days') ? 'vt-calendar-week' : 'vt-date-picker-week';
-      var weekStart = Number(cal.dataset.weekStart || 0);
-      var heading = cal.querySelector('[data-calendar-heading]');
-      var monthKey = cal.dataset.calendarMonth || new Date().toISOString().slice(0, 7);
+      var weekStart = Number(cal.dataset.vtWeekStart || 0);
+      var heading = cal.querySelector('[data-vt-calendar-heading]');
+      var monthKey = cal.dataset.vtCalendarMonth || new Date().toISOString().slice(0, 7);
       var parts = monthKey.split('-').map(Number);
       var view = new Date(parts[0], parts[1] - 1, 1);
       var start = null;
@@ -187,11 +189,11 @@ var UCCalendar = {
       // Give every day button a date, a label and its disabled/pressed state.
       function prepare() {
         days().forEach(function(day) {
-          if (!day.dataset.date) {
-            day.dataset.date = stamp(new Date(view.getFullYear(), view.getMonth(), Number(day.textContent)));
+          if (!day.dataset.vtDate) {
+            day.dataset.vtDate = stamp(new Date(view.getFullYear(), view.getMonth(), Number(day.textContent)));
           }
           day.disabled = day.disabled || day.classList.contains('vt-muted') || day.classList.contains('vt-outside');
-          day.setAttribute('aria-label', readable(day.dataset.date));
+          day.setAttribute('aria-label', readable(day.dataset.vtDate));
           day.setAttribute('aria-pressed', String(day.classList.contains('vt-active')));
           day.tabIndex = day.classList.contains('vt-active') ? 0 : -1;
         });
@@ -211,13 +213,13 @@ var UCCalendar = {
         button.type = 'button';
         button.className = outside ? 'vt-calendar-day vt-outside' : 'vt-calendar-day';
         button.textContent = String(date.getDate());
-        button.dataset.date = stamp(date);
+        button.dataset.vtDate = stamp(date);
         return button;
       }
 
       function paint() {
         days().forEach(function(day) {
-          var value = day.dataset.date;
+          var value = day.dataset.vtDate;
           var selected = value === start || value === end;
           day.classList.toggle('vt-active', selected);
           day.classList.toggle('vt-range-middle', !!(start && end && value > start && value < end));
@@ -238,14 +240,14 @@ var UCCalendar = {
       var active = days().filter(function(day) {
         return day.classList.contains('vt-active') || day.classList.contains('vt-range-start') || day.classList.contains('vt-range-end');
       });
-      if (active[0]) start = active[0].dataset.date;
-      if (active.length > 1) end = active[active.length - 1].dataset.date;
+      if (active[0]) start = active[0].dataset.vtDate;
+      if (active.length > 1) end = active[active.length - 1].dataset.vtDate;
 
       function render() {
         if (heading) {
           heading.textContent = view.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
         }
-        cal.dataset.calendarMonth = monthOf(view);
+        cal.dataset.vtCalendarMonth = monthOf(view);
 
         if (monthOf(view) === authoredMonth) {
           grid.innerHTML = authoredGrid;
@@ -276,18 +278,18 @@ var UCCalendar = {
       }
 
       cal.addEventListener('click', function(e) {
-        var nav = e.target.closest('[data-calendar-nav]');
+        var nav = e.target.closest('[data-vt-calendar-nav]');
         if (nav) {
-          view.setMonth(view.getMonth() + Number(nav.dataset.calendarNav));
+          view.setMonth(view.getMonth() + Number(nav.dataset.vtCalendarNav));
           render();
           return;
         }
 
         var day = e.target.closest('.vt-calendar-day');
         if (!day || day.disabled) return;
-        var value = day.dataset.date;
+        var value = day.dataset.vtDate;
 
-        if (cal.dataset.calendar === 'range') {
+        if (cal.dataset.vtCalendar === 'range') {
           if (!start || end) {
             start = value;
             end = null;
@@ -317,7 +319,7 @@ var UCCalendar = {
         if (delta === undefined && e.key !== 'Home' && e.key !== 'End') return;
         e.preventDefault();
 
-        var date = new Date(day.dataset.date + 'T12:00:00');
+        var date = new Date(day.dataset.vtDate + 'T12:00:00');
         if (e.key === 'Home') {
           date.setDate(1);
         } else if (e.key === 'End') {
@@ -332,7 +334,7 @@ var UCCalendar = {
         }
 
         var next = days().find(function(candidate) {
-          return candidate.dataset.date === stamp(date) && !candidate.disabled;
+          return candidate.dataset.vtDate === stamp(date) && !candidate.disabled;
         });
         if (next) {
           ensureTabbable(next);
@@ -343,18 +345,18 @@ var UCCalendar = {
   }
 };
 
-// UCChip — toggleable filter chips inside [data-chip-group]
-var UCChip = {
+// VtChip — toggleable filter chips inside [data-vt-chip-group]
+var VtChip = {
   init: function() {
-    document.querySelectorAll('[data-chip-group]').forEach(function(group) {
-      if (group.hasAttribute('data-chip-bound')) return;
-      group.setAttribute('data-chip-bound', 'true');
+    document.querySelectorAll('[data-vt-chip-group]').forEach(function(group) {
+      if (group.hasAttribute('data-vt-chip-bound')) return;
+      group.setAttribute('data-vt-chip-bound', 'true');
       group.querySelectorAll('.vt-chip-btn').forEach(function(btn) {
-        var selected = btn.getAttribute('data-selected') === 'true' || btn.classList.contains('vt-chip-active');
+        var selected = btn.getAttribute('data-vt-selected') === 'true' || btn.classList.contains('vt-chip-active');
         btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
         btn.addEventListener('click', function() {
-          var isSelected = btn.getAttribute('data-selected') === 'true';
-          btn.setAttribute('data-selected', isSelected ? 'false' : 'true');
+          var isSelected = btn.getAttribute('data-vt-selected') === 'true';
+          btn.setAttribute('data-vt-selected', isSelected ? 'false' : 'true');
           btn.setAttribute('aria-pressed', isSelected ? 'false' : 'true');
           btn.classList.toggle('vt-chip-active', !isSelected);
         });
@@ -363,28 +365,54 @@ var UCChip = {
   }
 };
 
-// UCRadioGroup — custom radio circles grouped by [data-group]
-var UCRadioGroup = {
+// VtRadioGroup — custom radio circles grouped by [data-vt-group]
+var VtRadioGroup = {
   init: function() {
-    document.querySelectorAll('[data-group] .vt-radio').forEach(function(radio) {
+    document.querySelectorAll('[data-vt-group] .vt-radio').forEach(function(radio) {
       var label = radio.closest('label');
-      if (!label || label.hasAttribute('data-radio-bound')) return;
-      label.setAttribute('data-radio-bound', 'true');
+      if (!label || label.hasAttribute('data-vt-radio-bound')) return;
+      label.setAttribute('data-vt-radio-bound', 'true');
+      var disabled = radio.classList.contains('disabled');
+      label.setAttribute('role', 'radio');
+      label.setAttribute('aria-checked', String(radio.classList.contains('selected')));
+      if (disabled) label.setAttribute('aria-disabled', 'true');
+      else label.setAttribute('tabindex', '0');
       label.addEventListener('click', function() {
         if (radio.classList.contains('disabled')) return;
-        var group = radio.closest('[data-group]');
+        var group = radio.closest('[data-vt-group]');
         group.querySelectorAll('.vt-radio').forEach(function(r) {
           r.classList.remove('selected');
+          var own = r.closest('label');
+          if (own) own.setAttribute('aria-checked', 'false');
         });
         radio.classList.add('selected');
+        label.setAttribute('aria-checked', 'true');
       });
+      label.addEventListener('keydown', function(e) {
+        var group = radio.closest('[data-vt-group]');
+        var labels = Array.prototype.slice.call(group.querySelectorAll('label[role="radio"]:not([aria-disabled="true"])'));
+        var at = labels.indexOf(label);
+        var step = e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : e.key === 'ArrowUp' || e.key === 'ArrowLeft' ? -1 : 0;
+        if (step) {
+          e.preventDefault();
+          var next = labels[(at + step + labels.length) % labels.length];
+          next.click();
+          next.focus();
+        } else if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          label.click();
+        }
+      });
+    });
+    document.querySelectorAll('[data-vt-group]').forEach(function(group) {
+      if (group.querySelector('.vt-radio') && !group.hasAttribute('role')) group.setAttribute('role', 'radiogroup');
     });
   }
 };
 
 // selectRadio — called via onclick in HTML (docs markup)
 function selectRadio(group, el) {
-  document.querySelectorAll('[data-group="' + group + '"] .vt-radio').forEach(function(r) {
+  document.querySelectorAll('[data-vt-group="' + group + '"] .vt-radio').forEach(function(r) {
     r.classList.remove('selected');
   });
   var radio = el.querySelector('.vt-radio');
@@ -394,33 +422,33 @@ function selectRadio(group, el) {
 // Inline `onclick` looks these up on window. In the shipped bundle the files
 // are concatenated at top level, where a function declaration is already
 // global; under a bundler it would be module-scoped, so pin them explicitly.
-if (typeof window !== 'undefined') window.selectRadio = selectRadio;
+if (typeof window !== 'undefined') veritheme.selectRadio = selectRadio;
 
-// UCTabs — tab switching for [data-tab-group] with roving-tabindex keyboard nav
-var UCTabs = {
+// VtTabs — tab switching for [data-vt-tab-group] with roving-tabindex keyboard nav
+var VtTabs = {
   activate: function(container, tabName) {
     container.querySelectorAll('[role="tab"]').forEach(function(t) {
-      if(t.closest('[data-tab-group]')!==container)return;
-      var isActive = t.getAttribute('data-tab') === tabName;
+      if(t.closest('[data-vt-tab-group]')!==container)return;
+      var isActive = t.getAttribute('data-vt-tab') === tabName;
       t.setAttribute('aria-selected', isActive ? 'true' : 'false');
       t.setAttribute('tabindex', isActive ? '0' : '-1');
       t.classList.toggle('vt-active', isActive);
     });
     container.querySelectorAll('[role="tabpanel"]').forEach(function(p) {
-      if(p.closest('[data-tab-group]')!==container)return;
-      p.classList.toggle('vt-hidden', p.getAttribute('data-panel') !== tabName);
+      if(p.closest('[data-vt-tab-group]')!==container)return;
+      p.classList.toggle('vt-hidden', p.getAttribute('data-vt-panel') !== tabName);
     });
   },
 
   init: function() {
-    document.querySelectorAll('[data-tab-group]').forEach(function(container) {
-      if(container.getAttribute('data-tab-group')==='component-page')return;
-      if (container.hasAttribute('data-tabs-bound')) return;
-      container.setAttribute('data-tabs-bound', 'true');
+    document.querySelectorAll('[data-vt-tab-group]').forEach(function(container) {
+      if(container.getAttribute('data-vt-tab-group')==='component-page')return;
+      if (container.hasAttribute('data-vt-tabs-bound')) return;
+      container.setAttribute('data-vt-tabs-bound', 'true');
       container.querySelectorAll('[role="tab"]').forEach(function(tab) {
-        if(tab.closest('[data-tab-group]')!==container)return;
+        if(tab.closest('[data-vt-tab-group]')!==container)return;
         tab.addEventListener('click', function() {
-          UCTabs.activate(container, tab.getAttribute('data-tab'));
+          VtTabs.activate(container, tab.getAttribute('data-vt-tab'));
         });
       });
     });
@@ -430,7 +458,7 @@ var UCTabs = {
       document.addEventListener('keydown', function(e) {
         var tab = e.target;
         if (!tab || tab.getAttribute('role') !== 'tab') return;
-        if(tab.closest('[data-tab-group]')?.getAttribute('data-tab-group')==='component-page')return;
+        if(tab.closest('[data-vt-tab-group]')?.getAttribute('data-vt-tab-group')==='component-page')return;
         var tablist = tab.closest('[role="tablist"]');
         if (!tablist) return;
         var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[role="tab"]'));
@@ -446,16 +474,16 @@ var UCTabs = {
   }
 };
 
-// UCCollapsible — expand/collapse content with optional animation
-var UCCollapsible = {
+// VtCollapsible — expand/collapse content with optional animation
+var VtCollapsible = {
   init: function() {
     // Initialize open collapsibles
-    document.querySelectorAll('[data-collapsible][data-collapsible-open]').forEach(function(collapsible) {
-      var content = collapsible.querySelector('[data-collapsible-content]');
-      var icon = collapsible.querySelector('[data-collapsible-icon]');
+    document.querySelectorAll('[data-vt-collapsible][data-vt-collapsible-open]').forEach(function(collapsible) {
+      var content = collapsible.querySelector('[data-vt-collapsible-content]');
+      var icon = collapsible.querySelector('[data-vt-collapsible-icon]');
       if (content) {
         content.classList.remove('vt-hidden');
-        if (collapsible.hasAttribute('data-collapsible-animated')) {
+        if (collapsible.hasAttribute('data-vt-collapsible-animated')) {
           content.style.maxHeight = content.scrollHeight + 'px';
         }
       }
@@ -465,20 +493,20 @@ var UCCollapsible = {
     });
 
     // Bind triggers with guard
-    document.querySelectorAll('[data-collapsible-trigger]').forEach(function(trigger) {
-      if (trigger.hasAttribute('data-collapsible-bound')) return;
-      trigger.setAttribute('data-collapsible-bound', 'true');
+    document.querySelectorAll('[data-vt-collapsible-trigger]').forEach(function(trigger) {
+      if (trigger.hasAttribute('data-vt-collapsible-bound')) return;
+      trigger.setAttribute('data-vt-collapsible-bound', 'true');
 
       trigger.addEventListener('click', function() {
-        var collapsible = trigger.closest('[data-collapsible]');
-        var content = collapsible.querySelector(':scope > [data-collapsible-content]');
+        var collapsible = trigger.closest('[data-vt-collapsible]');
+        var content = collapsible.querySelector(':scope > [data-vt-collapsible-content]');
         if (!content) {
-          content = collapsible.querySelector('[data-collapsible-content]');
+          content = collapsible.querySelector('[data-vt-collapsible-content]');
         }
-        var icon = collapsible.querySelector(':scope > * [data-collapsible-icon]') || collapsible.querySelector('[data-collapsible-icon]');
-        var isAnimated = collapsible.hasAttribute('data-collapsible-animated');
-        var labelCollapse = trigger.querySelector('[data-collapsible-label-collapse]');
-        var labelExpand = trigger.querySelector('[data-collapsible-label-expand]');
+        var icon = collapsible.querySelector(':scope > * [data-vt-collapsible-icon]') || collapsible.querySelector('[data-vt-collapsible-icon]');
+        var isAnimated = collapsible.hasAttribute('data-vt-collapsible-animated');
+        var labelCollapse = trigger.querySelector('[data-vt-collapsible-label-collapse]');
+        var labelExpand = trigger.querySelector('[data-vt-collapsible-label-expand]');
         var isOpen;
 
         if (isAnimated) {
@@ -496,7 +524,7 @@ var UCCollapsible = {
           if (icon) icon.classList.remove('vt-rotate-180');
           if (labelCollapse) labelCollapse.classList.add('vt-hidden');
           if (labelExpand) labelExpand.classList.remove('vt-hidden');
-          collapsible.removeAttribute('data-collapsible-open');
+          collapsible.removeAttribute('data-vt-collapsible-open');
         } else {
           if (isAnimated) {
             content.style.maxHeight = content.scrollHeight + 'px';
@@ -506,26 +534,26 @@ var UCCollapsible = {
           if (icon) icon.classList.add('vt-rotate-180');
           if (labelCollapse) labelCollapse.classList.remove('vt-hidden');
           if (labelExpand) labelExpand.classList.add('vt-hidden');
-          collapsible.setAttribute('data-collapsible-open', '');
+          collapsible.setAttribute('data-vt-collapsible-open', '');
         }
       });
     });
   }
 };
 
-// UCCombobox — searchable single/multi-select with tags. Options are MenuItem
+// VtCombobox — searchable single/multi-select with tags. Options are MenuItem
 // rows (.vt-command-item) whose check mark shows from aria-selected; the older
 // .vt-combobox-item rows with a swapped .vt-combobox-icon still work. Tags are
 // small chips (.vt-chip.vt-chip-sm with a .vt-chip-remove button) and the
 // button trigger is a Select trigger (.vt-select-trigger); the older
 // .vt-combobox-tag and .vt-combobox-trigger/.vt-combobox-button-label markup
 // still works, and a tag field that holds old tags gets old tags.
-var UCCombobox = {
+var VtCombobox = {
   ITEM: '.vt-command-item, .vt-combobox-item',
   TAG: '.vt-chip, .vt-combobox-tag',
 
   init: function() {
-    var ITEM = UCCombobox.ITEM;
+    var ITEM = VtCombobox.ITEM;
     var checkSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-w-4 vt-h-4 vt-shrink-0 vt-text-brand-fill vt-combobox-icon"><path d="M20 6 9 17l-5-5"/></svg>';
     var emptySpacer = '<span class="vt-w-4 vt-h-4 vt-shrink-0 vt-combobox-icon"></span>';
     var xTagSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
@@ -535,30 +563,62 @@ var UCCombobox = {
       window.__vtComboboxEvents = true; // per window: <body> is replaced on a client-side swap, the document listener is not
       document.addEventListener('click', function(e) {
         if (!e.target.closest('.vt-combobox-wrapper')) {
-          document.querySelectorAll('[data-combobox-content]').forEach(function(el) {
-            // Shown open on purpose (docs `open`, [inert] preview, data-keep-open) is kept.
-            if (!el.closest('[data-keep-open], .open, [inert]')) el.classList.remove('vt-open');
+          document.querySelectorAll('[data-vt-combobox-content]').forEach(function(el) {
+            // Shown open on purpose (docs `open`, [inert] preview, data-vt-keep-open) is kept.
+            if (!el.closest('[data-vt-keep-open], .open, [inert]')) el.classList.remove('vt-open');
           });
+        }
+      });
+
+      document.addEventListener('keydown', function(e) {
+        var target = e.target;
+        var wrapper = target && target.closest && target.closest('.vt-combobox-wrapper');
+        if (!wrapper) return;
+        var list = wrapper.querySelector('[data-vt-combobox-content]');
+        if (!list) return;
+        var items = Array.prototype.slice.call(list.querySelectorAll(ITEM)).filter(function(i) {
+          return !i.classList.contains('vt-hidden');
+        });
+        var current = target.closest(ITEM);
+        var field = wrapper.querySelector('input, .vt-select-trigger, .vt-combobox-trigger');
+        if (e.key === 'Escape') {
+          if (!list.classList.contains('vt-open')) return;
+          e.preventDefault();
+          list.classList.remove('vt-open');
+          VtCombobox.focusClosed(list, field);
+        } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          list.classList.add('vt-open');
+          var at = current ? items.indexOf(current) : -1;
+          var next = e.key === 'ArrowDown' ? Math.min(at + 1, items.length - 1) : Math.max(at - 1, 0);
+          if (items[next]) {
+            items[next].setAttribute('tabindex', '-1');
+            items[next].focus();
+          }
+        } else if (current && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          current.click();
+          VtCombobox.focusClosed(list, field);
         }
       });
     }
 
     // Expose functions globally for inline onclick use
-    window.openCombobox = function(id) {
+    veritheme.openCombobox = function(id) {
       var el = document.getElementById(id);
-      if (el) el.classList.add('vt-open');
+      if (el && !el.hasAttribute('data-vt-combobox-closing')) el.classList.add('vt-open');
     };
 
-    window.toggleCombobox = function(id) {
+    veritheme.toggleCombobox = function(id) {
       var el = document.getElementById(id);
       if (el) el.classList.toggle('vt-open');
     };
 
-    window.filterCombobox = function(input, id) {
+    veritheme.filterCombobox = function(input, id) {
       var dropdown = document.getElementById(id);
       var query = input.value.toLowerCase();
       var items = dropdown.querySelectorAll(ITEM);
-      var groups = dropdown.querySelectorAll('[data-combobox-group]');
+      var groups = dropdown.querySelectorAll('[data-vt-combobox-group]');
       var emptyEl = dropdown.querySelector('.vt-combobox-empty');
       var totalVisible = 0;
 
@@ -603,12 +663,12 @@ var UCCombobox = {
       if (icon) icon.outerHTML = checked ? checkSvg : emptySpacer;
     }
 
-    window.selectComboboxItem = function(item) {
+    veritheme.selectComboboxItem = function(item) {
       var text = item.textContent.trim();
       var wrapper = item.closest('.vt-combobox-wrapper');
-      var keepIcons = wrapper.hasAttribute('data-keep-icons');
+      var keepIcons = wrapper.hasAttribute('data-vt-keep-icons');
       var input = wrapper.querySelector('input');
-      var dropdown = item.closest('[data-combobox-content]');
+      var dropdown = item.closest('[data-vt-combobox-content]');
 
       input.value = text;
 
@@ -622,21 +682,15 @@ var UCCombobox = {
       dropdown.classList.remove('vt-open');
     };
 
-    window.selectComboboxButton = function(item, dropdownId) {
+    veritheme.selectComboboxButton = function(item, dropdownId) {
       var text = item.textContent.trim();
       var wrapper = item.closest('.vt-combobox-wrapper');
-      var legacyLabel = wrapper.querySelector('.vt-combobox-button-label');
-      var label = legacyLabel || wrapper.querySelector('.vt-select-trigger > span');
+      var label = wrapper.querySelector('.vt-select-trigger > span');
       var dropdown = document.getElementById(dropdownId);
 
       label.textContent = text;
-      // A value, not the placeholder: the Select trigger's span loses
-      // .placeholder; the older label reads .vt-selected in the primary colour.
+      // A value, not the placeholder: the Select trigger's span loses .placeholder.
       label.classList.remove('placeholder');
-      if (legacyLabel) {
-        label.classList.add('vt-selected');
-        label.classList.remove('vt-text-foreground-disabled', 'vt-text-foreground-muted');
-      }
 
       dropdown.querySelectorAll(ITEM).forEach(function(i) {
         setItemIcon(i, false);
@@ -646,7 +700,7 @@ var UCCombobox = {
       dropdown.classList.remove('vt-open');
     };
 
-    window.toggleMultiComboboxItem = function(item) {
+    veritheme.toggleMultiComboboxItem = function(item) {
       var isSelected = !item.classList.contains('vt-selected');
       setItemIcon(item, isSelected);
 
@@ -655,19 +709,18 @@ var UCCombobox = {
       var text = item.textContent.trim();
 
       if (isSelected) {
-        var legacy = !!tagContainer.querySelector('.vt-combobox-tag');
         var tag = document.createElement('span');
-        tag.className = legacy ? 'vt-combobox-tag' : 'vt-chip vt-chip-sm';
-        tag.setAttribute('data-tag-value', text);
+        tag.className = 'vt-chip vt-chip-sm';
+        tag.setAttribute('data-vt-tag-value', text);
         tag.appendChild(document.createTextNode(text));
         var removeBtn = document.createElement('button');
         removeBtn.type = 'button';
-        removeBtn.className = legacy ? 'vt-combobox-tag-remove' : 'vt-chip-remove';
+        removeBtn.className = 'vt-chip-remove';
         removeBtn.setAttribute('aria-label', 'Remove ' + text);
         removeBtn.innerHTML = xTagSvg;
         removeBtn.addEventListener('click', function(event) {
           event.stopPropagation();
-          window.removeComboboxTag(removeBtn);
+          veritheme.removeComboboxTag(removeBtn);
         });
         tag.appendChild(removeBtn);
         tagContainer.insertBefore(tag, tagContainer.querySelector('input'));
@@ -675,53 +728,61 @@ var UCCombobox = {
         // The label is arbitrary text — a quote in it ('12" screen') makes the
         // selector unparsable, so the tag stayed while the tick came off.
         var existing = null;
-        tagContainer.querySelectorAll('[data-tag-value]').forEach(function(t) {
-          if (t.getAttribute('data-tag-value') === text) existing = t;
+        tagContainer.querySelectorAll('[data-vt-tag-value]').forEach(function(t) {
+          if (t.getAttribute('data-vt-tag-value') === text) existing = t;
         });
         if (existing) existing.remove();
       }
 
-      UCCombobox._updateMultiPlaceholder(wrapper);
+      VtCombobox._updateMultiPlaceholder(wrapper);
     };
 
-    window.removeComboboxTag = function(btn) {
-      var tag = btn.closest(UCCombobox.TAG);
+    veritheme.removeComboboxTag = function(btn) {
+      var tag = btn.closest(VtCombobox.TAG);
       if (!tag) return;
-      var value = tag.getAttribute('data-tag-value');
+      var value = tag.getAttribute('data-vt-tag-value');
       var wrapper = tag.closest('.vt-combobox-wrapper');
       tag.remove();
 
-      var dropdown = wrapper.querySelector('[data-combobox-content]');
+      var dropdown = wrapper.querySelector('[data-vt-combobox-content]');
       if (dropdown) {
         dropdown.querySelectorAll(ITEM).forEach(function(item) {
           if (item.textContent.trim() === value) setItemIcon(item, false);
         });
       }
 
-      UCCombobox._updateMultiPlaceholder(wrapper);
+      VtCombobox._updateMultiPlaceholder(wrapper);
     };
+  },
+
+  // Back to the field without its onfocus opening the list again.
+  focusClosed: function(list, field) {
+    if (!field) return;
+    list.setAttribute('data-vt-combobox-closing', '');
+    field.focus();
+    list.removeAttribute('data-vt-combobox-closing');
   },
 
   _updateMultiPlaceholder: function(wrapper) {
     var input = wrapper.querySelector('input');
-    var tags = wrapper.querySelectorAll('.vt-combobox-tags [data-tag-value], .vt-combobox-tag');
+    var tags = wrapper.querySelectorAll('.vt-combobox-tags [data-vt-tag-value], .vt-combobox-tag');
     if (input) {
       input.placeholder = tags.length > 0 ? '' : 'Add framework...';
     }
   }
 };
 
-// UCResizable — drag-to-resize panels horizontally or vertically
-var UCResizable = {
+// VtResizable — drag-to-resize panels horizontally or vertically
+var VtResizable = {
   init: function() {
-    document.querySelectorAll('[data-resizable]').forEach(function(container) {
-      if (container.hasAttribute('data-resizable-init')) return;
-      container.setAttribute('data-resizable-init', 'true');
+    document.querySelectorAll('[data-vt-resizable]').forEach(function(container) {
+      if (container.hasAttribute('data-vt-resizable-init')) return;
+      container.setAttribute('data-vt-resizable-init', 'true');
 
-      var direction = container.dataset.resizable;
+      var direction = container.dataset.vtResizable;
       var isHorizontal = direction === 'horizontal';
-      var minPct = parseFloat(container.dataset.min || '10');
-      var maxPct = parseFloat(container.dataset.max || '90');
+      var minPct = parseFloat(container.dataset.vtMin || '10');
+      var maxPct = parseFloat(container.dataset.vtMax || '90');
       var handles = container.querySelectorAll(':scope > .vt-resize-handle');
 
       handles.forEach(function(handle) {
@@ -747,7 +808,7 @@ var UCResizable = {
 
           document.body.style.cursor = isHorizontal ? 'col-resize' : 'row-resize';
           document.body.style.userSelect = 'none';
-          handle.style.background = 'hsl(var(--brand-fill) / 0.5)';
+          handle.style.background = 'hsl(var(--vt-brand-fill) / 0.5)';
         });
 
         document.addEventListener('mousemove', function(e) {
@@ -796,30 +857,22 @@ var UCResizable = {
   }
 };
 
-// UCCarousel — slide carousel with dots, prev/next navigation
-var UCCarousel = {
+// VtCarousel — slide carousel with dots, prev/next navigation
+var VtCarousel = {
   init: function() {
-    document.querySelectorAll('[data-carousel]').forEach(function(el) {
-      if (el.hasAttribute('data-carousel-init')) return;
-      el.setAttribute('data-carousel-init', 'true');
+    document.querySelectorAll('[data-vt-carousel]').forEach(function(el) {
+      if (el.hasAttribute('data-vt-carousel-init')) return;
+      el.setAttribute('data-vt-carousel-init', 'true');
 
       var carousel = el;
-      var track = carousel.querySelector('[data-carousel-track]');
-      var prevBtn = carousel.querySelector('[data-carousel-prev]');
-      var nextBtn = carousel.querySelector('[data-carousel-next]');
-      var dotsContainer = carousel.querySelector('[data-carousel-dots]');
-      var total = parseInt(carousel.dataset.total || '0');
-      var visible = parseInt(carousel.dataset.visible || '1');
+      var track = carousel.querySelector('[data-vt-carousel-track]');
+      var prevBtn = carousel.querySelector('[data-vt-carousel-prev]');
+      var nextBtn = carousel.querySelector('[data-vt-carousel-next]');
+      var dotsContainer = carousel.querySelector('[data-vt-carousel-dots]');
+      var total = parseInt(carousel.dataset.vtTotal || '0');
+      var visible = parseInt(carousel.dataset.vtVisible || '1');
       var maxIndex = total - visible;
       var current = 0;
-
-      // A button of the system (vt-btn) is disabled at either end; an older
-      // vt-carousel-nav-btn only fades, as it always did.
-      function edge(btn, atEdge) {
-        if (!btn) return;
-        if (btn.classList.contains('vt-btn')) btn.disabled = atEdge;
-        else btn.style.opacity = atEdge ? '0.4' : '1';
-      }
 
       function update() {
         // One step is a slide plus the gap after it: (track + gap) / visible.
@@ -829,8 +882,8 @@ var UCCarousel = {
           'translateX(calc(' + (-current) + ' * (100% + ' + gap + 'px) / ' + visible + '))';
 
         if (dotsContainer) {
-          dotsContainer.querySelectorAll('[data-dot]').forEach(function(dot) {
-            var on = parseInt(dot.dataset.dot || '0') === current;
+          dotsContainer.querySelectorAll('[data-vt-dot]').forEach(function(dot) {
+            var on = parseInt(dot.dataset.vtDot || '0') === current;
             if (dot.classList.contains('vt-carousel-dot')) {
               dot.classList.toggle('vt-active', on);
               dot.setAttribute('aria-current', on ? 'true' : 'false');
@@ -840,8 +893,8 @@ var UCCarousel = {
           });
         }
 
-        edge(prevBtn, current === 0);
-        edge(nextBtn, current >= maxIndex);
+        if (prevBtn) prevBtn.disabled = current === 0;
+        if (nextBtn) nextBtn.disabled = current >= maxIndex;
       }
 
       if (prevBtn) {
@@ -857,9 +910,9 @@ var UCCarousel = {
       }
 
       if (dotsContainer) {
-        dotsContainer.querySelectorAll('[data-dot]').forEach(function(dot) {
+        dotsContainer.querySelectorAll('[data-vt-dot]').forEach(function(dot) {
           dot.addEventListener('click', function() {
-            current = Math.min(parseInt(dot.dataset.dot || '0'), maxIndex);
+            current = Math.min(parseInt(dot.dataset.vtDot || '0'), maxIndex);
             update();
           });
         });
@@ -870,9 +923,9 @@ var UCCarousel = {
   }
 };
 
-// UCDropdown — shared open/close state and the WAI-ARIA menu keyboard
-// contract for `[data-dropdown-trigger]` buttons and their `.vt-dropdown-menu`.
-var UCDropdown = {
+// VtDropdown — shared open/close state and the WAI-ARIA menu keyboard
+// contract for `[data-vt-dropdown-trigger]` buttons and their `.vt-dropdown-menu`.
+var VtDropdown = {
   items: function(menu) {
     return Array.from(menu.querySelectorAll('.vt-command-item,.vt-dropdown-item')).filter(function(item) {
       return item.getAttribute('aria-disabled') !== 'true' && !item.disabled;
@@ -880,14 +933,14 @@ var UCDropdown = {
   },
 
   triggersFor: function(menu) {
-    return Array.from(document.querySelectorAll('[data-dropdown-trigger]')).filter(function(trigger) {
-      return trigger.getAttribute('data-dropdown-trigger') === menu.id;
+    return Array.from(document.querySelectorAll('[data-vt-dropdown-trigger]')).filter(function(trigger) {
+      return trigger.getAttribute('data-vt-dropdown-trigger') === menu.id;
     });
   },
 
   close: function(menu, restoreFocus) {
     menu.classList.remove('vt-open');
-    UCDropdown.triggersFor(menu).forEach(function(trigger) {
+    VtDropdown.triggersFor(menu).forEach(function(trigger) {
       trigger.setAttribute('aria-expanded', 'false');
       if (restoreFocus) trigger.focus();
     });
@@ -897,27 +950,27 @@ var UCDropdown = {
     document.querySelectorAll('.vt-dropdown-menu.vt-open').forEach(function(menu) {
       // Combobox panels manage their own open state.
       // Shown open on purpose (a docs example's `open`, a preview in [inert],
-      // `data-keep-open`) is kept open.
-      if (menu !== except && !menu.closest('.vt-combobox-wrapper') && !menu.closest('[data-keep-open], .open, [inert]')) UCDropdown.close(menu, restoreFocus);
+      // `data-vt-keep-open`) is kept open.
+      if (menu !== except && !menu.closest('.vt-combobox-wrapper') && !menu.closest('[data-vt-keep-open], .open, [inert]')) VtDropdown.close(menu, restoreFocus);
     });
   },
 
   open: function(trigger, focusLast) {
-    var menu = document.getElementById(trigger.getAttribute('data-dropdown-trigger'));
+    var menu = document.getElementById(trigger.getAttribute('data-vt-dropdown-trigger'));
     if (!menu) return;
-    UCDropdown.closeAll(false, menu);
+    VtDropdown.closeAll(false, menu);
     menu.classList.add('vt-open');
     trigger.setAttribute('aria-expanded', 'true');
-    var items = UCDropdown.items(menu);
+    var items = VtDropdown.items(menu);
     var first = focusLast ? items[items.length - 1] : items[0];
     if (first) first.focus();
   },
 
   bindTrigger: function(trigger) {
-    if (trigger.dataset.dropdownBound) return;
-    trigger.dataset.dropdownBound = 'true';
+    if (trigger.dataset.vtDropdownBound) return;
+    trigger.dataset.vtDropdownBound = 'true';
 
-    var menu = document.getElementById(trigger.getAttribute('data-dropdown-trigger'));
+    var menu = document.getElementById(trigger.getAttribute('data-vt-dropdown-trigger'));
     if (!menu) return;
 
     trigger.setAttribute('aria-haspopup', 'menu');
@@ -939,29 +992,29 @@ var UCDropdown = {
 
     trigger.addEventListener('click', function(e) {
       e.stopPropagation();
-      if (menu.classList.contains('vt-open')) UCDropdown.close(menu, true);
-      else UCDropdown.open(trigger);
+      if (menu.classList.contains('vt-open')) VtDropdown.close(menu, true);
+      else VtDropdown.open(trigger);
     });
 
     trigger.addEventListener('keydown', function(e) {
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
-        UCDropdown.open(trigger, e.key === 'ArrowUp');
+        VtDropdown.open(trigger, e.key === 'ArrowUp');
       }
     });
 
     menu.addEventListener('keydown', function(e) {
-      var items = UCDropdown.items(menu);
+      var items = VtDropdown.items(menu);
       var index = items.indexOf(document.activeElement);
       var next;
 
       if (e.key === 'Escape') {
         e.preventDefault();
-        UCDropdown.close(menu, true);
+        VtDropdown.close(menu, true);
         return;
       }
       if (e.key === 'Tab') {
-        UCDropdown.close(menu, false);
+        VtDropdown.close(menu, false);
         return;
       }
       if (e.key === 'ArrowDown') next = (index + 1) % items.length;
@@ -983,21 +1036,21 @@ var UCDropdown = {
     // Plain items close the menu on activation; checkbox and radio items stay open.
     menu.addEventListener('click', function(e) {
       var item = e.target.closest('[role="menuitem"]');
-      if (item && item.getAttribute('aria-disabled') !== 'true') UCDropdown.close(menu, true);
+      if (item && item.getAttribute('aria-disabled') !== 'true') VtDropdown.close(menu, true);
     });
   },
 
   init: function() {
-    document.querySelectorAll('[data-dropdown-trigger]').forEach(UCDropdown.bindTrigger);
+    document.querySelectorAll('[data-vt-dropdown-trigger]').forEach(VtDropdown.bindTrigger);
 
     if (window.__vtDropdownEvents) return;
     window.__vtDropdownEvents = true;
 
     document.addEventListener('click', function(e) {
-      if (!e.target.closest('[data-dropdown-trigger],.vt-dropdown-menu')) UCDropdown.closeAll(false);
+      if (!e.target.closest('[data-vt-dropdown-trigger],.vt-dropdown-menu')) VtDropdown.closeAll(false);
     });
     document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') UCDropdown.closeAll(true);
+      if (e.key === 'Escape') VtDropdown.closeAll(true);
     });
   }
 };
@@ -1059,17 +1112,19 @@ function selectMenuRadio(item) {
 }
 
 if (typeof window !== 'undefined') {
-  window.toggleCheckbox = toggleCheckbox;
-  window.selectMenuRadio = selectMenuRadio;
+  veritheme.toggleCheckbox = toggleCheckbox;
+  veritheme.selectMenuRadio = selectMenuRadio;
 }
 
-// UCScrollView — drag-to-scroll and scroll indicators
-var UCScrollView = {
+veritheme.bindDropdownTrigger = function(trigger) { VtDropdown.bindTrigger(trigger); };
+
+// VtScrollView — drag-to-scroll and scroll indicators
+var VtScrollView = {
   init: function() {
     // Drag-to-scroll for horizontal containers
     document.querySelectorAll('.vt-drag-scroll').forEach(function(el) {
-      if (el.hasAttribute('data-drag-init')) return;
-      el.setAttribute('data-drag-init', 'true');
+      if (el.hasAttribute('data-vt-drag-init')) return;
+      el.setAttribute('data-vt-drag-init', 'true');
 
       var isDown = false;
       var startX = 0;
@@ -1106,8 +1161,8 @@ var UCScrollView = {
 
     // Scroll indicators — vertical
     document.querySelectorAll('.vt-scroll-indicator').forEach(function(indicator) {
-      if (indicator.hasAttribute('data-indicator-init')) return;
-      indicator.setAttribute('data-indicator-init', 'true');
+      if (indicator.hasAttribute('data-vt-indicator-init')) return;
+      indicator.setAttribute('data-vt-indicator-init', 'true');
 
       var scroll = indicator.querySelector('.vt-scroll, .vt-scroll-hidden, .vt-scroll-autohide');
       if (!scroll) return;
@@ -1123,8 +1178,8 @@ var UCScrollView = {
 
     // Scroll indicators — horizontal
     document.querySelectorAll('.vt-scroll-indicator-h').forEach(function(indicator) {
-      if (indicator.hasAttribute('data-indicator-h-init')) return;
-      indicator.setAttribute('data-indicator-h-init', 'true');
+      if (indicator.hasAttribute('data-vt-indicator-h-init')) return;
+      indicator.setAttribute('data-vt-indicator-h-init', 'true');
 
       var scroll = indicator.querySelector('.vt-scroll, .vt-scroll-hidden, .vt-scroll-autohide, [class*="vt-overflow-x"]');
       if (!scroll) return;
@@ -1140,16 +1195,16 @@ var UCScrollView = {
   }
 };
 
-// UCNumberInput — increment/decrement with min/max constraints
-var UCNumberInput = {
+// VtNumberInput — increment/decrement with min/max constraints
+var VtNumberInput = {
   init: function() {
-    document.querySelectorAll('[data-number-input]').forEach(function(wrapper) {
-      if (wrapper.hasAttribute('data-ni-bound')) return;
-      wrapper.setAttribute('data-ni-bound', 'true');
+    document.querySelectorAll('[data-vt-number-input]').forEach(function(wrapper) {
+      if (wrapper.hasAttribute('data-vt-ni-bound')) return;
+      wrapper.setAttribute('data-vt-ni-bound', 'true');
 
-      var input = wrapper.querySelector('[data-number-value]');
-      var decBtn = wrapper.querySelector('[data-action="decrement"]');
-      var incBtn = wrapper.querySelector('[data-action="increment"]');
+      var input = wrapper.querySelector('[data-vt-number-value]');
+      var decBtn = wrapper.querySelector('[data-vt-action="decrement"]');
+      var incBtn = wrapper.querySelector('[data-vt-action="increment"]');
       if (!input) return;
 
       function toInt(value, fallback) {
@@ -1197,15 +1252,15 @@ var UCNumberInput = {
   }
 };
 
-// UCPopover — toggle popover panels with outside-click close
-var UCPopover = {
+// VtPopover — toggle popover panels with outside-click close
+var VtPopover = {
   // Shown open on purpose — a docs example's `open`, a preview inside [inert],
-  // `data-keep-open` — is closed neither by an outside click nor by Escape.
-  pinned: function(el) { return Boolean(el.closest('[data-keep-open], .open, [inert]')); },
+  // `data-vt-keep-open` — is closed neither by an outside click nor by Escape.
+  pinned: function(el) { return Boolean(el.closest('[data-vt-keep-open], .open, [inert]')); },
 
   init: function() {
-    document.querySelectorAll('[data-popover-trigger]').forEach(function(btn) {
-      var id = btn.getAttribute('data-popover-trigger');
+    document.querySelectorAll('[data-vt-popover-trigger]').forEach(function(btn) {
+      var id = btn.getAttribute('data-vt-popover-trigger');
       btn.setAttribute('aria-haspopup', 'dialog');
       btn.setAttribute('aria-expanded', 'false');
       if (id) btn.setAttribute('aria-controls', id);
@@ -1218,9 +1273,9 @@ var UCPopover = {
         var isOpen = el.classList.contains('vt-open');
 
         document.querySelectorAll('.vt-popover-content').forEach(function(p) {
-          if (!UCPopover.pinned(p)) p.classList.remove('vt-open');
+          if (!VtPopover.pinned(p)) p.classList.remove('vt-open');
         });
-        document.querySelectorAll('[data-popover-trigger]').forEach(function(t) {
+        document.querySelectorAll('[data-vt-popover-trigger]').forEach(function(t) {
           t.setAttribute('aria-expanded', 'false');
         });
 
@@ -1235,11 +1290,11 @@ var UCPopover = {
       window.__vtPopoverEvents = true; // per window: <body> is replaced on a client-side swap, the document listener is not
       document.addEventListener('click', function(e) {
         var target = e.target;
-        if (!target.closest('.vt-popover-content') && !target.closest('[data-popover-trigger]')) {
+        if (!target.closest('.vt-popover-content') && !target.closest('[data-vt-popover-trigger]')) {
           document.querySelectorAll('.vt-popover-content').forEach(function(p) {
-            if (!UCPopover.pinned(p)) p.classList.remove('vt-open');
+            if (!VtPopover.pinned(p)) p.classList.remove('vt-open');
           });
-          document.querySelectorAll('[data-popover-trigger]').forEach(function(t) {
+          document.querySelectorAll('[data-vt-popover-trigger]').forEach(function(t) {
             t.setAttribute('aria-expanded', 'false');
           });
         }
@@ -1247,9 +1302,9 @@ var UCPopover = {
       document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
           document.querySelectorAll('.vt-popover-content').forEach(function(p) {
-            if (!UCPopover.pinned(p)) p.classList.remove('vt-open');
+            if (!VtPopover.pinned(p)) p.classList.remove('vt-open');
           });
-          document.querySelectorAll('[data-popover-trigger]').forEach(function(t) {
+          document.querySelectorAll('[data-vt-popover-trigger]').forEach(function(t) {
             t.setAttribute('aria-expanded', 'false');
           });
         }
@@ -1258,19 +1313,79 @@ var UCPopover = {
   }
 };
 
-// UCSelect — custom select dropdown with single selection
-var UCSelect = {
+// VtSelect — custom select dropdown with single selection
+var VtSelect = {
   init: function() {
+    document.querySelectorAll('.vt-select-wrapper').forEach(function(wrapper) {
+      var trigger = wrapper.querySelector('.vt-select-trigger');
+      var dropdown = wrapper.querySelector('.vt-select-dropdown');
+      if (!trigger || !dropdown) return;
+      if (!trigger.hasAttribute('tabindex')) trigger.setAttribute('tabindex', '0');
+      trigger.setAttribute('role', 'combobox');
+      trigger.setAttribute('aria-haspopup', 'listbox');
+      trigger.setAttribute('aria-expanded', String(dropdown.classList.contains('open')));
+      dropdown.setAttribute('role', 'listbox');
+      dropdown.querySelectorAll('.vt-select-item').forEach(function(item) {
+        item.setAttribute('role', 'option');
+        item.setAttribute('tabindex', '-1');
+      });
+    });
+
     if (window.__vtSelectEvents) return;
     window.__vtSelectEvents = true; // per window: <body> is replaced on a client-side swap, the document listener is not
 
     document.addEventListener('click', function(e) {
       if (!e.target.closest('.vt-select-wrapper')) {
         document.querySelectorAll('.vt-select-dropdown').forEach(function(d) {
-          d.classList.remove('open');
+          VtSelect.setOpen(d, false);
         });
       }
     });
+
+    document.addEventListener('keydown', function(e) {
+      var target = e.target;
+      if (!target || !target.closest) return;
+      var trigger = target.closest('.vt-select-trigger');
+      var current = target.closest('.vt-select-item');
+      if (!trigger && !current) return;
+      var wrapper = target.closest('.vt-select-wrapper');
+      var dropdown = wrapper && wrapper.querySelector('.vt-select-dropdown');
+      if (!dropdown) return;
+      var button = trigger || wrapper.querySelector('.vt-select-trigger');
+      var items = Array.prototype.slice.call(dropdown.querySelectorAll('.vt-select-item'));
+
+      if (e.key === 'Escape') {
+        if (!dropdown.classList.contains('open')) return;
+        e.preventDefault();
+        VtSelect.setOpen(dropdown, false);
+        if (button) button.focus();
+      } else if (trigger && ['Enter', ' ', 'ArrowDown', 'ArrowUp'].indexOf(e.key) !== -1) {
+        e.preventDefault();
+        VtSelect.setOpen(dropdown, true);
+        var chosen = dropdown.querySelector('.vt-select-item.selected') || items[0];
+        if (chosen) chosen.focus();
+      } else if (current) {
+        var at = items.indexOf(current);
+        if (e.key === 'ArrowDown') { e.preventDefault(); items[Math.min(at + 1, items.length - 1)].focus(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); items[Math.max(at - 1, 0)].focus(); }
+        else if (e.key === 'Home') { e.preventDefault(); items[0].focus(); }
+        else if (e.key === 'End') { e.preventDefault(); items[items.length - 1].focus(); }
+        else if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          current.click();
+          if (button) button.focus();
+        } else if (e.key === 'Tab') {
+          VtSelect.setOpen(dropdown, false);
+        }
+      }
+    });
+  },
+
+  setOpen: function(dropdown, open) {
+    dropdown.classList.toggle('open', open);
+    var wrapper = dropdown.closest('.vt-select-wrapper');
+    var trigger = wrapper && wrapper.querySelector('.vt-select-trigger');
+    if (trigger) trigger.setAttribute('aria-expanded', String(open));
   }
 };
 
@@ -1278,9 +1393,9 @@ var UCSelect = {
 function toggleSelect(id) {
   var dropdown = document.getElementById(id);
   document.querySelectorAll('.vt-select-dropdown').forEach(function(d) {
-    if (d.id !== id) d.classList.remove('open');
+    if (d.id !== id) VtSelect.setOpen(d, false);
   });
-  dropdown.classList.toggle('open');
+  VtSelect.setOpen(dropdown, !dropdown.classList.contains('open'));
 }
 
 // selectItem — called via onclick in HTML
@@ -1294,29 +1409,29 @@ function selectItem(id, triggerId, value) {
   dropdown.querySelectorAll('.vt-select-item').forEach(function(i) {
     if (i.textContent.trim() === value) i.classList.add('selected');
   });
-  dropdown.classList.remove('open');
+  VtSelect.setOpen(dropdown, false);
 }
 
 // Inline `onclick` looks these up on window. In the shipped bundle the files
 // are concatenated at top level, where a function declaration is already
 // global; under a bundler it would be module-scoped, so pin them explicitly —
 // the same thing dialog.js, combobox.js and toast.js do.
-if (typeof window !== 'undefined') window.toggleSelect = toggleSelect;
-if (typeof window !== 'undefined') window.selectItem = selectItem;
+if (typeof window !== 'undefined') veritheme.toggleSelect = toggleSelect;
+if (typeof window !== 'undefined') veritheme.selectItem = selectItem;
 
-// UCSlider — paints the filled track portion based on value/min/max
-var UCSlider = {
+// VtSlider — paints the filled track portion based on value/min/max
+var VtSlider = {
   init: function() {
-    document.querySelectorAll('input[type="range"]').forEach(function(input) {
-      if (input.hasAttribute('data-slider-init')) return;
-      input.setAttribute('data-slider-init', 'true');
+    document.querySelectorAll('.vt-slider').forEach(function(input) {
+      if (input.hasAttribute('data-vt-slider-init')) return;
+      input.setAttribute('data-vt-slider-init', 'true');
 
       function update() {
         var min = parseFloat(input.min || '0');
         var max = parseFloat(input.max || '100');
         var val = parseFloat(input.value || '0');
         var pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
-        input.style.setProperty('--slider-progress', pct + '%');
+        input.style.setProperty('--vt-slider-progress', pct + '%');
       }
 
       update();
@@ -1325,8 +1440,8 @@ var UCSlider = {
   }
 };
 
-// UCToast — programmatic toast notifications
-var UCToast = {
+// VtToast — programmatic toast notifications
+var VtToast = {
   _count: 0,
 
   show: function(type) {
@@ -1339,7 +1454,7 @@ var UCToast = {
       document.body.appendChild(container);
     }
 
-    var id = 'toast-' + (++UCToast._count);
+    var id = 'toast-' + (++VtToast._count);
     var configs = {
       default: { title: 'Scheduled: Catch up', desc: 'Friday, February 14, 2026 at 5:57 PM', icon: '', btn: 'Undo' },
       success: { title: 'Success', desc: 'Your changes have been saved.', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-toast-icon" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>', btn: '' },
@@ -1375,15 +1490,15 @@ var UCToast = {
 
   init: function() {
     // Expose showToast globally for onclick use
-    window.showToast = function(type) { UCToast.show(type); };
+    veritheme.showToast = function(type) { VtToast.show(type); };
   }
 };
 
-// UCDialog — modal dialog with focus trap and keyboard support
-var UCDialog = {
+// VtDialog — modal dialog with focus trap and keyboard support
+var VtDialog = {
   init: function() {
     // Expose functions globally for onclick use
-    window.openDialog = function(id) {
+    veritheme.openDialog = function(id) {
       var el = document.getElementById(id);
       if (!el) return;
       if (el._keyHandler) document.removeEventListener('keydown', el._keyHandler);
@@ -1392,12 +1507,12 @@ var UCDialog = {
       el.removeAttribute('aria-hidden');
       el.setAttribute('role', 'dialog');
       el.setAttribute('aria-modal', 'true');
-      var focusable = UCDialog._focusable(el)[0];
+      var focusable = VtDialog._focusable(el)[0];
       if (focusable) focusable.focus();
       el._keyHandler = function(e) {
-        if (e.key === 'Escape') { window.closeDialog(id); return; }
+        if (e.key === 'Escape') { veritheme.closeDialog(id); return; }
         if (e.key !== 'Tab') return;
-        var all = UCDialog._focusable(el);
+        var all = VtDialog._focusable(el);
         if (!all.length) return;
         var first = all[0];
         var last = all[all.length - 1];
@@ -1407,7 +1522,7 @@ var UCDialog = {
       document.addEventListener('keydown', el._keyHandler);
     };
 
-    window.closeDialog = function(id) {
+    veritheme.closeDialog = function(id) {
       var el = document.getElementById(id);
       if (!el) return;
       el.classList.remove('vt-open');
@@ -1436,14 +1551,14 @@ var UCDialog = {
   }
 };
 
-// UCTreeView — expandable/collapsible tree nodes
-var UCTreeView = {
+// VtTreeView — expandable/collapsible tree nodes
+var VtTreeView = {
   init: function() {
-    document.querySelectorAll('[data-tree]').forEach(function(tree) {
-      if (tree.hasAttribute('data-tree-bound')) return;
-      tree.setAttribute('data-tree-bound', 'true');
+    document.querySelectorAll('[data-vt-tree]').forEach(function(tree) {
+      if (tree.hasAttribute('data-vt-tree-bound')) return;
+      tree.setAttribute('data-vt-tree-bound', 'true');
 
-      tree.querySelectorAll('[data-tree-branch]').forEach(function(branch) {
+      tree.querySelectorAll('[data-vt-tree-branch]').forEach(function(branch) {
         var toggle = branch.querySelector(':scope > .vt-tree-toggle');
         if (!toggle) return;
         toggle.addEventListener('click', function() {
@@ -1454,50 +1569,28 @@ var UCTreeView = {
   }
 };
 
-// UCFields — small field behaviours declared with data-attributes:
-// `[data-pricing]` period switches, `[data-otp]` groups and the deprecated
-// `[data-password-toggle]`.
-var UCFields = {
+// VtFields — small field behaviours declared with data-attributes:
+// `[data-vt-pricing]` period switches and `[data-vt-otp]` groups.
+var VtFields = {
   init: function() {
-    UCFields.initPasswordToggles();
-    UCFields.initPricing();
-    UCFields.initOtp();
-  },
-
-  // DEPRECATED (25.09.2026): the docs, Figma and the MCP server no longer
-  // offer a show/hide password button — a password field is a plain
-  // <input type="password" class="vt-input">. The toggle shipped in 1.1.1, so
-  // the bundle keeps wiring it for 1.x markup; remove it in the next major.
-  initPasswordToggles: function() {
-    document.querySelectorAll('[data-password-toggle]').forEach(function(button) {
-      if (button.dataset.fieldBound) return;
-      button.dataset.fieldBound = 'true';
-
-      button.addEventListener('click', function() {
-        var input = button.parentElement.querySelector('input');
-        if (!input) return;
-        var reveal = input.type === 'password';
-        input.type = reveal ? 'text' : 'password';
-        button.setAttribute('aria-label', reveal ? 'Hide password' : 'Show password');
-        button.setAttribute('aria-pressed', String(reveal));
-      });
-    });
+    VtFields.initPricing();
+    VtFields.initOtp();
   },
 
   // Monthly/yearly switch: prices and copy come from data-attributes on the
   // price and description nodes so the markup stays the source of truth.
   initPricing: function() {
-    document.querySelectorAll('[data-pricing]').forEach(function(group) {
-      if (group.dataset.pricingBound) return;
-      group.dataset.pricingBound = 'true';
+    document.querySelectorAll('[data-vt-pricing]').forEach(function(group) {
+      if (group.dataset.vtPricingBound) return;
+      group.dataset.vtPricingBound = 'true';
 
-      var toggle = group.querySelector('[data-pricing-toggle]');
-      var price = group.querySelector('[data-pricing-price]');
-      var description = group.querySelector('[data-pricing-description]');
+      var toggle = group.querySelector('[data-vt-pricing-toggle]');
+      var price = group.querySelector('[data-vt-pricing-price]');
+      var description = group.querySelector('[data-vt-pricing-description]');
       if (!toggle || !price) return;
 
-      var monthly = { price: price.dataset.monthly || price.textContent.trim(), description: description ? (description.dataset.monthly || description.textContent.trim()) : '' };
-      var yearly = { price: price.dataset.yearly || monthly.price, description: description ? (description.dataset.yearly || monthly.description) : '' };
+      var monthly = { price: price.dataset.vtMonthly || price.textContent.trim(), description: description ? (description.dataset.vtMonthly || description.textContent.trim()) : '' };
+      var yearly = { price: price.dataset.vtYearly || monthly.price, description: description ? (description.dataset.vtYearly || monthly.description) : '' };
 
       toggle.addEventListener('click', function() {
         var isYearly = toggle.getAttribute('aria-checked') !== 'true';
@@ -1516,9 +1609,9 @@ var UCFields = {
   // One-time-code cells: typing advances, Backspace retreats, arrows move,
   // and a pasted code is spread across the remaining editable cells.
   initOtp: function() {
-    document.querySelectorAll('[data-otp]').forEach(function(group) {
-      if (group.dataset.otpBound) return;
-      group.dataset.otpBound = 'true';
+    document.querySelectorAll('[data-vt-otp]').forEach(function(group) {
+      if (group.dataset.vtOtpBound) return;
+      group.dataset.vtOtpBound = 'true';
 
       var cells = Array.from(group.querySelectorAll('.vt-otp-cell'));
 
@@ -1587,14 +1680,14 @@ var UCFields = {
   }
 };
 
-// UCCommand — filtering and keyboard navigation for the command palette.
-// Markup wires the input with `oninput="filterCommand(this)"` and
-// `onkeydown="navigateCommand(event, this)"`; Enter dispatches
+// VtCommand — filtering and keyboard navigation for the command palette.
+// Markup wires the input with `oninput="veritheme.filterCommand(this)"` and
+// `onkeydown="veritheme.navigateCommand(event, this)"`; Enter dispatches
 // `vt:commandselect` on the highlighted item and updates an optional
-// `[data-command-status]` line inside the wrapper.
-var UCCommand = {
+// `[data-vt-command-status]` line inside the wrapper.
+var VtCommand = {
   itemText: function(item) {
-    return item.getAttribute('data-value') || item.textContent.trim();
+    return item.getAttribute('data-vt-value') || item.textContent.trim();
   },
 
   highlight: function(items, item) {
@@ -1606,7 +1699,7 @@ var UCCommand = {
     var query = input.value.toLowerCase();
     var wrapper = input.closest('.vt-command-wrapper');
     var items = Array.from(wrapper.querySelectorAll('.vt-command-item'));
-    var groups = wrapper.querySelectorAll('[data-command-group]');
+    var groups = wrapper.querySelectorAll('[data-vt-command-group]');
     var separators = wrapper.querySelectorAll('.vt-command-separator');
     var emptyEl = wrapper.querySelector('.vt-command-empty');
     var listEl = wrapper.querySelector('.vt-command-list');
@@ -1615,7 +1708,7 @@ var UCCommand = {
     groups.forEach(function(group) {
       var groupVisible = 0;
       group.querySelectorAll('.vt-command-item').forEach(function(item) {
-        var matches = UCCommand.itemText(item).toLowerCase().includes(query);
+        var matches = VtCommand.itemText(item).toLowerCase().includes(query);
         item.classList.toggle('vt-hidden', !matches);
         if (matches) {
           groupVisible++;
@@ -1636,7 +1729,7 @@ var UCCommand = {
     }
 
     var firstVisible = items.find(function(item) { return !item.classList.contains('vt-hidden'); });
-    UCCommand.highlight(items, firstVisible);
+    VtCommand.highlight(items, firstVisible);
   },
 
   navigate: function(e, input) {
@@ -1648,13 +1741,13 @@ var UCCommand = {
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      UCCommand.highlight(items, items[(activeIndex + 1) % items.length]);
+      VtCommand.highlight(items, items[(activeIndex + 1) % items.length]);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      UCCommand.highlight(items, items[(activeIndex - 1 + items.length) % items.length]);
+      VtCommand.highlight(items, items[(activeIndex - 1 + items.length) % items.length]);
     } else if (e.key === 'Enter' && activeIndex >= 0) {
       e.preventDefault();
-      UCCommand.select(items[activeIndex], input);
+      VtCommand.select(items[activeIndex], input);
     }
   },
 
@@ -1664,30 +1757,30 @@ var UCCommand = {
     var copy = item.cloneNode(true);
     copy.querySelectorAll('.vt-command-shortcut').forEach(function(kbd) { kbd.remove(); });
     var label = copy.textContent.trim();
-    var status = wrapper.querySelector('[data-command-status]');
+    var status = wrapper.querySelector('[data-vt-command-status]');
     if (status) status.textContent = 'Selected: ' + label;
-    item.dispatchEvent(new CustomEvent('vt:commandselect', { bubbles: true, detail: UCCommand.itemText(item) }));
+    item.dispatchEvent(new CustomEvent('vt:commandselect', { bubbles: true, detail: VtCommand.itemText(item) }));
     input.value = '';
-    UCCommand.filter(input);
+    VtCommand.filter(input);
   },
 
   init: function() {
     // Global names used by inline handlers in the docs and copied examples.
-    window.filterCommand = UCCommand.filter;
-    window.navigateCommand = UCCommand.navigate;
+    veritheme.filterCommand = VtCommand.filter;
+    veritheme.navigateCommand = VtCommand.navigate;
   }
 };
 
-// UCSidebarNav — collapsible sections of a sidebar nav (.vt-side-nav, or the
-// older [data-sidebar-demo] wrapper): the section's toggle button opens and
+// VtSidebarNav — collapsible sections of a sidebar nav (.vt-side-nav, or the
+// older [data-vt-sidebar-demo] wrapper): the section's toggle button opens and
 // closes it; the CSS shows .vt-side-nav-children and turns the chevron.
-var UCSidebarNav = {
+var VtSidebarNav = {
   init: function() {
-    document.querySelectorAll('.vt-side-nav, [data-sidebar-demo]').forEach(function(nav) {
-      if (nav.dataset.sidebarBound) return;
-      nav.dataset.sidebarBound = 'true';
+    document.querySelectorAll('.vt-side-nav, [data-vt-sidebar-demo]').forEach(function(nav) {
+      if (nav.dataset.vtSidebarBound) return;
+      nav.dataset.vtSidebarBound = 'true';
 
-      nav.querySelectorAll('[data-sidebar-collapsible]').forEach(function(section) {
+      nav.querySelectorAll('[data-vt-sidebar-collapsible]').forEach(function(section) {
         var toggle = section.querySelector(':scope > button');
         if (!toggle) return;
         toggle.setAttribute('aria-expanded', String(section.classList.contains('open')));
@@ -1703,27 +1796,27 @@ var UCSidebarNav = {
 // Auto-initialize all components
 (function() {
   function initAll() {
-    UCAccordion.init();
-    UCCalendar.init();
-    UCChip.init();
-    UCRadioGroup.init();
-    UCTabs.init();
-    UCCollapsible.init();
-    UCCombobox.init();
-    UCResizable.init();
-    UCCarousel.init();
-    UCDropdown.init();
-    UCScrollView.init();
-    UCNumberInput.init();
-    UCPopover.init();
-    UCSelect.init();
-    UCSlider.init();
-    UCToast.init();
-    UCDialog.init();
-    UCTreeView.init();
-    UCFields.init();
-    UCCommand.init();
-    UCSidebarNav.init();
+    VtAccordion.init();
+    VtCalendar.init();
+    VtChip.init();
+    VtRadioGroup.init();
+    VtTabs.init();
+    VtCollapsible.init();
+    VtCombobox.init();
+    VtResizable.init();
+    VtCarousel.init();
+    VtDropdown.init();
+    VtScrollView.init();
+    VtNumberInput.init();
+    VtPopover.init();
+    VtSelect.init();
+    VtSlider.init();
+    VtToast.init();
+    VtDialog.init();
+    VtTreeView.init();
+    VtFields.init();
+    VtCommand.init();
+    VtSidebarNav.init();
   }
 
   // Markup added after load — a rendered preview, a fetched fragment, a
@@ -1749,4 +1842,6 @@ var UCSidebarNav = {
       window.veritheme.init();
     });
   }
+})();
+
 })();
