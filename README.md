@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://veritheme.com">
-    <img src="https://veritheme.com/og-image.png" alt="Veritheme — one source of truth for Figma, code &amp; AI" width="800">
+    <img src="https://veritheme.com/og-image.png" alt="Veritheme — design systems, generated for Figma, code &amp; AI" width="800">
   </a>
 </p>
 

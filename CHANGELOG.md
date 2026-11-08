@@ -11,6 +11,162 @@ _Add entries here as you work. `npm run release` freezes this section into a
 dated version block. Use the Keep a Changelog headings: Added / Changed /
 Deprecated / Removed / Fixed / Security._
 
+## [1.2.2] — 2026-11-08
+
+### Added
+
+- **Sidebar Nav:** `vt-side-nav-floating` — the inset panel with a full border
+  and the card radius, for a sidebar that stands off the screen edge.
+- **Docs:** code in the Code tabs and code blocks is highlighted (tags,
+  attributes and values in theme colors, dark mode included), and every copy
+  button shows a check once it has copied.
+- **Docs:** Layout and Utilities pages under Foundation, in place of Utilities &
+  Layout (the old address redirects). Utilities lists every class in one table
+  with search and group filters.
+- **Site:** the home page has a "Design to code" section. It shows a Figma frame
+  drawn with the library, the MCP server turning it into HTML, and the resulting
+  page, with Code and Preview tabs to compare the markup with the frame. The
+  server's thinking animation is drawn with
+  [thinking-orbs](https://github.com/Jakubantalik/thinking-orbs) (MIT, Jakub Antalik).
+- **Docs: MCP Server page** (`/docs/mcp/`): setup for Claude Code and other MCP
+  clients, using your own system, the Figma-to-code flow and every tool the
+  server has. The home page's "Set up MCP" buttons now open it.
+- **MCP: a command line and a Claude Code hook.** `npx @veritheme/mcp-server
+  validate <files or folders>` lints HTML, Astro, Vue, Svelte, JSX and TSX with
+  the `validate_markup` rules and exits with 1 on an error, so it can fail CI.
+  `npx @veritheme/mcp-server hook`, set as a PostToolUse hook, lints every file
+  the AI writes and hands the errors back before it moves on. The MCP Server
+  page shows both. With no command the binary is the MCP server, as before.
+- **Docs: Getting Started page** (`/docs/getting-started/`): the whole path in
+  order — create a system in the builder, add its package to the project,
+  generate the library in Figma, load it in code, connect your AI, build a
+  screen from a frame or a spec, and keep all of it in sync. Introduction and
+  the home page's fifth step link to it.
+- **Docs: Installation** covers your own theme (`theme.css` from the builder's
+  package, right after the library) and dark mode (the `.dark` class, a
+  no-flash script and a toggle).
+
+### Changed
+
+- **Builder (`/start`):** a new system that was changed and not yet saved asks
+  before you leave the page, so closing the tab or following a link no longer
+  drops it silently. The download window says it lives only in this tab until
+  it is saved.
+- **MCP `get_starter`:** with your system's package in the project, the page
+  skeleton links its `theme.css` right after the library, instead of telling
+  the AI to inline `get_theme_css`.
+- **MCP `figma_to_markup`:** compares the Figma file's variables with your
+  project's system when one is installed, not with the Default theme. A file
+  generated from your system reports no theme changes, and a real difference
+  names the system and its revision.
+
+- **Florin 1.1.0:** the template runs on the published veritheme 1.2.1, built
+  on its components (Sidebar Nav, Header, Dropdown Menu, Table, Stats Card,
+  Dialog, Select, List, Auth); what the library does not ship stays inside
+  Florin. The removed Editorial and Rounded Sans presets give way to Florin's
+  own Mint theme, and the demo previews on /examples/florin/ are reshot.
+- **Theme:** `warning-fill` is orange-500 in both modes, with a dark label
+  chosen by contrast. It was orange-700, a burnt orange that read as a second
+  red next to `error-fill`, especially for color-blind readers.
+- **Sidebar Nav:** `vt-side-nav` sits on the screen edge by default — one
+  border, on the side facing the content, and no corners, the way Page Layout
+  already drew it. Add `vt-side-nav-floating` to keep the old card look.
+- **Rating:** filled stars are yellow (yellow-400) instead of the warning
+  orange.
+- **Site:** the menu reads Studio · Docs · Examples, and Docs stays lit on every
+  docs page. The sidebar's first group is "Get started". The hero keeps one
+  call to action.
+- **Docs:** pages are shorter and built from the library: the example frame
+  uses Tabs and Code Block, Introduction and Design Principles use cards and an
+  accordion, Design System is seven sections instead of nineteen, and the
+  Colors token table works like Studio's (light and dark per role, state
+  colors behind a switch, a note on what each role is for).
+- **Site:** the tagline is now "Design systems, generated for Figma, code & AI"
+  (page title, search and social descriptions, footer), in place of "One source of
+  truth for Figma, code & AI". The home page's "How it works" block says the same:
+  the system, in numbers, generated for Figma, code and AI.
+- **Site:** the home page's steps follow the design-to-code path — Theme, Library,
+  Screens, Code, and a fifth step, Sync — as a row of equal cards that scrolls
+  sideways, with arrows and the site's own scrollbar. The CTA banner spans the
+  content width over an even blue veil, and the footer lines up with the content.
+- **Site:** Storybook moved from the header to the footer's Tools column. The
+  header keeps the Figma Plugin as its one outside link.
+
+### Fixed
+
+- **Site:** the home page and the FAQ no longer say the Figma plugin exports
+  tokens; it imports them, and the builder stays the source. The home page's
+  fourth step shows the full `claude mcp add` command, which works as typed.
+- **Page reset:** a page built from the system package, from Getting Started,
+  from Installation or from MCP `get_starter` had the browser's 8px margin
+  around it and the browser's fonts on its body. The reset lives in its own
+  file, `veritheme-base.min.css`, so the library can join any page untouched,
+  and nothing loaded it. The package now ships it and its demo page, README and
+  AI.md load it first; the docs and `get_starter` do too, and say when to leave
+  it out.
+- **System package:** carries the system's name. The manifest, README, AI.md
+  and the demo page said "My design system" whatever you called it. The demo
+  page is rebuilt from the library's own card and dialog the way they are
+  documented, so the first Veritheme page a newcomer opens passes
+  `validate_markup`.
+- **Pricing Card:** one Monthly/Yearly switch now updates every price and
+  description in its `[data-vt-pricing]` group, so a row of plans can share
+  one switch. Before, only the first card changed. A single card works as it
+  did.
+- **MCP:** `get_starter` with your system's package in the project links the
+  library files from the package, the version your theme was built on, instead
+  of whatever the CDN serves. `validate_markup` no longer counts a dialog's
+  primary button as a second one on the page: a modal is a view of its own,
+  and so is a hidden step or an inactive tab panel (`hidden`, `vt-hidden`).
+  `get_component` also finds a component by its
+  class (`btn-group`, `vt-btn-group`), and "no project system" points to the
+  builder at `/studio/` instead of `/create`.
+- **Figma plugin and system package:** "Open the wizard" and the package's
+  README point to the builder at `/studio/` instead of the old `/create`
+  address, and the README says where to drop `system.json` to revise.
+- **MCP `validate_markup`:** a split button (an action and its menu trigger
+  joined in one button group, both primary) counts as one primary action, so
+  the documented pattern no longer trips `one-primary`.
+- **MCP `validate_markup`:** reads framework source, not only HTML. JSX
+  `className`, including `{"…"}` and template literals, is checked like `class`;
+  Vue's bound `:class` is skipped instead of misread; `onClick`, `@click` and
+  `on:click` count as handlers; `<Table>` and other capitalized tags are taken
+  as components rather than hand-built HTML; an arrow function inside a tag no
+  longer cuts it short.
+- **Examples:** Compose sends from a primary split button, as the Button
+  Group documents, and its sidebar Compose steps down to bordered so Send is
+  the one primary action; Landing, Contact and Blog Post divide sections with
+  the Separator component instead of hand-drawn borders.
+- **Studio screens:** layout is spelled with library utilities instead of
+  private classes; bars on the brand tile use the on-brand token instead of
+  hardcoded white, and the product page's first spec no longer sits higher
+  than the rest.
+- **Tabs:** the default tab list is 40px tall, border included, like every
+  other control of that size. It was 41.6px, because the tabs did not subtract
+  the track's border.
+- **Color Swatch:** hovering or selecting a swatch no longer shifts its
+  neighbors in a row. The ring is drawn with shadows; the border keeps its
+  width.
+- **Docs:** the Code tab of an example switches again. Since the attribute was
+  renamed, the code appeared under the preview instead of replacing it, on
+  every page.
+- **Tabs:** in the small tab list (`vt-tabs-list-sm`) the tabs no longer
+  overflow the track by its border. The open tab sat 1px from the top and
+  bottom edges and 2px from the sides, and the track clipped its shadow. The
+  tab height now subtracts the border too.
+- **Site:** the footer's light/dark switch shows the current mode from the
+  first frame. It used to appear with no mode selected and light up a moment
+  later.
+- **Site:** the GitHub star count in the header stays after moving between
+  pages. The header is redrawn on every page change and the count was only
+  fetched on the first one. The count is now built into the page, and the
+  browser keeps the last value for an hour, so hitting GitHub's limit of 60
+  requests an hour no longer empties it.
+- **Storybook:** stories use the exact markup from the docs pages again. The
+  generator stopped finding the example panels once they gained a
+  `data-theme` attribute and silently fell back to shortened markup. It now
+  fails the build if that happens.
+
 ## [1.2.1] — 2026-11-07
 
 ### Breaking
@@ -1889,22 +2045,17 @@ First stable release.
 - **WCAG contrast**: 32 token pairs fall below AA across editorial/rounded-sans themes. Default theme addressed; remaining themes queued for v1.1.
 - **Scope**: 18 components (Dialog, Accordion, Slider, Button Group, Popover, Sheet, Sidebar, mini-variants) remain in `main.scss` pending recipe-engine extensions (`rawRules`, `@keyframes`, `[data-*]` selectors). Scheduled for v1.1.
 
-[Unreleased]: https://github.com/tarasenko-by/veritheme-workspace/compare/v1.2.1...HEAD
-[1.2.1]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.2.1
-[1.2.0]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.2.0
-[1.1.1]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.1.1
-[1.1.0]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.1.0
-[1.0.7]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.7
-[1.0.6]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.6
-[1.0.5]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.5
-[1.0.4]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.4
-[1.0.3]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.3
-[1.0.2]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.2
-[1.0.1]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.1
-[1.4.4]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.4.4
-[1.4.3]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.4.3
-[1.4.2]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.4.2
-[1.4.1]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.4.1
-[1.4.0]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.4.0
-[1.3.0]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.3.0
-[1.0.0]: https://github.com/tarasenko-by/veritheme-workspace/releases/tag/v1.0.0
+[Unreleased]: https://github.com/tarasenko-by/veritheme/compare/v1.2.2...HEAD
+[1.2.2]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.2.2
+[1.2.1]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.2.1
+[1.2.0]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.2.0
+[1.1.1]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.1.1
+[1.1.0]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.1.0
+[1.0.7]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.0.7
+[1.0.6]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.0.6
+[1.0.5]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.0.5
+[1.0.4]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.0.4
+[1.0.3]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.0.3
+[1.0.2]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.0.2
+[1.0.1]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.0.1
+[1.0.0]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.0.0

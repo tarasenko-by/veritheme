@@ -1,5 +1,5 @@
 /*!
- * veritheme.js v1.2.1
+ * veritheme.js v1.2.2
  * https://veritheme.com
  * MIT License
  */
@@ -1584,13 +1584,15 @@ var VtFields = {
       if (group.dataset.vtPricingBound) return;
       group.dataset.vtPricingBound = 'true';
 
+      // One switch drives every price and description in its group: a single
+      // card, or a whole row of plans under one Monthly/Yearly switch. Each
+      // node carries its own data-vt-monthly / data-vt-yearly.
       var toggle = group.querySelector('[data-vt-pricing-toggle]');
-      var price = group.querySelector('[data-vt-pricing-price]');
-      var description = group.querySelector('[data-vt-pricing-description]');
-      if (!toggle || !price) return;
-
-      var monthly = { price: price.dataset.vtMonthly || price.textContent.trim(), description: description ? (description.dataset.vtMonthly || description.textContent.trim()) : '' };
-      var yearly = { price: price.dataset.vtYearly || monthly.price, description: description ? (description.dataset.vtYearly || monthly.description) : '' };
+      var nodes = Array.from(group.querySelectorAll('[data-vt-pricing-price], [data-vt-pricing-description]')).map(function(node) {
+        var monthly = node.dataset.vtMonthly || node.textContent.trim();
+        return { node: node, monthly: monthly, yearly: node.dataset.vtYearly || monthly };
+      });
+      if (!toggle || !group.querySelector('[data-vt-pricing-price]')) return;
 
       toggle.addEventListener('click', function() {
         var isYearly = toggle.getAttribute('aria-checked') !== 'true';
@@ -1599,9 +1601,9 @@ var VtFields = {
         // The switch colours itself by .vt-active; older markup recoloured it
         // with utilities, which would pin one colour — drop them.
         toggle.classList.remove('vt-bg-brand-fill', 'vt-bg-surface-moderate');
-        var period = isYearly ? yearly : monthly;
-        price.textContent = period.price;
-        if (description) description.textContent = period.description;
+        nodes.forEach(function(entry) {
+          entry.node.textContent = isYearly ? entry.yearly : entry.monthly;
+        });
       });
     });
   },
