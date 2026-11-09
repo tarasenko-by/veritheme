@@ -11,6 +11,41 @@ _Add entries here as you work. `npm run release` freezes this section into a
 dated version block. Use the Keep a Changelog headings: Added / Changed /
 Deprecated / Removed / Fixed / Security._
 
+## [1.2.3] — 2026-11-09
+
+### Changed
+
+- **MCP:** `list_components` and `search` now show each component's "when to
+  use" line, which names the look-alike to take instead (toast vs alert,
+  switch vs checkbox, spinner vs skeleton). Before, an agent saw it only in
+  `get_component`, after it had already picked. `search` also matches that
+  line, with the words of a query in any order, so "transient feedback" finds
+  Toast. A test keeps every component's line and the look-alike pairs in place.
+- **MCP / llms-full.txt:** "when to use" lines say only when to pick a
+  component; the how-to advice that was mixed into some of them is now in the
+  component's gotchas, which llms-full.txt now includes too.
+- **Examples:** every example now uses Hugeicons (stroke-rounded, the free set),
+  like the docs. Before, most of them still drew Lucide icons, so neighboring
+  pages such as Blog and its post looked different.
+- **Examples:** each downloadable archive has a LICENSES.txt with the full
+  Veritheme and Hugeicons MIT notices and a note on the Unsplash photos; the
+  README points to it.
+
+### Fixed
+
+- **MCP:** eight component parts (Tabs Trigger, Accordion Item, Stepper Step,
+  Timeline Item, Tree Item, Page Button, File Upload Item, Feature Section
+  Item) were listed by `list_components` as "— undefined"; they now have a
+  description and say which component they live in.
+- **Examples:** the Dashboard and Analytics examples share one sidebar. Analytics
+  had kept the old icon set and had no account entry at the bottom; both now
+  show the same Hugeicons icons and the Jane Doe account row.
+- **Examples:** Mail and Compose share one folder sidebar; Compose had lost the
+  Labels group.
+- **MCP:** patterns built from the examples include markup from shared example
+  parts and items styled with `class:list`, so `get_pattern` no longer drops
+  the sidebar or components such as stats cards and pricing cards.
+
 ## [1.2.2] — 2026-11-08
 
 ### Added
@@ -2045,7 +2080,8 @@ First stable release.
 - **WCAG contrast**: 32 token pairs fall below AA across editorial/rounded-sans themes. Default theme addressed; remaining themes queued for v1.1.
 - **Scope**: 18 components (Dialog, Accordion, Slider, Button Group, Popover, Sheet, Sidebar, mini-variants) remain in `main.scss` pending recipe-engine extensions (`rawRules`, `@keyframes`, `[data-*]` selectors). Scheduled for v1.1.
 
-[Unreleased]: https://github.com/tarasenko-by/veritheme/compare/v1.2.2...HEAD
+[Unreleased]: https://github.com/tarasenko-by/veritheme/compare/v1.2.3...HEAD
+[1.2.3]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.2.3
 [1.2.2]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.2.2
 [1.2.1]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.2.1
 [1.2.0]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.2.0
