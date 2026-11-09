@@ -1,5 +1,5 @@
 /*!
- * veritheme.js v1.2.3
+ * veritheme.js v1.2.4
  * https://veritheme.com
  * MIT License
  */

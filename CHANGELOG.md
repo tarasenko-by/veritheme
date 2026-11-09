@@ -11,6 +11,19 @@ _Add entries here as you work. `npm run release` freezes this section into a
 dated version block. Use the Keep a Changelog headings: Added / Changed /
 Deprecated / Removed / Fixed / Security._
 
+## [1.2.4] — 2026-11-10
+
+### Fixed
+
+- **MCP / Figma plugin:** a variant value the component does not have
+  (`Variant: Outline` on a button) is now listed under "Not translated" with
+  the values that do exist. Before, the instance came out with no variant class
+  and nothing said so.
+- **MCP:** `validate_markup` has a `component-structure` rule for components
+  whose classes are all real but whose markup is broken: a block element inside
+  `vt-btn`, a `vt-field` with no control, a `vt-check-label` with no
+  checkbox, radio or switch. Before, such markup passed as clean.
+
 ## [1.2.3] — 2026-11-09
 
 ### Changed
@@ -2080,7 +2093,8 @@ First stable release.
 - **WCAG contrast**: 32 token pairs fall below AA across editorial/rounded-sans themes. Default theme addressed; remaining themes queued for v1.1.
 - **Scope**: 18 components (Dialog, Accordion, Slider, Button Group, Popover, Sheet, Sidebar, mini-variants) remain in `main.scss` pending recipe-engine extensions (`rawRules`, `@keyframes`, `[data-*]` selectors). Scheduled for v1.1.
 
-[Unreleased]: https://github.com/tarasenko-by/veritheme/compare/v1.2.3...HEAD
+[Unreleased]: https://github.com/tarasenko-by/veritheme/compare/v1.2.4...HEAD
+[1.2.4]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.2.4
 [1.2.3]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.2.3
 [1.2.2]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.2.2
 [1.2.1]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.2.1
