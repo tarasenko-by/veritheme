@@ -156,4 +156,9 @@ The site also serves [veritheme.com/llms.txt](https://veritheme.com/llms.txt) �
 
 ## License
 
-MIT © Siarhei Tarasenko
+MIT © Siarhei Tarasenka
+
+The MIT License covers this package: the CSS and the JavaScript bundle. The MCP
+server, [`@veritheme/mcp-server`](https://www.npmjs.com/package/@veritheme/mcp-server),
+is a separate package: versions 1.2.4 and earlier are under MIT, later versions
+are source-available under FSL-1.1-MIT (its `LICENSE.md` ships with the package).

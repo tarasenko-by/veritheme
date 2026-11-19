@@ -13,10 +13,9 @@
   },
   "borderWidth": {
     "none": "0px",
-    "thin": "1px",
-    "default": "1px",
-    "medium": "1.5px",
-    "thick": "2px"
+    "line": "1px",
+    "control": "1px",
+    "strong": "2px"
   },
   "spacing": {
     "0": "0",
@@ -84,11 +83,7 @@
     "default": "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
     "md": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
     "lg": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
-    "xl": "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
-    "control": "0 0 0 0 rgb(0 0 0 / 0)",
-    "controlPressed": "0 0 0 0 rgb(0 0 0 / 0)",
-    "controlBordered": "0 0 0 0 rgb(0 0 0 / 0)",
-    "controlBorderedPressed": "0 0 0 0 rgb(0 0 0 / 0)"
+    "xl": "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)"
   },
   "zIndex": {
     "dropdown": "1000",
@@ -103,6 +98,23 @@
     "fast": "150ms ease",
     "normal": "200ms ease",
     "slow": "300ms ease"
+  },
+  "breakpoint": {
+    "sm": "640px",
+    "md": "768px",
+    "lg": "1024px",
+    "xl": "1280px",
+    "2xl": "1536px"
+  },
+  "opacity": {
+    "0": "0",
+    "5": "0.05",
+    "10": "0.1",
+    "20": "0.2",
+    "50": "0.5",
+    "80": "0.8",
+    "100": "1",
+    "disabled": "0.5"
   },
   "container": {
     "width": "80rem",
@@ -133,16 +145,29 @@
     "offset": "0px"
   },
   "motion": {
+    "durationFast": "150ms",
+    "durationNormal": "200ms",
+    "durationSlow": "300ms",
+    "easeStandard": "ease",
     "easeOut": "cubic-bezier(0.16, 1, 0.3, 1)",
     "easeInOut": "cubic-bezier(0.4, 0, 0.2, 1)",
     "easeSpring": "cubic-bezier(0.5, 1.6, 0.4, 1)",
     "presetInteractive": "all 150ms cubic-bezier(0.16, 1, 0.3, 1)",
-    "presetFade": "opacity 200ms cubic-bezier(0.4, 0, 0.2, 1)"
+    "presetFade": "opacity 200ms cubic-bezier(0.4, 0, 0.2, 1)",
+    "easeFade": "ease-out",
+    "durationInstant": "100ms",
+    "durationLoopFast": "1s",
+    "durationLoopNormal": "1.5s",
+    "durationLoopSlow": "2s",
+    "durationLoopCalm": "3s",
+    "easeLinear": "linear",
+    "easePulse": "cubic-bezier(0.4, 0, 0.6, 1)",
+    "easeDecelerate": "cubic-bezier(0, 0, 0.2, 1)"
   },
   "intent": {
     "success": "var(--vt-success-fill)",
     "warning": "var(--vt-warning-fill)",
-    "danger": "var(--vt-error-fill)",
+    "danger": "var(--vt-danger-fill)",
     "info": "var(--vt-info-fill)"
   },
   "elevation": {
@@ -168,22 +193,22 @@
     "borderDefault": "0 0% 90%",
     "borderStrong": "0 0% 83%",
     "focusRing": "217 91% 60%",
-    "brandFill": "221 83% 53%",
+    "brandFill": "217 91% 60%",
     "neutralFill": "0 0% 98%",
     "neutralFillHover": "0 0% 96%",
     "neutralFillPressed": "0 0% 90%",
     "neutralFillDisabled": "0 0% 98%",
     "onNeutral": "0 0% 4%",
-    "successFill": "142 72% 29%",
+    "successFill": "142 71% 45%",
     "successSurface": "138 76% 97%",
     "successBorder": "141 79% 85%",
     "warningFill": "25 95% 53%",
     "warningSurface": "33 100% 96%",
     "warningBorder": "32 98% 83%",
-    "errorFill": "0 72% 51%",
-    "errorSurface": "0 86% 97%",
-    "errorBorder": "0 96% 89%",
-    "infoFill": "221 83% 53%",
+    "dangerFill": "0 84% 60%",
+    "dangerSurface": "0 86% 97%",
+    "dangerBorder": "0 96% 89%",
+    "infoFill": "217 91% 60%",
     "infoSurface": "214 100% 97%",
     "infoBorder": "213 97% 87%"
   },
@@ -201,24 +226,44 @@
       "borderDefault": "0 0% 15%",
       "borderStrong": "0 0% 25%",
       "focusRing": "213 94% 68%",
-      "brandFill": "221 83% 53%",
+      "brandFill": "217 91% 60%",
       "neutralFill": "0 0% 15%",
       "neutralFillHover": "0 0% 25%",
       "neutralFillPressed": "0 0% 32%",
       "neutralFillDisabled": "0 0% 15%",
       "onNeutral": "0 0% 98%",
-      "successFill": "142 72% 29%",
+      "successFill": "142 71% 45%",
       "successSurface": "145 80% 10%",
       "successBorder": "143 64% 24%",
       "warningFill": "25 95% 53%",
       "warningSurface": "13 81% 15%",
       "warningBorder": "15 79% 34%",
-      "errorFill": "0 72% 51%",
-      "errorSurface": "0 75% 15%",
-      "errorBorder": "0 70% 35%",
-      "infoFill": "221 83% 53%",
+      "dangerFill": "0 84% 60%",
+      "dangerSurface": "0 75% 15%",
+      "dangerBorder": "0 70% 35%",
+      "infoFill": "217 91% 60%",
       "infoSurface": "226 57% 21%",
       "infoBorder": "226 71% 40%"
+    }
+  },
+  "grid": {
+    "desktop": {
+      "width": "1280px",
+      "columns": 12,
+      "gutter": "1.5rem",
+      "margin": "2rem"
+    },
+    "tablet": {
+      "width": "768px",
+      "columns": 8,
+      "gutter": "1.5rem",
+      "margin": "1.5rem"
+    },
+    "mobile": {
+      "width": "375px",
+      "columns": 4,
+      "gutter": "1rem",
+      "margin": "1rem"
     }
   }
 }

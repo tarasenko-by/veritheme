@@ -11,6 +11,1731 @@ _Add entries here as you work. `npm run release` freezes this section into a
 dated version block. Use the Keep a Changelog headings: Added / Changed /
 Deprecated / Removed / Fixed / Security._
 
+## [1.3.0] — 2026-11-19
+
+### Added
+
+- **Figma plugin: a new window (review 19.11.2026).** A narrow icon rail
+  switches between Generate, Check and Settings; each name is the item's
+  tooltip and aria-label. Generate gives the whole window to the components:
+  each is a card showing the variant its artboard previews, grouped as on
+  the Components page. A card's corner control leaves it out of the run (a
+  bin) or adds it back (a plus); a component another one needs shows a
+  padlock whose tooltip says by whom — glyphs and words, not red against
+  green. The whole card opens its detail in the same window: variants,
+  properties, sizes, anatomy and what it builds with. A foundation's detail
+  is its board as Generate draws it: Palette, Colors, Typography, Sizing &
+  Spacing, Border Width, Shadows, Layout and Icons. "Open design system
+  builder" and Upload theme sit in the header, a loaded theme is a chip
+  there, and a theme file can be dropped anywhere on the window. The count,
+  Select all and Clear are in the footer; the Last run note and the error
+  boxes take their own row above it instead of covering the list. Settings
+  holds One page, Annotations, Rebuild all, Report a problem and the build
+  stamp (and, in a testing build, Clear file). The window follows Figma's
+  light or dark theme and wears Veritheme's default theme; a loaded system
+  shows in the previews only, never in the window's own corners, colors or
+  type. Every scrolling region has the custom scrollbar. The "system on a
+  page" preview is gone.
+- **Figma plugin: back and forward.** The mouse's side buttons, Alt+Left /
+  Alt+Right (Cmd+[ / Cmd+] on macOS) step between sections and into a
+  detail and back, and the list comes back at the scroll it was left at.
+  Escape and the detail's back button step back too. A running Generate is
+  left alone.
+- **Figma plugin, Check: what it reads and why a rule matters.** A line
+  under the title says what Check is for (screens built with the system,
+  before code) and what it runs on (the selection, or every frame of the
+  page); each step — Prepare, Check, Export — says what it does and what
+  comes of it. The status says what a run read ("Checked the whole page: 12
+  frames."), and a finding shows, under its rule, why it matters.
+
+- **Breakpoints and opacity are tokens.** `breakpoint` — sm 640, md 768,
+  lg 1024, xl 1280 and the new 2xl 1536 — and a short `opacity` scale — 0,
+  5, 10, 20, 50, 80, 100 and the role `disabled` (50) — live in
+  tokens/base.json and come out as `--vt-breakpoint-*` and `--vt-opacity-*`.
+  A media query cannot read a custom property, so the library's own queries
+  and the `vt-sm:`/`vt-md:`/`vt-lg:` utilities are written from the same
+  tokens at build time (a generated Sass map, `vt-col-2xl-*` included);
+  the phone root's switch and the large type's phone step sit on md. The
+  `vt-opacity-*` steps of the scale read their token. In Figma they are FLOAT
+  variables in 04 Primitives: `breakpoint/*` for a frame's width and
+  `opacity/*` for a layer's opacity.
+- **Figma: icons from Hugeicons, on the Foundations page.** The plugin's icon
+  set is Hugeicons (free, stroke-rounded, MIT license) instead of Lucide; the
+  only drawing of Veritheme's own is the Empty placeholder. The icons keep
+  the names the components ask for (X, ChevronDown, Check, LoaderCircle…),
+  so an instance swap and a rebuild find them as before, and the set gains
+  icons a slot can default to — MoreHorizontal, MoreVertical, Search,
+  PanelLeft, Settings, Trash, the intents (Info, CircleAlert, TriangleAlert,
+  CircleX) and more, 51 in all. The Icons board sits last on the Foundations
+  page with the MIT notice under the grid; each icon's description carries
+  the credit, so it travels with the component under Annotations: None too.
+  In the plugin panel, Icons is a row of the Foundation group.
+- **The Icons page shows the library's set.** /docs/icons lists the 54 icons
+  the library and the plugin draw, grouped by purpose (controls, actions,
+  intents, things), copies an icon's SVG on click, points to hugeicons.com
+  for the full free set and carries the MIT notice. The site no longer
+  imports Lucide. The MCP server offers Hugeicons (stroke-rounded, 1.5) as
+  the default set for a project with no icons of its own, and an icon
+  placeholder from Figma takes a 1.5 line when nothing says otherwise.
+- **Large type for sites: Heading/XL and Display/SM, MD, LG.** Four text
+  styles above Heading/LG, on the font-size steps 5xl–8xl: Heading/XL 48/56,
+  Display/SM 60/68, Display/MD 72/80, Display/LG 96/104, weight 600 like the
+  headings, tracking −2 % to −3 %. Classes `vt-heading-xl`, `vt-display-sm`,
+  `vt-display-md`, `vt-display-lg` (`vt-display` keeps its Heading/LG look).
+  On a phone, below the md breakpoint, each drops one step (to 36, 48, 60,
+  72 at the 16px root, on top of the phone's 14/16 root) — in CSS through a
+  media query on the `--vt-type-*` variables, in Figma through a variable of
+  its own in the Rems collection whose Mobile mode points at the smaller
+  step. The Rems scale gains 4.25rem and 6.5rem for the display line
+  heights. The Display/XL and Display/2XL names, aliases nothing used, are
+  gone.
+- **Motion tokens for the rest of the library's movement.**
+  `--vt-motion-duration-instant` (100ms, a response under the hand), the
+  looping durations `--vt-motion-duration-loop-fast|normal|slow|calm` (1s,
+  1.5s, 2s, 3s) and the curves `--vt-motion-ease-linear`, `-pulse` and
+  `-decelerate` join the motion group, so every duration and curve in the
+  components can be a token. A component's `motion` record accepts
+  `duration: "instant"` and `ease: "linear"`. Values match what the
+  components use today; nothing moves differently yet.
+- **Button: an open menu looks pressed.** A button whose menu is open — or
+  the one picked in a toolbar — shows its variant's pressed fill (a ghost one
+  its primary text color, as a real press does: `:active` comes with
+  `:hover`). The trigger of an open menu gets that look from
+  `aria-expanded="true"`, which the dropdown (HTML bundle and
+  `@veritheme/react`) already sets: no class to add. `vt-active` gives the
+  same look by class, in React `active`. In Figma there is no separate
+  Active (the owner, 16.11.2026): it is State=Pressed, 200 variants instead
+  of 216, and a Pressed instance reads back as `vt-active`. A rebuild moves
+  every State=Active instance to Pressed. The master's icons (left, right and
+  icon-only) default to Empty, so a button drawn from the set brings no glyph
+  of its own.
+- **List: the heading as typed, and a row's own divider.**
+  `vt-list-section-as-typed` (Heading Case=As Typed in Figma, `headingCase="as-typed"`
+  in React) shows a section heading as written, in Caption, instead of the
+  uppercase overline — Figma does not keep a text case or style override on
+  that layer of an instance, so it is a property now. A row draws its own
+  line on top with `vt-list-item-divider` (full width) or
+  `vt-list-item-divider-inset` (12px in from each side): Divider on List Item
+  in Figma (None by default), `divider` in React, so a row added to a list's
+  slot carries its line. Inside `vt-list` such a row drops the list hairline.
+  A rebuild keeps old rows on Divider=None and old lists on Upper.
+- **Button: an extra-small size.** `vt-btn-xs` (Size XS in Figma, `size="xs"` in
+  React) is 24px tall: 8px side padding, a 12px label, a 16px icon, the xs
+  radius; an icon-only one is a 24px square. For an action inside a dense row
+  or card (a Reset in a usage card).
+- **Nav Group: the toggle's end and its state.** The toggle row ends with the
+  chevron by default; in `@veritheme/react` `trailing` replaces it (an agent's
+  count) or removes it (`null`). The toggle says `aria-expanded` in the markup
+  (true when open), as the script and the React group keep it.
+- **Nav Group: a rail.** `vt-side-nav-section-rail` (Rail in Figma, `rail` in
+  React) draws a 1px line down the center of the group's icon column and moves
+  the nested rows so their text lines up with the group's label. Off by
+  default: the section looks as before. The Nav Group stylesheet is now part
+  of `veritheme.css` (it was empty until now and was left out).
+- **Timeline: a compact size.** `vt-timeline-item-sm` (Size SM in Figma, `size="sm"`
+  in React) is for dense lists such as an agent's steps: 32px rows, a 16px rail
+  with a 1px line, 12px to the text, a plain 16px icon (`vt-timeline-icon`,
+  colored by the state) instead of the badge, the title in Body/SM and the
+  description in Caption. A link such as Try again goes in the Actions slot, on
+  the title's row. Timeline's Size passes to its events; MD stays the default.
+- **Figma: a Header takes its own logo, an Empty State any picture.** Header's
+  logo is the Media slot before the name: the logo by default, an agent's
+  mascot or a picture of one's own instead (Show Logo becomes slot content; a
+  rebuild empties the slot where the logo was hidden). Empty State's Media
+  slot is open: a project's picture belongs there as much as an IconBadge.
+- **Sidebar Nav: actions in the header, a Footer slot.** A button (New chat,
+  collapse) in `vt-side-nav-header` goes to the end of the row. In Figma the
+  header ends with a Header Actions slot, empty by default (the title takes
+  the free space), and the footer's rows are the Footer slot (Help by
+  default; an account row or a button of one's own). Show Header stays.
+- **Dropdown Menu: placement.** `vt-dropdown-menu-up` opens a menu above its
+  trigger (an input at the bottom of the screen) and `vt-dropdown-menu-end`
+  aligns it to the trigger's right edge; they combine. The script still
+  flips a menu to the other side when it would leave the window, and places a
+  menu shared by several triggers by the right edge too when it has -end. In
+  Figma the open menu is drawn where it opens, so the side and the edge
+  follow from its place next to its trigger, not from a variant.
+- **Figma plugin: Prepare for code.** A new button next to Check in Export for
+  code looks at the selected frames (or the page) for what the code will
+  need, and proposes:
+  - a name for each frame Figma named, from what it holds (two buttons are
+    "Actions");
+  - a component property for each layer that a project component's
+    instances edit (a text that differs, a layer shown on some only);
+  - an Icon/Name component for each loose icon-sized drawing, one per name;
+  - a fill for a project icon whose drawing has none of its own (it showed
+    only where an instance colored it): the color an instance gave it,
+    bound to its token, or the primary text color;
+  - the name "path" for the one drawing of an icon put into a library
+    component, so the component colors it.
+- **Figma plugin: icons keep their drawings in Export for code.** An icon the
+  read left without a drawing gets its main component's drawing (for a
+  set, the variant the instance shows). Figma does not export a layer that
+  a clipping container hides whole: a row below the fold of a scrolled
+  area had empty icons in code.
+
+  Uncheck what you disagree with, then Apply. The code reads better for it: a
+  class, a prop or an icon takes the name instead of a hash or a layer path.
+- **Figma: a notification dot sits on what it marks.** What NotificationBadge
+  marks is the Content slot: the icon button or avatar by default (Anchor),
+  or a logo of one's own. The dot and the count are pinned to the corner of
+  what is in it, so on a 16px logo the dot is on the logo, not 32px away at
+  the corner of a 40px button. A rebuild moves the button or avatar an
+  instance had (with its swap and edits) into the slot. Markup and CSS are
+  unchanged.
+- **Menu Item: a submenu chevron.** `svg.vt-command-item-chevron` ends a row
+  that opens a nested menu ("Move to project ›"; give the row
+  aria-haspopup="menu"). In Figma it is a ChevronRight icon in the row's
+  Trailing slot, and a pin in a NavItem's Trailing slot is accepted the same
+  way. An empty slot no longer takes the 100×100 of a new frame and no longer
+  squeezes the label beside it.
+- **Figma: Nav Group, a collapsible section of a sidebar.** A new Figma
+  component for div.vt-side-nav-section[data-vt-sidebar-collapsible]: a
+  toggle row (a Nav Item with its icon, label and count or chevron, exposed
+  on the instance) and the nested rows as the Items slot. Open=True/False is
+  .open, which the Sidebar Nav script already toggles; State=Hover is the
+  toggle row's hover. The Sidebar Nav's Content slot offers it (an agent with
+  its chats, a project with its pages). Markup and CSS are unchanged; its
+  styles live with Sidebar Nav.
+- **Figma: Sidebar Nav's body fills the panel.** The panel is drawn 720px
+  tall (an example screen, as Page Layout), and its body takes the free
+  height (flex: 1 in CSS): the footer sits at the bottom, not right under
+  the rows.
+- **Figma: Page Layout's main column is a slot.** The main column of each
+  layout (Stacked, Sidebar, Holy Grail) is the Content slot: an instance puts
+  the page's own content there instead of the placeholder skeletons, and it
+  stays when Layout changes. Markup and CSS are unchanged.
+- **Figma: more slots — Popover, Empty State, Dialog, Sidebar Nav.**
+  - Popover: its buttons are the Actions slot (Show Actions stays).
+  - Empty State: the icon is the Media slot (an illustration goes there
+    instead), and the buttons the Actions slot. Show Icon is gone: a rebuild
+    empties the slot of an instance that hid its icon.
+  - Dialog: the footer starts with a More Actions slot, empty by default (a
+    third button, a "Don't ask again" checkbox); Show Cancel stays.
+  - Sidebar Nav: the groups and rows of its body are the Content slot, for
+    NavItems of one's own (top-level and nested).
+
+  Markup and CSS are unchanged.
+- **Figma: Header takes its own content.** The links of a Header are the
+  Navigation slot inside its nav (the links by default; a Breadcrumb and a
+  status Badge for a chat header), and the row of actions starts with the More
+  Actions slot, empty by default, for icon buttons or a badge of one's own.
+  Show Nav, Show Log In, Show Action, Show Search and the other toggles stay:
+  they are on the parts around the slots. Markup and CSS are unchanged.
+- **Figma: a Card's actions are a slot.** The footer of a Card (Footer=True)
+  is the Actions slot: Cancel and Deploy by default, and an instance takes its
+  own buttons or a Button Group there. Markup and CSS are unchanged.
+- **NavItem: a chat row without a project component.** A nested row
+  (`vt-nav-item-sub`) ends the way a top-level one does: a count, a Badge, a
+  Switch or Checkbox take the end of the row, and `vt-nav-item-row` with its
+  actions works around a nested link too. New: `svg.vt-nav-item-end-icon`, a
+  16px state mark inside the link (a pin), centered on the row;
+  `vt-nav-item-actions-hover` shows a row's actions only on hover, keyboard
+  focus and on the current row (a More menu); a single action reserves room
+  for one button (32px), not two. A nested row gains an 8px gap between the
+  label and what ends it. In Figma a row keeps its CSS height (36, nested 32)
+  whatever its Trailing slot holds, so a 32px icon button sits centered on it,
+  and a nested row's label takes the free space, so what goes into the slot
+  sits at the end. The variants stay 12. The count in NavItem and ListItem
+  is an exposed instance: its Color (Danger, or Secondary for a quiet count
+  without the red fill) is set on the row itself, without digging into it.
+- **Badge: a status dot in Figma.** Badge gains Dot=False/True: a StatusDot
+  (`vt-dot vt-dot-sm vt-dot-current`) before the label, in the badge's own
+  text color — "● Waiting for you". The markup already allowed it; Figma
+  could not draw it. 36 variants (18 before); the earlier ones are unchanged.
+- **Menu Separator.** `.vt-menu-separator` (role="separator") is the divider
+  between groups of rows in a Dropdown Menu or the Combobox list, a component
+  in Figma that their slots offer next to MenuItem and MenuLabel — a
+  separator could not be added to a menu slot before. `.vt-dropdown-separator`
+  looks the same and still works; the menus look the same.
+- **NavItem: the Trailing slot on a nested row.** A sub-level row (Level=Sub)
+  has the Trailing slot too, empty by default: a pin, a More button or a
+  count goes there, as on a top-level row. Its markup and look are unchanged;
+  the variants stay 12.
+- **Input and Textarea: a plain field; Input: a typed value in Figma.**
+  `vt-input-plain` / `vt-textarea-plain` (Appearance=Plain) have no border,
+  fill or focus ring of their own, for a field inside a container that draws
+  them — a chat composer; the container shows the focus with `:focus-within`.
+  In Figma, Input's Content=Value shows what was typed (a Value text in the
+  field's own color; in code the `value` attribute) instead of the
+  placeholder. Variants: Input 56 (20 before), Textarea 6 (4); the earlier
+  ones are unchanged, pixel for pixel. Textarea's typed text waits for the
+  translator to write a textarea's content.
+- **Count Badge: a quiet count.** `vt-count-badge-secondary` (Color=Secondary
+  in Figma) shows an amount that is not an alert — the items in a sidebar
+  group: muted text, no fill, the same size. The default count
+  (Color=Danger) is unchanged; in Figma CountBadge is now a set of 2 variants.
+- **The end of a row is a Figma slot.** NavItem and ListItem take what sits at
+  the end of the row in one Trailing slot: by default what they showed before
+  (a count, now a CountBadge, a chevron; a value and the selection check in a
+  list row), and a Badge, a small Switch or Checkbox or icon buttons fit too.
+  Their Show Badge, Count, Show Chevron and icon-swap properties (and Show
+  Value, Value on ListItem) are gone: a layer in a slot takes no property.
+  Composites keep what they need of a slot with `{keep, parts}` or fill it
+  with several instances. A row with actions is new markup:
+  `.vt-nav-item-row` holds the link and `.vt-nav-item-actions` beside it, so
+  no button sits inside a link; rows without actions are unchanged.
+- **More Figma slots.** ButtonGroup (Buttons), Tabs (Triggers), Accordion
+  (Items), Toolbar (Items), AvatarGroup (Avatars) and Timeline (Items) take
+  their items in a slot whose frame exists only in Figma: the markup, the CSS
+  and the canvas look are unchanged. Dialog gains a body slot (Content, in
+  .vt-dialog-body) and Popover one between its header and actions, each with
+  a sample paragraph; Field is now a Figma component with a Control slot
+  (an Input by default; Textarea, Select or Combobox fit too). Each slot
+  offers its parts as preferred instances. In Figma the Select component is
+  the closed field: an open list is a Combobox or a Dropdown Menu.
+- **Figma plugin: Annotations — Full, Compact, Minimal or None.** A new
+  choice in the plugin's Settings, next to "One page", sets how much each
+  generated artboard says around its components. **Full** (the default, as
+  before) is the sidebar with the description, properties and links.
+  **Compact** is the component's name and its short description above the
+  variant table. **Minimal** is the variant table alone, with its axis and
+  state labels and no title. **None** is the components alone: no title, no
+  description, and the set without the axis labels around its grid. In a
+  column of Compact, Minimal or None cards, a card at least two thirds as
+  wide as the widest one takes its width, content on the left, so cards of a
+  similar size share an even right edge; a much narrower card keeps its own
+  width instead of a wide empty field. The
+  component sets, their variants, properties, slots and names are the same in
+  all four, so a rebuild with another choice moves instances to the new sets
+  as usual and keeps their slot content. The choice is remembered per
+  document.
+- **Figma slots in containers.** Dropdown Menu (Items), Combobox (Options, the
+  List frame), Command (Items, the List frame) and List (Items) are built with
+  a Figma slot, the way Card's body already was: an instance takes its own
+  rows there — a fourth menu row, a group label — without detaching. The
+  slot offers its parts as preferred instances (MenuItem and MenuLabel in the
+  menus, ListItem in the list) and asks for at least one; Figma shows that as
+  guidance. Its default content is the example each variant had, so the
+  components look the same. In markup, Dropdown Menu's rows can sit in
+  `.vt-dropdown-items`, a plain column; menus without it work as before.
+- **A library rebuild keeps your slot content.** Before the plugin swaps an
+  instance to the rebuilt component it copies what the instance holds in its
+  slots, when that differs from the default, and puts it back into the slot
+  of the same name afterwards — also into a slot the owner made by hand,
+  when the rebuilt component now has one on that layer. An instance whose new
+  component has no slot of that name keeps its content and its old link, and
+  the run's result names it.
+- **Menu Item: a switch at the end; Menu Label.** An on/off row carries a
+  switch at the very end — `vt-switch vt-switch-sm` as a decorative span
+  (`aria-hidden`, `vt-active` when on), the row `role="menuitemcheckbox"`
+  with `aria-checked`, so there is no button inside the row.
+  `veritheme.toggleCheckbox` turns it; click, Enter and Space work and the
+  menu stays open. **Menu Label** (`.vt-menu-label`, `role="presentation"`)
+  is the one group heading for Dropdown Menu, Command and the Combobox list;
+  `.vt-dropdown-label` and `.vt-command-group-heading` look the same and
+  still work. In Figma, MenuItem gains Trailing=Switch Off/On (81 variants,
+  from 69), MenuLabel is a component of its own with a Label text property
+  and replaces the group labels inside Dropdown Menu, Command and Combobox,
+  and Dropdown Menu gains Style=Toggles (5 variants, from 4). Existing
+  variants are unchanged to the pixel.
+- **Motion for Toast and Select.** A toast shown by `veritheme.showToast` now
+  fades in and rises 8px, and closing it — the close button, its action or
+  the timer — runs the same motion back and removes it when the transition
+  ends (a timer covers a transition that never fires). The Select list fades
+  and slides in and out like the Dropdown Menu (from below when it opens
+  upward, `data-theme-direction="up"`); it is now hidden with `visibility`
+  instead of `display: none`. Both use the motion tokens (150ms, `ease`).
+  Keyboard and focus do not wait for the motion. To turn it off, the
+  visitor's `prefers-reduced-motion: reduce` already does (the toast then
+  appears and goes at once); for every visitor, set
+  `--vt-motion-duration-fast: 0ms` on `:root`. The Combobox list was already a
+  Dropdown Menu and moves the same way; a Command palette in a Dialog moves
+  with the Dialog.
+- **Motion tokens.** The theme gains motion steps: `--vt-motion-duration-fast`
+  (150ms), `-normal` (200ms), `-slow` (300ms), `--vt-motion-ease-standard`
+  (`ease`) and `--vt-motion-ease-fade` (`ease-out`), next to the existing
+  `--vt-motion-ease-out`. Button, Checkbox, Radio, Select, Switch, Popover,
+  Dropdown Menu and Dialog now read their durations and curves from them
+  instead of literals; every transition keeps the same properties, durations
+  and curves, so nothing looks different. `--vt-transition-*` stay as they are.
+  Dropdown Menu and Dialog describe how they appear and disappear in one
+  `motion` record in their contract.
+- **Menu Item: description and an end check.** A row can carry a title over
+  a short muted description (`.vt-command-item-content` with
+  `.vt-command-item-title` and `.vt-command-item-description`; the icon and
+  the check line up with the first line) and a check at the very end
+  (`.vt-command-item-check.vt-command-item-check-end`, after a shortcut) for a
+  pick-one row: `role="menuitemradio"` with `aria-checked`. The bundle keeps
+  that role and `veritheme.selectMenuRadio` moves the check. In Figma, MenuItem
+  gains the Description (False/True) and Trailing (None/Check Off/Check On)
+  properties — 69 variants, from 48 — and Dropdown Menu a Style=Mode example
+  (Appearance: Light, Dark, System). Existing rows and their markup are
+  unchanged.
+- **Figma → code:** `figma build <snapshot> --out <dir> --target react` writes
+  the same page as a Vite + React + TypeScript project. It reads the markup the
+  HTML build makes (the same walk, the same calls), so every state renders the
+  DOM the HTML page renders. A project component is one `.tsx`: its instances in
+  all the states merged into one tree, what differs between them a prop, a
+  variant a union of the values the design shows, a layer one variant draws
+  shown by that variant. The library components the design uses are written
+  from their contract (`src/library/`); Progress and Switch carry their own
+  behavior, and the vanilla bundle is not part of the project. The overrides
+  the HTML build numbers by call (`fo-<call>-<n>`) are named by component,
+  library component and rules, so a new artboard renames none of them. Each
+  state opens with `?state=`.
+  `index.html`, `public/vt/`, `src/states.ts`, `src/main.tsx` and
+  `src/library/` are written on every build; `src/page.tsx`,
+  `src/components/`, `src/data/` and the project files once, then they are the
+  team's. The HTML build without the flag is unchanged, byte for byte.
+- **Figma → code, React:** the prototype's transitions work in the React
+  project, with no bundle: the page's state is React's. A project component
+  does not know the page's states. An element of it that leads somewhere calls
+  an event of its own, named by the layer in Figma (`onToggleSidebar`,
+  `onSend`; the root's own is `onClick`, a hover `on…Hover`), and the events of
+  the components it holds are passed on under the layer's name (`onAccount`).
+  `src/states.ts` says what each component's events lead to in each state
+  (`FLOW`), and `src/page.tsx` binds them with `{...events("sidebar")}`; a
+  layer of the page itself leads there directly. As on the HTML page: the
+  address follows the state (a click is a history entry, so back and forward
+  work); the innermost element of a click inside a click wins; an element that
+  is no link, button or field becomes a button for the keyboard (Enter, Space)
+  while its event is bound; a hover lasts while the pointer stays where the
+  element was; a frame that moves on by itself does after its pause, and
+  `?hold` keeps it; a click in a field that leads to another state leaves the
+  cursor in that state's field. The design's drawings are one sprite file,
+  `public/vt/sprite.svg` (`<use href="/vt/sprite.svg#…">`), written on every
+  build; `--sprite inline` puts it in `index.html` instead. The HTML build keeps
+  its inline sprite by default.
+- **Alert, Banner:** with `data-vt-dismiss` on the close button the bundle
+  closes it: `vt-dismiss` fires on the alert or banner first (cancelable), then
+  it is removed, and focus that was inside moves to the next control after it
+  (or the one before) instead of falling to the page. `veritheme.dismiss(el)`
+  does it from script. A close button without the attribute is the page's own,
+  as before. Markup from Figma and from `get_component` carries the attribute.
+- **Rating:** with `data-vt-rating` a rating is an input: one control with
+  `role="slider"` (0 to the number of stars, `aria-valuenow`,
+  `aria-valuetext`), hover previews, a click and the arrow keys (Home, End) set
+  the value, `vt-rating-change` fires with `detail.value`,
+  `veritheme.setRating(el, 4)` sets it from script; `data-vt-rating-half` moves
+  by halves, drawn as `.vt-rating-half`. The filled and empty stars are taken
+  from the markup (a heart rating stays hearts). Without the attribute a rating
+  is a picture of a value, as before.
+- **File upload:** with `data-vt-file-upload` (and an `<input type="file">`
+  inside) the zone highlights while files are dragged over it (`.vt-dragover`),
+  opens the picker on a click and on Enter or Space, and fires
+  `vt-file-upload-change` with `detail.files` for a drop or a choice;
+  `veritheme.openFileUpload(el)` opens the picker. The chosen files are the
+  page's to show. Without the attribute the zone is the page's own, as before.
+- **Figma → code:** a progress bar's value comes from the design. The reader
+  measures how much of its track the bar fills (`progress-value`) and the
+  engine writes it as `data-vt-progress` instead of the anatomy's example 60%;
+  a snapshot without it keeps the example. The plugin builds Progress with its
+  bar scaling horizontally, so a stretched instance keeps its share. **Figma
+  files built before keep the fixed bar (144 px on a 240 px track) until the
+  library is synced again from the plugin**; the library's fingerprints do not
+  include it, so the plugin does not report Progress as changed: sync to get it.
+- **Tests:** a contract test in `bundle-contracts.spec.js` for every bundle
+  module that had none (accordion, carousel, chip, collapsible, number input,
+  popover, resizable, scroll view, sidebar nav, slider, tabs, tree view); two of
+  them mark known bugs of their module as expected failures.
+- **Switch:** with `data-vt-switch` the bundle toggles a switch itself: a click
+  flips `.vt-active` and `aria-checked` and fires `vt-switch-change`
+  (`event.detail.checked`); `veritheme.setSwitch(el, true)` sets it from script.
+  A switch without the attribute is left to the page's own script, as before.
+  Markup from Figma and from `get_component` carries the attribute.
+
+- **Figma → code:** the prototype comes with the markup. The reader reads each
+  layer's transitions to another frame (click, hover, after a delay), and the
+  element they start from gets `data-vt-go="<state>"`, `data-vt-go-hover` or
+  `data-vt-go-after` with `data-vt-go-delay`; a new report section, “Prototype
+  transitions”, lists them and says what the page's script has to do. A
+  transition to a frame outside the read is named, not guessed.
+
+- **Figma → code:** a project component of the design is a component in the
+  markup too. Its root carries its class (the Figma name in kebab case, with an
+  optional `componentPrefix`) and its variant as `data-` attributes
+  (`State=Typing` → `data-state="typing"`); its layers are named inside it
+  (`data-layer="composer.box"`), and what it looks like by itself comes in a new
+  report section, “CSS of project components”, one rule per variant. Where an
+  instance sits and how wide it is there stays with the place around it.
+
+- **MCP, Figma → code:** `figma_to_markup` takes `parts`. Inside a project
+  component every layer the translator draws (a frame, a text, a drawn field, a
+  free icon) gets one class of the component, `<component>__<layer>`, instead of
+  layout utilities and a `data-layer`; the declarations of those utilities and
+  the exact values go to that class's rule in “CSS of project components”, in
+  the order the stylesheet gives them. A layer that looks different in two
+  variants keeps one class, with a rule per variant
+  (`.aw-composer[data-state="typing"] .aw-composer__box`), and what every variant
+  shares is hoisted into the rule without one, for the component's root too.
+  Type classes, library components with their overrides, and the page's own
+  layout keep their classes; `parts` implies `raw`, and without it the output is
+  unchanged. The server ships the table it expands from, `data/utilities.json`
+  (built by `sync-data`: one-rule utilities only), and exports
+  `hoistComponentCss` for a caller that puts several calls together. On the
+  Agents Web test page the markup goes from 7,727 utility classes to 1,280 and
+  renders pixel for pixel the same.
+
+- **Figma → code:** a check before handoff. One shared module,
+  `handoff-check.mjs`, says what to fix in Figma (`fix`) and what to review:
+  an instance drawn in Hover/Focus/Pressed, each frame the prototype never
+  reaches from the first frame (one line each: "reached only from X, which
+  nothing leads to"; or "the only frame with StepsToggle Expanded; closest
+  reachable frame is Chat · Answer (33 differences)"; or what differs from the
+  closest reachable frame, naming where the transition probably starts only
+  when three things or fewer differ), what the project's system lacks, an image the
+  reader cannot read; then values set as numbers (the most repeated first),
+  text without a style, a layer left at Figma's
+  default pin, a variant added to a library component, a frame made a field by
+  its name. `figma_to_markup` opens its report with “Before handoff”; the
+  plugin's Export for code card has a Check button that lists the same
+  findings, and a click on a place selects the layer. Export stays possible
+  either way.
+- **States:** a new bundle module, `states.js`, shows one page in several
+  states: a container with `data-vt-states="a b c"` (the first shown at load;
+  `data-vt-states-url` follows `?state=`), elements with `data-vt-show="a b"`,
+  `data-vt-go="b"` for a click (Enter on a non-control), `data-vt-go-hover` while the
+  pointer stays, and a direct child with `data-vt-go-after` / `data-vt-go-delay` for a
+  state that moves on by itself. `veritheme.showState(name)` from script; each
+  change fires `vt-state-change` on the container and sets `data-vt-state` on it
+  and on `<html>`. A `<select data-vt-states-select>` and a
+  `<button data-vt-states-theme>` make a review switcher.
+- **MCP, Figma → code:** the page builder is part of the server.
+  `veritheme-mcp-server figma build <snapshot.json> --out <dir> [--prefix aw-]
+  [--sprite inline|file] [--debug]` and the tool `figma_to_page` turn the
+  plugin's Export for code of one screen's artboards into one page: regions
+  drawn the same are written once, the rest per state with `data-vt-show`; project
+  components get their classes and CSS (`components.css`), the design's
+  drawings one sprite, the prototype `data-vt-go`. It writes `index.html`,
+  `components.css`, `page.css` and the library files the page links (shipped
+  with the server, `data/library/`), only inside the project directory, and
+  links the project's theme named in `veritheme.system.json`. The page loads no
+  script of its own. `--debug` adds a State select and a Dark button.
+- **Figma → code:** elements that mean what they are, in `figma build` and
+  `figma_to_page` (`--no-semantics` turns it off; `figma_to_markup` leaves it
+  off). A project component named Sidebar, Header, Footer or Nav is an `aside`,
+  `header`, `footer` or `nav`; a layer that leads somewhere on a click and holds
+  nothing clickable is a `<button type="button">`, reached with Tab and
+  activated with Enter and Space, its browser look reset in the library's base
+  layer so it looks exactly as the div did. A new check before handoff,
+  `click-inside-click`, names a layer with a click of its own inside a library
+  link or button.
+- **MCP, Figma → code:** `veritheme-mcp-server figma diff <old.json> <new.json>`
+  and the tool `figma_diff` say what changed between two exports of one design:
+  frames added, removed and renamed; per layer, components, variants, texts,
+  transitions, least and most sizes, placement, layout, fills and type; the
+  library's components and the theme. One line per kind with a count, then each
+  kind one line per layer with the frames it is on. When the new snapshot's
+  reader reads more than the old one's, the report says so first and marks the
+  kinds that may only be read for the first time.
+- **Figma → code:** two more checks before handoff: `text-style-drift` (fix),
+  a text style of the file that is not the system's (server), and
+  `resized-control` (review), a library control drawn at another size than its
+  own; the reader says a resized control's own size (`over-size`). Findings
+  name components without the library's service underscore.
+- **Figma → code:** what the first verify of a whole design found. The reader
+  reads five more things (`READER_CAPS`): the file's text styles
+  (`text-styles`; the report compares them with the system's type and writes
+  the differences as theme changes, `--vt-type-heading-md-weight: 700` …), text
+  cut with an ellipsis (`text-truncate`: `vt-truncate`, or a line clamp), text
+  centered in a taller box (`text-align-vertical`), bold words and links inside
+  one text (`text-runs`: `<strong>`, `<a class="vt-underline">`), and images in
+  fills (`images`, the plugin's export only, up to 1.5 MB each and 8 MB in all:
+  a `background-image`, with `figma build` writing the file to `images/`).
+  The engine draws a tooltip that is on the artboard open, where it is drawn,
+  and a filled circle (a status dot) as a round element instead of dropping it.
+  `figma verify` renders text in grays, as Figma does, and compares `images/`
+  too.
+- **MCP, Figma → code:** `veritheme-mcp-server figma verify <dir>` says whether
+  a page built by `figma build` has drifted. It builds the page again from the
+  snapshot handoff.json names and compares the folder file by file (exit 1,
+  naming the file, the line and both versions, on any edit or extra file).
+  With `--shots <folder>`, Figma's PNG export of the artboards (one file per
+  artboard, named as it), it renders each state in Chromium when the project
+  has Playwright (otherwise “skipped”, exit 0) and reports per state the share
+  of pixels that differ, the share drawn differently (dense where one image is
+  flat: a missing tooltip, an empty image, not text drawn by another
+  rasterizer), and the regions where to look; pictures of the differences go
+  beside the folder. Pixels fail the check only with `--max-diff <percent>`.
+- **MCP, Figma → code:** `figma build` (and `figma_to_page`) also writes the
+  handoff package next to the page. `handoff.json` (schema:
+  `data/handoff.schema.json`) holds the snapshot it came from and the command
+  that builds it again; the states (`data-vt-state` names and artboard titles)
+  and every prototype transition, with the layer it starts from; each project
+  component with its class, variant attributes and the values seen, its
+  `<class>__<layer>` elements, its uses and states; the library components with
+  counts; `repeats`, the design's sample data (three or more siblings of one
+  component that differ only in text, icon or variant, row by row); `open`, the
+  check before handoff and the translation's notes in three kinds: not on the
+  page (`notTranslated`), on the page as one-off CSS (`oneOffCss`), on the page
+  as something close (`otherwise`); and `coverage`,
+  the share of the design's layers translated as library components, project
+  components, plain layout, and not translated. `HANDOFF.md` is written from it
+  for people and agents: the folder is generated and not to be edited, how to
+  build and check it again, where hand-written code goes (outside, by class and
+  variant attribute), how `data-vt-state` (the page's state) differs from
+  `data-state` (a component's Figma variant), and the questions open with the
+  designer. No path of the machine goes into the package: the snapshot is
+  named relative to the project, or by its file name when it lies outside.
+  `get_starter` and `get_guidelines` state the folder rule.
+- **Figma → code:** a snapshot says what its reader read. The reader stamps
+  `caps`, the sorted list of what it reads beyond the first format
+  (`READER_CAPS` in `figma-reader.mjs`: `abs`, `art`, `go`, `limits`, `near-pin`,
+  `over-height`, `over-main`, `own-variant`, `stroke-sides`, `stroke-weight`,
+  `text-align`, `tint`), and `exported`, the date of the read; `art` is listed
+  only when the drawings were asked for, as the plugin does. `figma_to_markup`
+  compares the list with its own and, for an export from an older plugin, opens
+  the report with “This snapshot is older than the engine”: one line per missing
+  capability with what will be wrong in the output, and how to get a new export.
+  A snapshot with no list is taken to have none; a bare frame is not judged. The
+  server's test fails when the reader writes a field no capability accounts for.
+- **MCP, Figma → code:** `figma_to_markup` takes `icons: "sprite"`. Each
+  drawing of the design (icon, mascot, service logo) comes once, as a
+  `<symbol>` in a new report section, “Icon sprite”, and where it is used the
+  markup has `<svg …><use href="#i-<name>-<n>"/></svg>`, with the same classes,
+  tint, placement and `data-vt-go` on the outer element as before. A symbol's id
+  is the icon's name and the drawing's index, so it is the same in every call
+  over one snapshot; the ids inside a drawing (gradients, clip paths) are
+  renamed once, after it. The sprite is taken out of the flow at zero size,
+  never hidden: a browser does not paint the gradients of a hidden SVG. With
+  `spriteHref: "./icons.svg"` the references point at a file of its own, and the
+  section gives that file. The default, `inline`, is unchanged. On the Agents
+  Web test page `index.html` goes from 1,013 KB to 380 KB (528 drawings, 50
+  symbols) and renders pixel for pixel the same.
+
+- **Tokens:** two neutral state roles, `--vt-state-hover` (foreground-primary
+  at 3 %) and `--vt-state-selected` (foreground-primary at 5 %), for the hover
+  and the selected row of navigation and lists. They are emitted in every light
+  and dark theme block, in the generator's `theme.css` too, and are used like
+  any other role: `hsl(var(--vt-state-hover))`. Do not add a second alpha to them.
+- **Figma plugin:** `state/hover` and `state/selected` in the Palette collection,
+  scoped to frame and shape fills. Each is an alias of `foreground/primary` at
+  3 % and 5 %, like the `brand/fill/alpha-*` tints. `_NavItem`, `_ListItem` and
+  `_TreeItem` bind their Hover and Active/Selected fills to them, so the next
+  sync keeps a file where they were added by hand.
+- **MCP, Figma → code:** a screen built from the project's own components
+  (Sidebar, Composer) is translated now. `figma_to_markup` walks into a project
+  component and translates the library components inside it; before, it left a
+  comment and stopped. A component registered with `register_project_component`
+  and its new `figma` field (`{ component: "Composer", variants: { "State":
+  "data-state" } }`) is placed as registered, with the variant as an attribute.
+  An unregistered one comes out as a draft, listed under "Project components".
+- **MCP, Figma → code:** `get_figma_reader` takes several frames or a page id.
+  Frames of one screen are reported as states of the first: which variant
+  changed, what appeared (with its markup), what text differs.
+- **MCP, Figma → code:** `figma_to_markup` takes `path`, a file that holds the
+  reader's result, bare or as a client saved the tool result.
+- **MCP, Figma → code:** the reader reads gradients (with the variables of their
+  stops), effect styles, text sizes, the file's fonts and shadow styles.
+  `Shadow/SM` on a frame becomes `vt-shadow-sm`.
+- **MCP:** a project names its icon set in `veritheme.system.json`
+  (`"icons": { "set": "hugeicons", "style": "stroke-rounded", "strokeWidth":
+  1.5 }`). `figma_to_markup` draws icon placeholders with that stroke width and
+  `get_starter` names that set; Lucide stays the default.
+- **MCP, Figma → code:** a new report section, "In Figma, not in the system":
+  variables the design uses and the system does not define, palette ramps the
+  system lacks, a font that differs and shadow styles where the system has
+  `none`. Variables the library ships and an older project package lacks are
+  listed apart, with "download the package again".
+- **MCP:** `validate_markup` reads the stylesheets a page links with a relative
+  path (`path` names the page's file or directory; the CLI and the hook use the
+  file's own directory). Custom properties and `vt-` classes they define are no
+  longer reported as unknown.
+- **Toast:** `veritheme.showToast({ title, description, kind, action, duration })`
+  shows a toast with your own copy and returns its element. The copy is set as
+  text, never as HTML. `showToast('success')` still shows the demo toast.
+- **Dropdown menu:** one menu can have many triggers. It opens at the trigger
+  that was used, and focus returns to that trigger. A menu that is not next to
+  its trigger in the markup is placed by the trigger's position, and any menu
+  opens upward when there is no room below.
+- **Dropdown menu:** `data-vt-dropdown-close-on-select` on the menu closes it on
+  a checkbox or radio item too. `data-vt-dropdown-bubble` on a trigger lets its
+  click reach handlers on its ancestors.
+- **Progress:** `data-vt-progress="64"` on `.vt-progress` and
+  `veritheme.setProgress(element, 80)` set the bar's value, with the ARIA of a
+  progressbar.
+- **Utilities:** `vt-text-on-brand`, `vt-text-on-info`, `vt-text-on-success`,
+  `vt-text-on-warning` and `vt-text-on-error`, with the matching `vt-bg-on-*`
+  and `vt-border-on-*`. Only `on-neutral` had them, so text on a brand fill
+  outside a component had no class.
+- **Figma plugin:** Export for code. Select the frames to build, or nothing for
+  the whole page, and the plugin saves one JSON file. Give its path to the MCP
+  server (`figma_to_markup` with `path`) and it returns the markup with the
+  states of each screen. This is the way for a page of artboards: an AI agent
+  reading Figma itself gets 48 KB per call and a page is several times that.
+- **Utilities:** `vt-text-{info,success,warning,error}-text`,
+  `vt-border-{info,success,warning,error}-border` and `vt-bg-success-surface`:
+  an intent's text, border and surface for a block that is not a component.
+- **MCP, Figma → code:** `figma_to_markup` with `raw: true` writes CSS for
+  values the design sets as numbers: a fixed width, a gradient, text with no
+  style, a role the library has no class for. The element gets a `data-layer`
+  and the exact value goes into a "CSS for values set as numbers" section.
+  Without the option such values are only listed, as before.
+- **MCP, Figma → code:** a stroke on some sides only becomes `vt-border-r` (and
+  the like) instead of a border all around, and centered or right-aligned text
+  keeps its alignment. Both need a snapshot from the current reader.
+- **Figma plugin, Export for code:** the export carries the design's own
+  drawings. Every icon and vector graphic (a mascot, a service logo) is saved
+  as SVG once, and `figma_to_markup` puts it in place: a one-color drawing
+  takes the text color, a multi-color one keeps its colors. Nothing is left
+  to fill from an icon set.
+
+### Changed
+
+- **Tabs (Pill): the open tab is lighter than its track in both themes (the
+  owner, 19.11.2026).** The track takes `surface-page` and the open tab stays
+  `surface-card` — the same pair as a card on the page. The track was
+  `surface-subtle`, which in dark themes is a step lighter than the card
+  (grey.800 over grey.900), so the open tab looked sunk into it. Light: track
+  98% → open tab 100% (the track was 96%); dark: 4% → 9% (was 15% → 9%).
+  The Figma recipe follows: Generate fills the Pill track with
+  `surface/page`. Theme tokens are unchanged.
+- **Figma: Checkbox, Radio, Switch and CheckLabel have Checked and State
+  (review 19.11.2026).** The value and the state are two properties —
+  Checked=False/True and State=Default/Focus/Disabled (CheckLabel:
+  Default/Disabled) — so a checked disabled box, a focused checked one or a
+  switch that is on and disabled is picked without detaching. Composites
+  that hold a toggle say both. A rebuild moves existing instances: Unchecked
+  and Off → Checked=False, Checked and On → Checked=True; Focus and Disabled
+  stay. Export reads the new properties and still reads a file from before
+  (State=Checked/On). The table's labels read the word and its opposite —
+  Checked/Unchecked (a switch: On/Off), Open/Closed, Compact/Regular,
+  Half/Whole — instead of "No checked". CSS, DOM and tokens are unchanged;
+  anything outside the plugin that reads `State=Checked` from a file needs
+  the new names.
+- **Figma: descriptions come from the docs.** Every component set gets its
+  docs line as its description (none where the docs have none) and every
+  color role its purpose; a description a designer wrote is kept. The
+  plugin's text is American English ("color", "Generation canceled").
+- **Figma: brand roles alias the brand scale.** When several scales hold the
+  same color (the default brand ramp repeats Blue step for step), a role
+  aliases the scale of its own family: `brand/fill` → `brand/500`, not
+  `blue/500`. The Colors board names the same step.
+- **Figma: numbers through variables.** A dimmed layer binds
+  `opacity/disabled` (it was a raw 0.5 on 47 layers); a focus ring's stroke
+  binds the new `focus-ring/width` (04 Primitives, the theme's
+  `focusRing.width`, 3px by default); a current step's halo binds Sizing &
+  Spacing/1. 05 Typography variables carry one scope each (font family,
+  style, size, line height, weight) instead of all scopes, and are written
+  only when they change.
+- **Figma: the Palette board reads the file.** A scale a designer added to
+  01 Palette as variables keeps its row on every Generate, and a step edited
+  by hand shows its own HEX and contrast. They never join the role matching.
+- **Figma: an artboard follows its text.** Each artboard carries a print of
+  what it says (docs, description, page, links, version). When only that
+  moved, the artboard is drawn anew around the same set — not rebuilt, not
+  relinked, an icon fixed by hand stays. The Icons set's print covers only
+  the code that draws the icons and their data, so an edit elsewhere in the
+  plugin no longer redraws them. The first Generate after this update
+  rebuilds every set once: the renderer changed.
+- **Docs: "Requires veritheme.js" where a component has a JS module.**
+  Calendar, Chip, File Upload, OTP Input, Progress, Radio Group, Rating,
+  Sidebar, Slider and Switch gain the badge; Auth, which has no module of
+  its own, loses it. The shadcn registry items and `llms-full.txt` say
+  "Interactive: include veritheme.min.js" for the same components.
+- **Builder: Customize is built from the library.** Its "?" and remove
+  buttons, "+ Add token" and "Show N", the number fields, the "custom" mark,
+  the toast and the picker's close button are Button, Input, Badge and
+  Toast; six option lists are List and ListItem.
+- **Every role fills from the 500 of its scale (the owner, 16.11.2026).**
+  `brand`, `info`, `success`, `warning` and `danger` fill with step 500 in
+  both themes (was 600, 600, 700, 500, 600); hover is 600 and pressed 700,
+  derived from it as before. The text on every role fill is white, warning
+  included (it was dark orange). Role text is one step from the fill: 600 in
+  light, 400 in dark (was 700 / 300). Surfaces, borders, disabled and neutral
+  are unchanged. A brand color is now the 500 of the ramp built from it
+  (`derive_theme`, theme CSS, the plugin, the builder), with the ramp's
+  lightness rebased around it. Contrast is shown, not decided by: the pairs
+  this turned under AA are reported with their number by `audit:contrast`
+  and the plugin's import, and fail nothing (`shown` in lib/contrast.mjs);
+  the importer no longer replaces white on a role fill.
+
+- **Figma: the Palette board in two sections, as Untitled UI's palette.**
+  Base colors — Base (white and black) and Brand with a "Default brand"
+  badge — then Tailwind CSS colors: Neutral, Red, Orange, Yellow, Green, Blue
+  and any scale a theme adds. A scale a role fills from wears its badge
+  ("Default danger", "Default info"…); Brand keeps its own row even where it
+  repeats Blue. The main step, 500, is drawn wider.
+
+- **Figma: the dot on a Palette swatch marks the scale's main colour, 500.**
+  In every scale, grey included, as Untitled UI's palette does — no longer
+  the step a role fills with (the Colors board names that step). The layer is
+  `Main`.
+
+- **Figma plugin: testing mode keeps Clear file in every build.** While
+  `figma-plugin/testing-mode.json` says `"on": true` (it does now), every
+  build of the plugin — `build`, `build:dev`, the root's `build:plugin` and
+  `test:plugin`, in any checkout — carries Clear file and stamps `testing` in
+  the footer, so an ordinary rebuild no longer takes the button away. The
+  build checks that the UI holds the button exactly when it should, and
+  `npm run release` refuses to start while testing mode is on (RELEASING.md).
+
+- **Figma: the text on a Palette swatch follows the scale, not the contrast.**
+  On Foundations → Palette, steps 50–100 carry step 700 of their own scale,
+  200–300 step 900, and 400 and up white — in every scale, grey included
+  (the Untitled UI rule). The contrast on the swatch is that text's, as it
+  is, and AA/AAA appear only where it passes. Scale values are unchanged:
+  they already are Tailwind's. See docs/audits/PALETTE-TEXT-RULE.md.
+- **Figma: the active pill tab's frame is an outside stroke, not a "Ring"
+  layer.** A ring that is a permanent frame — `0 0 0 var(--vt-border-width-*)
+  hsl(var(--vt-border-*))`, not a focus ring — draws as an OUTSIDE stroke of
+  the node, bound to the border colour and width variables. TabsTrigger and
+  the tabs in Tabs (Style=Pill) lose their extra layer; the picture is the
+  same.
+
+- **Badge has one leading place in Figma: the icon.** The Dot layer and Show
+  Dot are gone; a dot is a StatusDot swapped into Icon, which offers StatusDot
+  beside the icons. A rebuild turns an old badge whose dot showed without its
+  icon (or an old Dot=True variant) into Show Icon on with a StatusDot of the
+  dot's color in Icon (Current: the badge's own color). FeatureSection,
+  PricingCard and Table no longer switch a badge dot off. The HTML is
+  unchanged: `vt-badge` still draws a dot or an icon.
+- **Rows that sit together are 2px apart.** A row under the pointer next to
+  a selected one no longer merges with it (the owner, 16.11.2026). Rows in
+  DropdownMenu (and a checkbox or radio group inside it), the Combobox list
+  and its groups, Command groups, the Select list and TreeView (rows,
+  branches and nested rows) are now `--vt-spacing-0_5` apart, in code and in
+  Figma (the frames' gap is bound to spacing/0.5). SidebarNav, NavGroup,
+  Tabs, Pagination, Toolbar and the Header nav already had a gap. The label
+  of a group (MenuLabel, `vt-dropdown-label`, `vt-command-group-heading`) has
+  4px instead of 6 below it, so it stays 6px from its rows; the Select
+  separator has 2px instead of 4 above and below, so the line stays 4px from
+  the rows. A menu separator, which sat right against its rows, is 2px from
+  them now. Menus grow by 2px per row; Command's list still fits its 288px.
+- **Select and Combobox: their own label, hint and error.** Like Input: Show
+  Label / Show Helper Text with Label and the hint (on in the main), and
+  State=Error — the trigger `aria-invalid="true"` (Select), the field
+  `vt-input-error` or the tag field `vt-combobox-tags-error` (Combobox), danger
+  border and the hint as `vt-field-error`. Select: Size × State (Default, Hover,
+  Focus, Error, Disabled) = 10 variants; Combobox: Variant × State (Default,
+  Error) = 8. They stay two components, as in most systems.
+- **Components on the new tokens.** `--vt-error-*` / `--vt-on-error` →
+  `--vt-danger-*` / `--vt-on-danger` in 23 components (the classes and the
+  Figma State=Error stay). Border widths by role: a container's line
+  `--vt-border-width-line`, a control's `--vt-border-width-control`, an
+  emphasis `--vt-border-width-strong` (code-block's highlighted line 1px → 2px).
+  Motion only through tokens: select's option and slider's thumb `instant`,
+  spinner / notification-badge / dot / skeleton on the `loop-*` steps and their
+  curves; the sidebar's group now opens with motion (two curves in a row made
+  the browser drop the transition). Opacity through the scale: disabled
+  `--vt-opacity-disabled`, the pings 0.75 → 0.8, alphas 0.08 / 0.12 → 0.1, focus
+  rings 0.15 → 0.2, the calendar's range 0.15 → 0.1. The Figma plan reads an
+  opacity token at the default theme's value.
+- **Figma: the Palette board explains its scales.** One row per scale: on the
+  left its name, the roles the theme takes from it (Danger · 600) and what it is
+  for; on the right a column per step with the swatch, the contrast of the text
+  that reads on it (white or black, whichever is higher) with two decimals and
+  its WCAG level (AAA from 7, AA from 4.5), the step and the HEX. The step a role
+  fills with is marked with a dot. All of it is read from the loaded theme; the
+  scales' descriptions live in `foundation-colors.mjs` (`PALETTE_SCALES`).
+- **Figma: the Colors board explains its groups.** Each group of roles
+  (Foreground, Surfaces, Border…) has a Heading/SM title with the Variables mark —
+  the same heading as the Palette rows — and a line or two on what its roles are
+  for (`COLOR_GROUP_DOCS` in `foundation-colors.mjs`, for the site as well).
+- **Figma: layout grids and a Layout board.** `tokens/base.json` gets `grid`:
+  desktop 1280 (breakpoint xl), 12 columns, gutter 24, margin 32; tablet 768
+  (breakpoint md), 8 columns, gutter 24, margin 24; mobile 375 (a frame size, not a
+  breakpoint), 4 columns, gutter 16, margin 16 — the gutters and margins as steps
+  of the spacing scale. The plugin writes them as `grid/…` variables in 04
+  Primitives and as the layout grid styles Grid/Desktop, Grid/Tablet and
+  Grid/Mobile (stretched columns, count, gutter and margin bound to the
+  variables). A new Layout board on Foundations shows a frame per size with its
+  grid on (Shift+G), a ruler (margin, content, full width) and the breakpoints.
+  Figma only: the CSS has no grid classes and gains no variables; the resolved
+  grid travels in the theme files (themes/default.json, the presets).
+- **Figma: the Typography board says which fonts the system uses.** It opens
+  with a card per typeface (the main family, and the mono one when styles use
+  it): the family's name, a large Ag, the alphabet in three lines and the
+  weights the text styles really use, each as Aa with its name and number. Every
+  text on the card wears one of the system's text styles, so a new font in the
+  theme redraws it; a font Figma does not have is drawn in Inter and named in the
+  Generate report. Each group of styles (Display now included) has the Palette
+  and Colors heading with the Text styles mark and a line on where its text goes
+  (`TYPE_GROUP_DOCS` in `typography.mjs`); the Figma text styles take the same
+  line as their description when theirs is empty.
+- **Figma: colour swatches without the grey outline.** On the Colors and
+  Palette boards a swatch is outlined only when it is as white as its card
+  (within 1.01:1 of surface/card, read from the loaded theme): Generic-0, and
+  in Colors the white roles (surface/card, on-brand and the other white
+  on-colors). The near-white tints (grey-50, the 50 steps) are not outlined.
+- **Figma: every component's card is as wide as its content.** A card was
+  stretched to the widest card of its column when it was at least 2/3 of it,
+  which left an empty field on the right (CheckLabel next to Input); now none is
+  stretched. Its height follows the content too: a card put into its section kept a
+  fixed height (Card's board: W hug, H 501); it hugs now, in every annotations mode.
+- **Avatars show one letter.** The initials in Avatar's default, AvatarGroup,
+  Header, Page Layout, Testimonial and every example on the site are one
+  letter (A, J…), not two; "+3" in a group stays.
+- **No repeated placeholder icon in a main.** A composite's rows show their own
+  icons, the ones the site's examples show: Toolbar Bold, Italic, Underline,
+  Strikethrough, Align left / center / right, Link, Image; Timeline Package,
+  Check, Truck, Home; Feature Section, Command, Combobox, List, Sidebar Nav,
+  Page Layout, Header, Footer, Table, Tree View and Auth by what each row says
+  (31 icons added to the plugin's Hugeicons set). Empty — the placeholder —
+  draws in foreground primary like every icon, not muted. `audit:icon-repeats`
+  (in `audit:all`) fails when a component's default icon repeats in another's
+  main. The site's editor toolbar example shows the main's nine buttons; its
+  Align right button had the align-left icon.
+  Two icons are renamed so they are not read as components in markup: Link →
+  Hyperlink, Calendar → CalendarDays; a rebuild of Icons moves their instances,
+  and the audit fails on an icon named like a component. The Icons page lists
+  every icon of the set.
+- **Meaningful icons in the mains.** No Empty placeholder where a component
+  has an obvious icon: Alert, Dialog and Toast show their intent's icon (Info,
+  CircleCheck, TriangleAlert, CircleX — per variant, so these three have no Icon
+  swap property any more; swap the nested icon instead), Button Plus on the left
+  and as the icon-only glyph and ChevronDown on the right, Input Search and X,
+  a menu row Settings, a nav row Home, a list row User, a tree row Folder, a tab
+  Home, Link ChevronRight, Media Image, FileUpload Upload, a file row File,
+  IconBadge Star, Badge CircleCheck, Command Search, StatsCard TrendingUp,
+  Testimonial Quote and NavItem Pin.
+- **NavItem: one way to set the icon.** The Icon swap property is gone: it was
+  bound to the main's icon, not to what an instance holds in its Leading slot,
+  so changing it left the slot as it was. The icon is the Leading slot's
+  content (Home by default) and is swapped right there. A rebuild puts an icon
+  picked through the old property into the slot; a row left at the old Empty
+  gets the new default. A rebuild also no longer puts back the old component of
+  a layer inside a slot (slot content moves on its own), which overwrote a new
+  default icon with the old one.
+- **Badge's dot takes the badge's meaning.** On a bordered or soft badge the
+  dot is a StatusDot of the same meaning (Primary → Brand, Secondary → Neutral,
+  intents the same), with no fill override, so the dot's Color picked on an
+  instance changes it (`vt-dot-brand`, `vt-dot-success`… in the markup). On a
+  filled badge the dot keeps the badge's text color (`vt-dot-current`).
+
+- **Figma: Palette is the scales, Colors the roles — in that order.** The
+  plugin's variable collections are named and ordered as in other design
+  systems: **01 Palette** holds the raw scales (blue/500, grey/50), the first
+  layer, and **02 Colors** the semantic roles with Light and Dark modes that
+  alias them (the ones to bind to). Until now the roles were "01 Palette"
+  and the scales "02 Colors". A file built earlier keeps its collections:
+  the plugin tells them apart by what they hold (the roles have a Light or
+  Dark mode) and renames them in place, so every variable keeps its id and
+  every layer stays bound. The Foundations boards follow — Palette (the
+  scales) first, then Colors (the roles), in a file built earlier too — and
+  so do the plugin panel and the home page.
+- **One name for the danger colour.** The colour role that paints a
+  destructive button, an error banner and an invalid field is `danger`, as
+  the classes and variants already were: `--vt-danger-fill`, `-fill-hover`,
+  `-fill-pressed`, `-fill-disabled`, `-surface`, `-border`, `-text` and
+  `--vt-on-danger`, utilities such as `vt-bg-danger-fill` and
+  `vt-text-danger-text`, and the theme keys `dangerFill`… The scale stays
+  `red` (a hue), and a field's or a step's error state stays `State=Error`
+  / `vt-input-error` (a state, not a colour). For one release the old names
+  still work: `--vt-error-*` and `--vt-on-error` point at the new
+  variables, the `vt-*-error-*` utilities are aliases, and a theme, a saved
+  system or a tokens.json that says `error*` is read as `danger*`. In Figma
+  the variables are renamed in place (`error/fill` → `danger/fill`,
+  `error/on-error` → `danger/on-danger`, the alpha steps too), so every
+  layer stays bound.
+- **Border widths are named by what they draw.** `--vt-border-width-line`
+  (dividers, panel and card edges, table rows; a theme can make it a
+  hairline), `--vt-border-width-control` (the border of an input, a bordered
+  button, a checkbox; the theme sets it, 1px in Default) and
+  `--vt-border-width-strong` (2px: the active tab, a selection). `thin`,
+  `default` and `thick` still work for one release and point at the new
+  names; `medium` (1.5px) is gone and reads as `control`. In Figma the
+  variables are renamed in place (`border-width/thin` → `/line`, `/default`
+  → `/control`, `/thick` → `/strong`, so strokes stay bound), an old
+  `/medium` now follows `/control`, and the Border Width board shows each
+  width with what it is for and a specimen in its own colour. tokens.json
+  exports `border-width.line / control / strong`; older files with `thin`
+  and `default` still import.
+- **Figma: five shadows.** A file gets Shadow/SM, Default, MD, LG and XL, and
+  the Shadows board and the plugin panel show those five. Shadow/Control,
+  its Pressed and Bordered forms and the inset styles are no longer
+  published for any theme, an imported one included; one an earlier run
+  made is removed on the next run (a layer that used it keeps its effects,
+  detached from the style).
+- **Figma: the compact Timeline is drawn compact.** Size=SM on Timeline Item
+  was drawn as MD in Figma: the size property was not tied to the size axis, so
+  `vt-timeline-item-sm` never reached the variant. Now SM has 12 to the text, a
+  16 rail with a plain 16 icon (no badge) and a 1px line, 6/6 around the text,
+  the title in Body/SM and the description in Caption, as the CSS draws it. The
+  icon is a check by default, swapped per step.
+- **Input and Textarea: no Plain variant.** The owner: Plain came from one project;
+  the library's field is the base one, and a field inside a container that draws
+  the border is the base field with its fill and stroke removed on the instance.
+  Figma drops the Appearance axis (Input 56 → 40, Textarea 6 → 4 variants); a
+  rebuild moves a Plain field to the base one without its fill and stroke, so the
+  layout does not change. `vt-input-plain` and `vt-textarea-plain` stay in CSS,
+  deprecated, for one cycle.
+- **Card: the footer is a toggle.** The owner: Footer was a variant axis; it is
+  Show Footer now (on in the main), so Card has two variants, MD and SM. A rebuild
+  turns Footer=False into Show Footer off. The header was a toggle already.
+- **Scroll View: a 4px bar.** The bar is 4px wide instead of 6 (owner: a little
+  thinner), in the component, its Figma recipe and the site's overlay scrollbar.
+- **Timeline: 12 between a compact step's marker and its text.** The owner found the
+  text pressed against the marker at 8.
+- **Button: no control shadows.** The owner: the Control and inset shadows are not
+  needed anywhere. Button and Button Group lose the depth machinery built on them
+  (the highlight, the bottom edge, the press offset and their slots); the focus ring
+  stays. The four control shadow tokens are gone from the base theme.
+- **Figma: a progress bar's value is set on the instance.** The Bar lies in a Value
+  slot across the track: Figma does not let an instance resize a layer of a
+  plain frame ("size cannot be overridden in an instance"), slot content it
+  does. Select the Bar in an instance and drag its width, or type W; the share
+  of the track is the value. A rebuild keeps the width; no new variants.
+- **Figma: an action slot shows its default in the main.** The owner's rule: in
+  the main component every layer shows and no slot is empty. Dialog's More
+  Actions has a "Don't ask again" CheckLabel, Header's More Actions a More
+  icon button, Sidebar Nav's Header Actions Search and Collapse icon buttons,
+  Timeline Item's Actions a Retry button — each with a Show toggle the
+  compositions switch off where no action is needed (Timeline, Page Layout). A
+  rebuild switches the slot off on an instance that had it empty, so nothing
+  appears there; an action of its own stays.
+- **Figma: an icon slot is switched off, never left empty.** A slot that takes
+  an icon (Leading and Trailing on Nav Item, List Item and
+  Menu Item; the Media of Empty State and Header) has its icon by default and a
+  Show toggle bound to the slot itself: switched off, it takes no width and no
+  gap (an empty slot that is shown still takes the row's gap — the hole left of
+  a button's label). The library's compositions that had no icon say Show …
+  off instead of an empty slot. A rebuild moves an instance that emptied the
+  slot, or hid its old icon, to the toggle off with the icon inside; content of
+  its own stays. Code is unchanged: a hidden or empty slot draws nothing.
+- **Badge: no dot variants.** The owner's decision: a dot is its own component.
+  Figma's Badge drops Dot and Dot Color (44 variants → 18): the dot is a
+  StatusDot before the label, shown by Show Dot (on in the main, off where a badge has none), its
+  color picked on it — the text's color by default. A rebuild turns Dot=True
+  into Show Dot on and Dot Color into the dot's Color. In `@veritheme/react`
+  `dot` and `dotColor` stay (`current`, the text's color, by default); the
+  markup is unchanged.
+- **Button: an icon left and right, no slot.** The owner's decision: a button
+  has no slot. In Figma it has Show Left Icon and Show Right Icon, on in the
+  main component (every layer shows there) and off where a button has no icon, with Left Icon and Right
+  Icon to swap the glyph; the icon keeps its own size, set on the instance or
+  bound to a variable. A rebuild moves a button that had the Leading slot: an
+  icon in it becomes the left icon, an emptied or hidden slot no icon — no
+  hole; what is not an icon (the dot beside a connector's logo) is named in Not
+  put back. The library's compositions show no icon unless they mean one (sign
+  in with GitHub or Figma, Create document). In `@veritheme/react` `leftIcon` and
+  `rightIcon` stay; `leading` is gone.
+- **Nav Item: what leads the row is a slot.** In Figma the 20px icon (an
+  instance swap with Show Icon) is now the default content of a Leading slot:
+  an avatar (the account row in a sidebar's footer, a menu trigger), an
+  agent's mascot or nothing goes there instead, with the row's hover, radius
+  and label color. A rebuild moves the old instances: a hidden icon leaves the
+  slot empty, a swapped icon stays. Nav Group's toggle row takes it too. In
+  `@veritheme/react` `icon` becomes `leading` (Nav Item, Nav Group).
+- **Menu Separator: one divider.** `vt-dropdown-separator` drew the same line
+  as `vt-menu-separator`; the docs use `vt-menu-separator` (Menu Separator in
+  React), and the old class stays an alias.
+- **React: a menu row says how it shows its state.** `MenuItem` takes
+  `control`: `"checkbox"` (the default for an on/off row) or `"switch"` — a
+  decorative switch at the end, the row is the `menuitemcheckbox` — and, in a
+  `MenuRadioGroup`, `"radio"` (the default) or `"check"` (a check mark at the
+  end, a pick-one menu of modes). On/off rows take `defaultChecked` and radio
+  groups `defaultValue` too (uncontrolled); checked rows keep the menu open.
+  The docs' React tab now shows every dropdown example as
+  `<DropdownMenu trigger={…}>` with these rows.
+- **Input: plain is bare text.** `vt-input-plain` (Appearance=Plain) drops,
+  besides its border, fill and focus ring, its own padding and fixed height:
+  it is as tall as its line, and its size sets only the type. The container
+  around it gives the room (a chat composer in a small card: the text 16px
+  from the card's edge instead of 32, the card 102px tall instead of 134).
+  The docs' composer gives its container `vt-pl-4 vt-py-2` and looks the same.
+- **Input: the field wrapper only with a label or a helper text.** The
+  contract's markup (and `@veritheme/react`) draws `div.vt-field` around the
+  input only when it holds a label or a helper text; alone, the field is the
+  bare `input.vt-input`, as the docs write it (a header's search, a footer's
+  form). The look is the same. A new contract field, `bare`, says which part
+  stands for its wrapper. An empty slot with an element of its own (a
+  timeline step's actions) is no longer drawn either.
+- **Dialog: the icon in a large badge is 24px, as in Figma.** `.vt-dialog-icon
+  > svg` (20px) now sizes only an icon without the part's class; an icon with
+  `vt-icon-badge-icon` takes its size from the Icon Badge — 20px in the
+  regular badge (as before), 24px in `vt-icon-badge-lg` (was 20). The docs'
+  dialog icons carry the class; the icon's place and the heading's gap stay.
+- **No class for a default that means nothing.** The contract's markup (and
+  `@veritheme/react`) no longer writes a default axis class no rule uses —
+  `vt-btn-md`, `vt-link-default`, `vt-timeline-dot-default` and 42 more:
+  the base class draws the default. Classes a rule does use stay
+  (`vt-btn-primary`, `vt-avatar-md`, `vt-badge-primary`).
+- **File Upload Item: the tile's icon carries `vt-icon-badge-icon`,** as in
+  Icon Badge (16px in the small tile, as before).
+- **Sidebar Nav: the logo letter is a property.** In Figma the mark in
+  `vt-side-nav-logo` is the Logo text property ("A" by default), so each
+  product sets its own; in `@veritheme/react` it is the `logo` prop.
+- **React: a heading's level is a prop.** The title of Empty State, Dialog
+  and Card's header renders `h3` by default and takes `titleAs` (`h1`–`h6` or
+  `p`) for the page's outline; the look stays, the class sets it.
+- **Dropdown Menu is one component in Figma, not five variants.** The Style
+  variant (Default, Checkboxes, Radio, Mode, Toggles) is gone: the menu is a
+  shell with the Items slot, and the ready menus are samples of its content
+  (on the docs page and in the contract). A rebuild moves an instance of any
+  old Style to the shell with the rows of its Items slot as they were — the
+  ones the variant drew and the designer's own. The Toggles sample shows the
+  row as the control (`menuitemcheckbox`) and the switch as its state only.
+- **Card: the body spaces its content with a gap, as Figma auto layout
+  does.** `vt-card-body` is a column with a 12px gap instead of a 12px
+  margin on every child after the first. A gap set on the body (a utility
+  such as `vt-gap-1`, or a gap the designer changes in the slot) is now the
+  one spacing; before, the 12px margin came on top of it (a body with
+  `vt-gap-2` spaced its content 20px). A button, badge, chip or link in the
+  body keeps its own width; an `h3` in the body has no bottom margin (the
+  gap does it). A child's own top margin now adds to the gap: the site's
+  examples moved theirs onto the body (`vt-gap-1`) or shortened them. In
+  Figma the Body frame has a 12px gap.
+- **Badge: a dot excludes an icon.** A badge shows a status dot or an icon,
+  not both. In Figma the variants with Dot=True have no icon layer, so Show
+  Icon turns nothing on there (a rebuild drops an icon a dotted badge
+  carried). In `@veritheme/react` the icon is not drawn with `dot`, and the
+  types refuse `<Badge dot icon={…}>`.
+- **List Item: what leads a row is a slot.** In Figma, List Item had a Leading
+  variant (None, Icon, Avatar) next to its State: 12 variants. Leading is now
+  a slot, like a menu row's: an icon by default, or an avatar, an icon badge,
+  or nothing. List Item has 4 variants (State) and List 1 (it had a Leading
+  of its own, passed to its rows). A rebuild moves an instance of an old
+  variant without losing what it showed: an icon stays (with the icon swapped
+  in), Avatar puts an avatar in the slot, None leaves it empty. The markup is
+  unchanged.
+- **Dialog: the description right under the title.** The title and the
+  description were 6px apart; they now sit with no gap between them, in code
+  and in Figma. The icon keeps its place.
+- **Chip: Disabled works on every chip.** It was the `:disabled` pseudo-class,
+  which a chip drawn as a tag (a span or a div) never takes. A disabled chip
+  is now `aria-disabled="true"` (a filter chip that is a button may still use
+  `disabled`): half opacity, no pointer. Figma's Disabled variant is
+  unchanged.
+- **Nav item: one line, its label cut with an ellipsis.** A long label wrapped
+  the row onto a second line. A nav item (top level, sub level and compact)
+  now stays on one line, and its label, `vt-nav-item-label` (new), is cut
+  with an ellipsis; in Figma the label truncates the same way. Markup without
+  the label element still stays on one line.
+- **Nav row actions shown on hover lie over the label.** The row no longer
+  keeps room for buttons that only show on hover (a chat's More menu): the
+  label takes the full width, and the buttons, when shown, sit over its end on
+  the row's own background, faded in from the left, so the label does not
+  show through. Actions that are always shown still keep their room.
+- **Icon-only buttons inside components have a name.** Card's close button
+  (`aria-label="Close"`), a file upload's Retry and Remove, a chip's remove
+  button and the Notification Badge example's button were drawn with only an
+  icon and nothing a screen reader could say. The contract now names them;
+  the look and the Figma layers are unchanged.
+- **NavGroup: its row is a button.** The row that opens and closes a group
+  was drawn as the NavItem link (`a.vt-nav-item`) in the component's own
+  markup, while the sidebar example used a button. It is now
+  `button.vt-nav-item`: a control that toggles, reachable from the keyboard.
+  A part that is another component can name its own element (`"el":
+  "button"` on a `use` part); only the tag changes, the classes and the
+  Figma layers stay.
+- **Timeline: a step's actions at the end of its row.** vt-timeline-actions
+  after the content holds a step's buttons (Retry on a failed step), 8px
+  apart. In Figma TimelineItem gains the Actions slot at the end of the row,
+  empty by default: in the row an empty slot adds no space between events.
+  Not for vt-timeline-alternate.
+- **Figma plugin: Prepare for code says when a frame lost prototype links.**
+  Generate writes each frame's link count on it; Prepare compares and lists
+  the frames that have fewer links now ("Composer · Typing: 3 prototype
+  links before, 1 now"), once. Switching a variant of an instance inside a
+  main resets the links on its layers in every frame, and Figma does not
+  say so. A rebuild also keeps the names of a slot's children that the
+  instance made its own (a removed sibling turns them into the instance's
+  nodes, their names overrides): after every move, a slot with as many
+  children as before gets their names back ("More", not "Button").
+- **States: a prototype behaves like the app — Escape, a click elsewhere,
+  focus, Enter.** In a page of states (data-vt-states), a menu drawn open
+  (.vt-dropdown-menu.vt-open[data-vt-keep-open] in a .vt-dropdown-wrap) takes
+  the focus on its first row, moves with the arrows, Home and End, and
+  closes on Escape, a click elsewhere or Tab out of it to the state its
+  button goes to, the focus back on that button. A dialog drawn open
+  (.vt-dialog-overlay.vt-open) takes the focus, keeps Tab inside, and
+  Escape or a click on its backdrop runs its Cancel (a [data-vt-cancel]
+  button with data-vt-go, else .vt-dialog-close, else a button that reads
+  Cancel or Close). data-vt-submit="<selector or id>" on a field: Enter (not
+  Shift+Enter) presses that button.
+- **Dropdown Menu: every menu gets its rows' roles and keys, and switch and
+  check rows turn by themselves.** A menu with no data-vt-dropdown-trigger
+  (drawn open in the markup) is prepared and bound too, and placed at its
+  button (the wrap's first child) at load and when a state shows it. A
+  click on a menuitemcheckbox or menuitemradio row turns it without an
+  onclick in the markup (an existing onclick="veritheme.toggleCheckbox(this)"
+  still works, once). A menu with data-vt-keep-open is never closed by the
+  menu itself.
+- **Nav Item: the row's actions are centered without a transform.**
+  .vt-nav-item-actions spans the row's height (top: 0; bottom: 0) and
+  centers its buttons with flex instead of translateY(-50%). It looks the
+  same; a menu opened from it inside a scrolling sidebar can now be fixed to
+  the window instead of being clipped by the sidebar.
+- **File Upload Item: a failed upload.** vt-file-upload-item-failed puts the
+  error color on the frame and the file tile; vt-file-upload-item-error
+  shows the reason ("Upload failed") in place of the size, and a Retry icon
+  button comes before Remove. In Figma FileUploadItem gains State=Failed;
+  the plugin's icon set gains RotateCcw for Retry.
+- **Timeline: how a step ended — failed, canceled, nothing found.** New
+  states for a step that ran: vt-timeline-item-error (the title in the
+  error color) with vt-timeline-dot-error, vt-timeline-item-cancelled (a
+  muted, struck-through title) with vt-timeline-dot-cancelled (gray), and
+  vt-timeline-item-empty with vt-timeline-dot-empty (an empty ring) for a
+  step that found nothing. In Figma TimelineItem and TimelineDot gain
+  State=Error, Canceled and Nothing Found (the classes keep their
+  `-cancelled` spelling; an instance drawn as Cancelled during this cycle
+  moves to Canceled on a rebuild, and Export reads both); a strikethrough in
+  CSS is now drawn as one in Figma.
+- **Badge: a status dot in its own color on a neutral badge.** A gray badge
+  (vt-badge-secondary, bordered or soft) can show its dot in a status color:
+  vt-dot-info, vt-dot-success, vt-dot-warning or vt-dot-danger in place of
+  vt-dot-current — "● Running" in gray with a green dot. This is new markup
+  for that case; a dot in the badge's own text color stays vt-dot-current.
+  In Figma the Badge set gains Dot Color (Current first, so a rebuilt badge
+  keeps its dot; a colored dot only on Secondary, Bordered or Soft: 8 more
+  variants, 44 in all).
+- **Card: the small card has a small title, and a Size in Figma.** In
+  vt-card-sm the title is Label/MD (14px, medium) instead of Heading/SM, to
+  match its 12/16 header and 16 body. In Figma the Card set gains
+  Size=MD/SM (MD first: a rebuilt card stays MD); Size=SM is vt-card-sm in
+  code.
+- **Dropdown Menu: an open menu inside a clipping container is fixed to its
+  trigger.** This changes how menus behave in your pages, not only in code
+  built from Figma. Before, a menu placed next to its trigger (inside
+  .vt-dropdown-wrap) stayed in the flow, so any ancestor with overflow other
+  than visible cut it off: a chat's menu in a scrolling sidebar, a row menu
+  in a table that scrolls sideways, a menu in a card with overflow: hidden.
+  Now, when such an ancestor exists, the open menu gets position: fixed
+  (inline styles, removed when it closes), is placed at its trigger with the
+  same -up / -end and flip rules, and follows the trigger when the container
+  scrolls or the window resizes. A transformed or filtered ancestor (an
+  animated drawer) is taken as the origin. The side and the edge your own
+  CSS gave the menu are kept: a menu your styles align to the right of its
+  wrap, or open above the trigger, is fixed the same way. Menus with no
+  clipping ancestor are placed by the stylesheet as before.
+- **Figma plugin: Generate leaves unchanged sets alone.** Each component's
+  artboard carries a print of what its drawing depends on: the recipe, the
+  variants and properties chosen, the component's rebinds, the font, the
+  annotations, the layout, the theme's sizes, radii, widths, type and shadows
+  (not its colour values, which are variables), and the plugin's renderer. A
+  set with the same print is not rebuilt and not relinked: its id, its
+  instances' overrides and prototype links stay as they were. The run says how
+  many sets it left alone and which it rebuilt. A file made before prints is
+  rebuilt once and printed. Settings has a Rebuild all switch for one run.
+  The run's summary (left alone, rebuilt, how the move went) stays in the
+  plugin window under Generate until the next run. The print is in shared
+  plugin data too (`veritheme` / `print`), readable from use_figma.
+- **Figma: a pressed Button is State=Pressed.** Button's State=Active meant
+  pressed (`:active`), while Active means selected on NavItem, Tabs, Page
+  Button, Tree Item and Chip; an agent drew the button of an open menu as
+  Active. The value is Pressed now (the owner's call); code draws it by
+  itself, like Hover and Focus. A rebuild moves State=Active instances to
+  Pressed, and the CSS is unchanged.
+- **Figma: Menu Item is one row with Leading and Trailing slots.** The start
+  of the row is the Leading slot (the icon by default; a check mark, a small
+  Checkbox or Radio, an Avatar) and its end the Trailing slot (empty by
+  default; a check mark, a small Switch, a Badge or a count). The Leading and
+  Trailing variant properties, Show Icon and the Icon swap are gone: 15
+  variants instead of 81; Size, Intent (Danger), State, Description and Show
+  Shortcut stay. New part: **Menu Check** (`_MenuCheck`, State Off/On,
+  Position Start/End), the row's check mark. A rebuild moves the instances of
+  the old variants to the new row and puts into its slots what they drew (a
+  checked checkbox, an on switch, the icon they had, or none if it was
+  hidden); files drawn before read as before. The markup and the CSS of menu
+  rows are unchanged.
+- **Count Badge and the notification dot lose their ring.** `vt-count-badge`
+  and `vt-notification-dot` no longer draw a 2px ring in the page color
+  (`box-shadow`): on any background but the page the ring showed as a
+  dirty edge. The count and the dot keep their size and color; in Figma
+  their recipes lose the ring as well. If you relied on the ring to separate
+  a dot from a busy avatar, add your own `box-shadow` in your styles.
+
+- **Switch:** the thumb is a plain circle — a white fill with a thin border in
+  `--vt-switch-thumb-ring`, placed 2px from the track edge — instead of a radial
+  gradient drawing the circle, the gap and the ring inside a larger square. It
+  looks the same (only the edge is smoother), the slot and its values are
+  unchanged, and the Figma plugin now draws the ring as the thumb's stroke. CSS
+  of your own that set the thumb's `background` now changes the fill only.
+- **Figma plugin, Check:** the list reads as a list. Each rule is a line of its
+  own (Fix or Review, a short name, how many rows) with a short text under it;
+  the report keeps the full one. A layer drawn on several frames is one row,
+  "on N frames", and each click selects it on the next frame; the count is the
+  number of rows. A layer with no name of its own is said with where it sits
+  (`Button in Composer › Toolbar`). A rule shows eight rows and "Show N more".
+- **Tooltip:** shows on keyboard focus inside its trigger too
+  (`.vt-tooltip-wrap:focus-within`), as its docs promised, not only on hover.
+  **This changes existing pages:** a tooltip now appears when Tab reaches a
+  control inside `.vt-tooltip-wrap`, with no change to the markup.
+- **Toolbar, Button group:** their docs say that `.vt-active` is the page's to
+  set: the bundle does not toggle a pressed tool or a selected segment.
+- **NavItem, ListItem, TreeItem:** hover and selected rows are neutral now and
+  do not follow the brand color. Hover was `surface-subtle` and the current row
+  was `brand-fill / 0.1`, so with a colored brand a gray hover sat next to a
+  tinted selection, and in dark mode the two went in opposite directions. Hover
+  is now `--vt-state-hover`; `vt-active`, `aria-current` and (in ListItem)
+  `vt-selected` / `aria-selected="true"` are `--vt-state-selected`. The label
+  and the leading icon of the selected row are `foreground-primary`, Medium,
+  instead of the brand color. ListItem's check mark stays in the brand color.
+- **MCP, Figma → code:** the reader's answer is smaller and comes in parts.
+  `use_figma` returns at most 48 KB, so a read that does not fit is split:
+  `figma_to_markup` stores each part and answers with the markup on the last.
+  A subtree drawn more than once is sent once per part. Snapshots of the first
+  reader still translate.
+- **MCP, Figma → code:** the report no longer offers theme CSS to paste after
+  `theme.css`. Tokens come from the system's package, as `get_starter` says: the
+  differences are listed as values to set in Studio.
+- **MCP:** `one-primary` does not count a primary button inside a block shown by
+  state: `aria-hidden="true"`, an inline `display: none`, or an attribute a
+  script switches on (`data-show`, `data-…-show`, `data-when`). Its message
+  says how to mark such a block.
+- **MCP, icons:** a project's own icons come first. `figma_to_markup` reads how
+  the design's icons are drawn (line weight and grid) and draws placeholders
+  to match; its report says to use the design's icons by name. Lucide is
+  offered only when neither the project nor the design has icons. `get_starter`
+  and the guidelines say the same.
+- **MCP, Figma → code:** the plugin and the server read Figma with one function
+  (`figma-plugin/src/shared/figma-reader.mjs`). `get_figma_reader` sends its
+  source as the script, without comments, and names the plugin's export as the
+  way for a whole page.
+- **MCP, Figma → code:** "Not translated" groups the same remark on many layers
+  into one line that names them (200 sizes set as numbers were 200 lines).
+
+### Deprecated
+
+- **NavItem:** `vt-active-neutral`. `vt-active` is neutral now, so the modifier
+  is just an alias of it, kept for existing markup. Use `vt-active`.
+
+### Removed
+- **Banner.** The owner: a banner is an Alert. The Banner component, its page
+  (it redirects to Alert) and its Figma set are gone; a rebuild of Alert moves
+  Banner instances to the Alert of the same intent and removes the Banner
+  artboard. `vt-banner` and its parts stay in CSS, deprecated, for one cycle.
+
+- **What was added for one project's mockup.** The owner (16.11.2026): new
+  components and options made for a single project belong to that project, not
+  to the library. Gone: Button's XS size (`vt-btn-xs`), NavGroup's rail
+  (`vt-side-nav-section-rail`), TimelineItem's compact size
+  (`vt-timeline-item-sm`, `vt-timeline-icon`; its Actions slot stays), List's
+  Heading Case (`vt-list-section-as-typed`),
+  ListItem's Divider (`vt-list-item-divider`, `-inset`) and the deprecated
+  `vt-input-plain` / `vt-textarea-plain`. A rebuild moves Figma instances to the
+  nearest value the set still has: Button XS → SM, a NavGroup with a rail → the
+  same group without it, TimelineItem SM → the event of the same Marker and
+  State, a row with a Divider → the row of its state, an As Typed list → List.
+
+- **Collapsible.** A single section that shows or hides its content is an
+  Accordion with one AccordionItem. Collapsible's set, page (it redirects to
+  Accordion) and registry entry are gone; `vt-collapsible` and
+  `data-vt-collapsible` still draw and work for one cycle, deprecated. A rebuild
+  of Accordion replaces each Collapsible on a layout with an Accordion holding
+  one item of the same State — the title in its Trigger slot, the rows in its
+  Content slot — and removes the Collapsible artboard. AccordionItem's title and
+  chevron are now the Trigger slot and the open panel's body the Content slot
+  (a neutral "Section title" and content line by default); the Question and
+  Answer text properties are gone, and a rebuild carries their words into the
+  slots.
+
+- **Field.** Input, Textarea, Select and Combobox carry their own label and hint
+  (Show Label, Show Helper Text), so the Field wrapper is gone as a component.
+  `.vt-field`, `.vt-field-description`, `-error`, `-success` stay (they live
+  with Input now). A rebuild of Input replaces each Field on a layout with the
+  control from its slot, the Field's label and hint on it, and removes the Field
+  artboard.
+
+- **MenuSeparator.** One divider for everything: a dropdown menu and a combobox
+  list divide their groups with `Separator` (`.vt-separator.vt-separator-h`,
+  right against the rows, as in Figma). A rebuild of Separator moves
+  MenuSeparator instances to the horizontal Separator and removes the
+  MenuSeparator artboard. `vt-menu-separator` and `vt-dropdown-separator` stay
+  in CSS, deprecated, for one cycle.
+
+- **`@veritheme/react`.** The owner's decision (16.11.2026): Veritheme is a design
+  system and an HTML component library; the React layer is not developed further.
+  `packages/react` (the components, the generator, its tests and showcase),
+  `packages/react-spike`, the React tab on the docs' examples and the
+  behaviour functions only it used (`src/scripts/behaviour/dom.js`) are gone; the
+  plans are in `docs/archive/`. Nothing was published. Restorable from the tag
+  `archive/react-line-2026-11-16`.
+- **APCA.** The builder's "Label contrast" question, its APCA option (the
+  default until now) and the APCA score are gone from the builder, Studio, the
+  color editor, `audit_contrast` in the MCP server and the Figma plugin.
+  Contrast is the WCAG 2.x ratio everywhere: a label on a fill is white while
+  white holds 3:1, otherwise the fill's own dark tone.
+  - **What changes:** on bright fills a new builder system gets a dark label
+    where APCA kept white: the orange warning fill (`--vt-on-warning`) in every
+    system, and the brand fill (`--vt-on-brand`) of bright mid-tone brands such
+    as Sky, Orange and Teal. Scales, the site's Default theme and every other
+    token stay the same.
+  - **Saved systems:** a system or a builder link that chose APCA opens without
+    an error, as WCAG 2.x; the `system.json` format is unchanged, and the old
+    `contrast` field is ignored and no longer written.
+  - **Want white back?** In Customize colors → Roles, set On brand (or On
+    warning) to Generic white for the theme you want. A label you set there is
+    kept as is.
+  - Versions 1.2.x of `@veritheme/mcp-server` already on npm still report APCA
+    Lc in `audit_contrast`.
+
+### Fixed
+
+- **Nested corners count the border too (concentric radii, owner,
+  19.11.2026).** A plate inset in a bordered container takes the container's
+  radius less the padding *and* the border between their edges, so the two
+  corners run parallel. The open Pill tab was a pixel rounder than its track:
+  8px in a 12px track with 4px padding and a 1px border, now
+  `calc(radius-md − spacing-1 − border-width-control)` = 7px; the small list
+  5px instead of 6px (8 − 2 − 1). The same pixel came off the select's
+  options (7px), the toolbar's buttons (7px), and the dropdown menu's and
+  combobox's items (11px). Written from the same tokens, the rule holds under
+  every Corners shape: Soft 8/3px, a 2px Bold border 12/6px, and on Sharp the
+  difference goes below zero and the corner is square. Figma variables hold
+  no expressions and the radius scale's steps are even, so with a 1px border
+  no step gives the exact value: Generate keeps binding the nearest step
+  (radius-sm 8px for the tab, radius-md 12px for the menu items) and the
+  recipe says so. The MCP spec's Tabs sizes now read the code (radius-md,
+  not `vt-rounded-lg`; the small list; a 2px `border-width-strong`
+  underline).
+- **Figma: Overline texts keep their text style.** SidebarNav's group labels
+  and List's heading came out with no text style: Generate bound Overline,
+  then wrote the uppercase the style already sets, and Figma unlinks a text
+  from its style on any direct write of a style field. A style field is now
+  written only when the text does not already show that value.
+- **Figma, Check: "Frame 12" and "Group 3" are caught again.** The
+  unnamed-frame rule had lost the backslash of `\d`, so only a bare "Frame"
+  or "Group" was caught and Figma's numbered defaults passed as names. The
+  MCP server's handoff check shares the rule and is fixed with it.
+- **Figma: icons keep the line ends and corners of their Hugeicons glyph.**
+  The Icons board forced round caps and joins on every path; 22 icons whose
+  glyph says otherwise now have flat ends and mitered corners where the glyph
+  has them (Mail's flap no longer sticks out past the envelope).
+- **Figma: the Icons board says "Hugeicons stroke-rounded icon set."**, not
+  Lucide; the Icons spec and its usage line in the MCP data and
+  `llms-full.txt` say the same.
+- **Figma: Generate after a collection was deleted with the plugin open.**
+  A deleted 05 Typography (or one of its variables) failed the whole run
+  until the plugin was reopened; all five collections are now forgotten
+  together before a run.
+- **Figma: a rebuild replaces only its own artboards.** A component's
+  artboard pasted on a working page, or a designer's own frame of the same
+  name, was removed by the next rebuild. An artboard now counts only in the
+  plugin's sections or top-level on the plugin's pages.
+- **Figma: under Full annotations Icons stays in the file.** Every
+  artboard's sidebar uses its CircleCheck chips; when Icons was not asked
+  for, it was built and removed after the run, leaving the chips as
+  instances of a deleted main.
+- **Copied examples carry working markup.** The Progress, Resizable, File
+  Upload, Stats Card and Empty State examples held hashed `vt-inline-<hash>`
+  classes that exist only in the site's CSS — in the shadcn registry and the
+  MCP snippets too — so a copied bar had no width and a copied panel no
+  size. Progress bars take the library's `data-vt-progress`; a Resizable
+  panel's start size stays inline, where the library reads it. The check
+  now fails on any `vt-inline-*` in what is built for users. The API tables
+  list only classes that are in `veritheme.min.css` or are a `veritheme.js`
+  hook: `progress-animated` and `vt-stats-card-up`, documented but never in
+  the stylesheet, are gone from the docs.
+- **Docs, utilities: the Prefixes table lists only the classes that
+  exist.** It promised that a prefix works in front of any utility and
+  showed examples the stylesheet does not have (`vt-hover:bg-surface-subtle`,
+  `vt-lg:flex-row`…); it now lists, per prefix, the classes the stylesheet
+  holds, read at build time.
+- **Site: no text below 12px, no system scrollbars.** The builder,
+  Customize, the top bar, search and the footer take the caption size
+  instead of a hardcoded 11px, so text stays at 12px on phones too. The
+  Google font list, Customize's wide tables, the Studio list, the docs
+  search results, the mobile navigation drawer, every code block and the
+  docs' own scrolling boxes use the custom scrollbar.
+- **Builder: Download says "copied" only when it was.** The Download window
+  wrote "AI instructions copied." whatever happened; it now shows the real
+  outcome under its buttons. Customize and Download are non-modal panels, so
+  they no longer claim `aria-modal`.
+- **Figma: the Foundations boards are laid out by auto layout again.** A
+  frame was resized after it was told to hug its content, and Figma's resize
+  fixes both sides: the Palette's description column came out 10px tall and
+  ran into the next row, the step and HEX under each swatch spilled below the
+  board. Every board now sizes first and hugs after (`wrapText`, `fixWidth`,
+  `fixBox` for a swatch or a sample of a set size), and so do the component
+  frames (a hugging width set before a fixed height) and the variant table's
+  state labels. The Palette: rows 32px apart with no rule across the swatches,
+  a card per step (the swatch with its contrast, then the step and the HEX),
+  the role's dot in the swatch's top right corner, no mark and no role chips.
+  A scale that repeats another step for step is one row: Brand · Blue in the
+  default theme. Colors, Typography and Layout lose their marks ("Variables",
+  "Text styles" with the count, "Grid styles"); Layout has one heading. The
+  typeface cards are one width, the large "Ag" and "Aa" have a line as tall as
+  they are (they ran over the family's name and the alphabet), the alphabet
+  sits in its own group. A test checks every board: no layer placed
+  absolutely, no text with a fixed box, auto layout everywhere, every frame
+  that holds layers hugs them in height unless it is a marked specimen. The
+  Figma stub's resize now fixes both axes and a text's box, as Figma does.
+- **Figma: no "Properties removed from layers in this slot" on Generate.**
+  Figma takes a property binding off a layer that sits in a slot, so two
+  properties never worked: AvatarGroup's Show More (the +N counter lay in the
+  Avatars slot) and SidebarNav's Group 1 Label and Group 2 Label (the group
+  labels are text in the Content slot). The counter now sits after the slot —
+  the markup is unchanged, it is still the group's last child — and Show More
+  works; a rebuild leaves an old counter out of the slot and carries its text
+  and whether it was shown onto the new one. The two label properties are
+  gone: the labels are edited in the slot. A contract can no longer put a
+  visible, text or swap property inside a slot (the build says so), and a
+  test fails if Generate binds any layer inside a slot.
+- **Figma: Globe's circle sits on its stand.** The plugin turns each icon's SVG
+  into paths and skipped the `transform` attribute, so Globe's circle
+  (`matrix(-1 0 0 1 20.5 2)`) was drawn in the top-left corner. The converter
+  applies matrix, translate, scale, rotate, skewX/skewY and a group's transform;
+  only Globe's paths change. `audit:icon-bounds` (in `audit:all`) fails on a
+  contour outside the 24 box or pinned to its top-left corner.
+
+- **Figma: Generate no longer stops on "Cannot insert node at a negative
+  index".** Moving a Collapsible to an Accordion (and a Field to its control)
+  looked its layer up by object, and Figma hands out another wrapper of the same
+  node, so the index was −1. The place is found by id now; a layer inside another
+  instance (where nothing can be put) is left and named. A step that fails on one
+  set no longer stops the run: the other sets are placed and moved, and the
+  report names the set and the step; if placing stops as a whole, no draft is left
+  on the page. The Prepare panel's icon swap takes the same care.
+
+- **An imported theme's contrast is checked, both modes.** The importer
+  (plugin, site, MCP) scores every pair the components put together in light
+  and dark. An accent label under 3:1 on its fill — unreadable at any size — is
+  replaced by one that reads at 4.5:1: white where white does, else the
+  family's dark tone, darkened until it does. A label between 3 and 4.5:1
+  stays as authored (the builder keeps white on a bright fill on purpose) and,
+  with every other pair under WCAG AA, is listed on the theme's card in the
+  plugin. `npm run audit:contrast -- path/to/theme.tokens.json` scores a theme
+  file the same way.
+
+- **Figma: overrides inside a slot of another instance survive a rebuild.** A
+  library row in a project instance's slot (a Thread's rows) and project cards
+  in a slot (PresetCards in EmptyChat) lost their texts, toggles, swapped
+  components and names when a swap in a main reset them — all to the main's
+  first values, silently. The rebuild finds such instances again (an instance in
+  a slot counts as holding a moved one), finds a layer whose name was itself an
+  override by its place when the name is gone, puts the name back, and names
+  every property it cannot put back (layer, property, what it was).
+
+- **Figma: opacity variables hold percent.** `opacity/*` in 04 Primitives
+  held 0–1, and Figma reads a variable bound to a layer's opacity as 0–100, so
+  `opacity/50` gave a layer 0.5%. They hold 0, 5, 10, 20, 50, 80, 100 (and
+  `disabled` 50) now; a variable already in a file gets its new value in
+  place, same id. The tokens and the CSS keep 0–1. The Figma → code
+  translator turns a layer's opacity on the scale into `vt-opacity-*`; off the
+  scale it stays a note.
+- **Figma: the danger status ramp is `danger/*` in 01 Palette.** The colour
+  role became danger, but a theme's status ramp kept arriving as `error/*`
+  beside info, success and warning. A file's `scale.error` and its
+  `scaleFamilies.error` now import as `danger`, and an `error/*` ramp already
+  in a file is renamed in place, so aliases and bound layers follow it. The
+  hue stays `red`.
+- **A theme file written before the large type still gets Heading/XL and
+  Display.** A `tokens.json` with typography lists every style its system
+  keeps, so one it leaves out was read as deleted — and a file exported before
+  16.11.2026 left out the four new styles it had never heard of. The export's
+  typography group now carries `$extensions["com.veritheme"].styles`, the
+  styles its contract knew; on import only a style in that list (or, for an
+  older file, among the styles before the large type) is taken as deleted. A
+  style added since arrives with the library's values in the theme's font.
+- **Sidebar Nav: two header actions sit together at the end.** Every action
+  in `vt-side-nav-header` took `margin-inline-start: auto`, so two buttons
+  (search, collapse) were split 40px apart; now only the first is pushed to
+  the end and the next follows 8px on, as the Header Actions slot in Figma.
+- **A compact sidebar no longer scrolls sideways.** A `vt-nav-item-compact`
+  square was 44px (12px around a 20px icon) in a 64px rail whose body kept
+  12px on each side and a 1px border: 64px of content in 63. The square is
+  now 40px, as Figma draws the rail's button, and the compact rail's body
+  and footer have no side padding: the squares sit centered (Figma: the
+  Compact item is 40×40, the Compact body pads 12 top and bottom only).
+- **A section toggle in a Sidebar Nav is a button in the contract.** The
+  first row of a collapsible section (`projects-toggle`) is `<button>`, as
+  the docs and NavGroup already wrote it.
+- **Page states return the focus to what opened a menu or a dialog.** After
+  Escape (or a click elsewhere) the focus went to the first element leading
+  back to the closed state, or to the body when there was none. In an HTML
+  build each state draws its own copy of the region, so the opener is another
+  node. The script now remembers the opener (its `data-vt-go`, label, place
+  among its like and position) and focuses its copy; failing that, the element
+  nearest to where it was, never the body. A row's "More" menu and the delete
+  dialog it opens return to that row's "More".
+- **Page states keep an element's role.** The states script made every
+  element with `data-vt-go` a `role="button"`, so a menu row that leads to a
+  dialog lost `role="menuitem"`. An element that has a role keeps it, and its
+  tabindex.
+- **Figma: a finished upload shows its check.** FileUploadItem State=Done drew
+  the Empty placeholder where code shows a CircleCheck in the success color;
+  the plugin draws the check now (a glyph of the state, like a checkbox's).
+- **Figma plugin: a rebuild keeps prototype links.** Swapping an instance to
+  the new component dropped the interactions set on its layers (Delete on a
+  chat menu's row no longer opened the dialog). They are read before the
+  swap, on the instance and every layer in it, and set again after; the run
+  counts them ("Prototype links put back"). The same for what else a swap
+  drops on the layers inside: texts, visibility, component properties and
+  which component a nested instance is of, slot content and the project's
+  instances in it included (five agents of a sidebar came back as "Inbox").
+  When a swap leaves an instance without layers its new main has (a hidden
+  Header and Footer that gained slots), its overrides are reset to bring
+  them back, and what it held and showed is put back after.
+  Instances that are not moved but hold one that is (a project component's
+  instance on every artboard, whose main holds library rows) keep their
+  overrides and links too: a swap in their main renews their layers, so what
+  is set on them is read before any swap and put back after the run. The run
+  says how many of how many it put back, and counts the layers with links
+  before and after; it no longer says "content kept" when anything was lost.
+  A slot whose children an instance changed (one taken out, one added) gets
+  them back; an instance whose slot is put back from copies is found again by
+  its place when its id is gone (the agents in a project Sidebar's main). The
+  run counts prototype links summed over the file, and names each override it
+  could not put back.
+  The colour set on an icon's vector, the name given to an instance ("More"
+  on a Button), and a slot child an instance only hides are kept too.
+  An icon a button swaps in by its Icon Glyph property comes back through
+  the property (it came back as the Empty glyph under Icon Glyph = ArrowUp,
+  without the button's colour), and a library icon's vector is named "path",
+  as the placeholder's and a project icon's are, so the colour a component
+  gives its icon carries to whichever is swapped in.
+- **Figma plugin: old copies nothing uses are removed.** A copy an earlier
+  run kept as "(old, still used)" goes on the next run once no instance
+  outside it uses its components, whether or not that run rebuilt it
+  ("Old copies nothing uses any more, removed: …").
+- **Figma plugin: a rebuild no longer breaks instances it did not reach.**
+  Three kinds were left on the old components, which were then removed:
+  - a variant swapped inside an instance of a project component (a sidebar's
+    active row);
+  - library instances in a project component's slot (a chat header's
+    buttons);
+  - every icon but the first, since one component per artboard was paired
+    and the Icons artboard holds hundreds.
+
+  Every component of a replaced artboard is now paired by name; instances
+  inside other instances move too; instance-swap defaults outside the run
+  point at the new icon. Before anything is removed, the whole file is
+  checked: an old component still in use is kept, and the run lists each
+  instance left on it ("Still on old components"). A layer that a swap above
+  it replaced is skipped, not fatal: one such layer stopped the whole relink
+  in a large file; an instance whose layers a swap nearby renewed is read
+  again by its id and moved on the next pass, and no walk throws from its
+  callback (Figma showed those as plugin errors); a layer no read can reach
+  even then (an override of a layer the new component lacks) is skipped on
+  the second try and counted, and an instance left behind is listed with
+  where it sits and what it is an instance of. A slot is found by the
+  layers an instance has now, not by findAll, which on an instance whose slot
+  the designer filled with something else still hands out the main's default
+  content (a NotificationBadge with its own button in Content). The next Generate on a file where a relink stopped
+  finishes the move and removes the copies kept as "(old, still used)",
+  instead of adding a third one.
+- **Figma: a tab in Tabs is 30px tall again.** In the Triggers slot the open
+  tab hugged its label and came out 20px tall: the track takes away a tab's
+  vertical padding, and the plugin passed that on to the instance but not the
+  height that replaces it. An instance now takes a height the composite sets,
+  as it already took a width. Tabs was the only component it changed.
+- **Check on a library component:** the canvas width of a library component
+  checked on its own page (its example width) no longer shows up under
+  "Numbers, not variables"; two layers alike in one frame (two options
+  "Remix") are one row that says "2 layers", and a click selects each in
+  turn — the second could not be selected before. The Combobox field in
+  Figma is drawn in its default state, not focused.
+- **Reduced motion:** with `prefers-reduced-motion: reduce` a closed Dropdown
+  Menu, Popover, Dialog or Select is hidden at once; it used to turn
+  transparent at once but stay visible, and clickable, for another 150–200ms.
+- **Dialog:** a dialog inside an overlay no longer also carries the
+  `vt-dialog-in` keyframes (they played once, hidden, on page load); it moves
+  by its transition only. A dialog placed open on the page keeps the keyframes.
+- **Right-to-left:** the mini switch thumb moves to the start of the track
+  instead of out of it, and the shifted accordion animates its
+  `padding-inline-start`.
+- **Switch, right-to-left:** in an RTL page the thumb of a switch that is on
+  now sits at the track's left end, 2px from the edge, in all three sizes and
+  with the same animation; it used to slide out past the track. Left-to-right
+  switches are unchanged to the pixel.
+- **Builder on phones and tablets:** every control on `/start/` is at least
+  44px to tap at phone width, in portrait and landscape and on touch tablets;
+  the site header keeps its look and grows only its tap area. Customize and
+  Download open full screen on a phone. The preview switches wrap instead of
+  being cut off at 768px. Desktop with a mouse is unchanged.
+- **Customize colors:** the scale and role tables scroll sideways with their own
+  scrollbar and a fading edge where more columns wait; every hex reads in full
+  (at 1280 and 1440px the 950 column and some hex codes were cut off).
+- **Funnel counting:** opening the builder for a new system, the first edit,
+  opening Customize, every download (click and file handed over, by format),
+  copying the share link and saving a system now reach the counter. Only the
+  event name and a short label are sent, never the system or its values.
+- **Generated theme, component parameters:** a Shadow parameter no longer
+  takes the keyboard focus ring away. The parameter sets the component at
+  rest; in the states its recipe styles itself (focus and pressed for the
+  button; focus for inputs, selects, textareas, checkboxes, radios, switches
+  and OTP cells) the library's own style stands, as in Figma. Works with the
+  current library and with older ones.
+  - If your theme sets a shadow on the button, input, checkbox or switch,
+    download the theme again to get the focus ring back: a `theme.css`
+    downloaded before this release keeps hiding it with any library version.
+- **Tailwind, SCSS and Style Dictionary exports** now carry what `theme.css`
+  carries: component parameters (radius, height, padding, gap, shadow, font
+  size), per-component rebinds, and the control heights and paddings a density
+  other than Regular sets. They used to fall back to the library's radii,
+  heights and paddings. Style Dictionary lists parameters and rebinds under
+  `component.*` as references to the file's own tokens, and rebinds are typed
+  by what they point at (a radius is no longer called a color).
+- **tokens.json** tells the Figma plugin which states keep the recipe's value
+  (`$states`) even for a system saved without them, so Figma and CSS leave the
+  same states alone.
+- **Number input:** − and + step by the input's `step`, as the docs promised
+  (they always stepped by 1), counted from `min` as the browser's own stepper
+  does, within `min` and `max`, and without floating-point noise (0.1 + 0.2
+  shows 0.3). A step now fires `input` and `change` on the field.
+- **Scroll view:** the edge indicators show as soon as the content overflows,
+  not only after the first scroll, and follow the box and its content when
+  they change size.
+- **Docs (component specs):** Accordion, Tabs and Tree view name the classes
+  the bundle and the CSS use (`.open` on the accordion panel and the tree
+  branch, `.vt-active` on the tab). File upload no longer names a
+  `.vt-file-upload-disabled` class that had no style: `aria-disabled="true"`
+  on the zone turns it off.
+- **Figma → code:** a frame named Input or Textarea around one text is a field
+  the design draws itself, and becomes a real `<input>` / `<textarea>`: muted
+  text is its placeholder, ordinary text its value.
+- **Figma → code:** the library's Input stripped to a bare field (no fill, no
+  border, small paddings) kept the control's full height, and text typed into it
+  came out as a placeholder. The changed height now follows the paddings, and a
+  hint repainted in the text color is the field's value.
+- **Figma → code:** a size bound to a variable outside the spacing scale (a
+  separator line as tall as `border-width/thin`) was dropped, and the line with
+  it; it is now that variable in CSS. A fill removed from a part takes along the
+  ring the library draws around it (the count in a nav item), and keeps the
+  focus ring.
+- **Figma → code:** a layer's least and most size (`min-height` of a row of
+  steps, `max-width` of a message) was not read, so a rail between two icons
+  collapsed to nothing. A child stretched across a row no longer costs the row
+  its alignment.
+- **Figma → code:** a layer laid on the artboard itself with Figma's default
+  pin (top left) is pinned to the edge it is nearer to: a menu drawn just above
+  the bottom edge no longer hangs in the middle of a taller window.
+- **Figma → code:** layers placed out of the flow keep their place. A menu over
+  the field it opens from, a status dot on the corner of a logo, a divider
+  stretched under a row: the reader sends where each sits and which edges it is
+  pinned to, and the markup gets `vt-absolute` in a `vt-relative` parent (the
+  numbers go to CSS with `raw`, or are named in the report without it).
+- **Figma → code:** a variant the designer added to a library component
+  (CountBadge with a new Type and a green dot as Type=Connected) is read in full
+  as the project's own, instead of being written as the library's class with the
+  wrong look.
+- **Figma → code:** an icon keeps the color it is painted with in the design
+  (`tint` → `vt-text-…`), a line drawn outside its box becomes a ring instead of
+  a border, and a line's weight is read.
+- **Figma → code:** a color changed on a text that has no element of its own (the
+  count in a nav item's badge) was dropped; an icon swapped into a slot produced a
+  meaningless radius rule on every instance.
+- **Figma → code:** two copies of one drawing shared the ids Figma exports
+  (`paint0_linear…`), so the second took the first one's gradient, and vanished
+  when the first was hidden. Ids are now unique per drawing (`idPrefix` for a
+  caller that joins several translations into one page).
+
+- **Builder:** Pill corners now reach the downloads. The guided builder showed
+  fully round buttons, fields and selects, but `tokens.json` and `theme.css`
+  were exported without those component radii, so Figma built the buttons with
+  the regular `radius/xl`.
+- **Figma plugin:** Hairline lines are 0.5px in Figma. Before, Apply theme set
+  `border-width/default` to 1px, and `border-width/thin` (cards, dividers,
+  table rows) always stayed at 1px. The plugin now reads the theme's line width
+  from `tokens.json` and writes it into `border-width/thin`; a theme without one
+  gets the control width capped at 1px, as in the exported CSS.
+- **Figma plugin:** the theme preview shows a component's own radius, so Pill
+  buttons and fields look round there too.
+- **MCP, Figma → code:** an icon is told from a component by what its main
+  component is, not by its name. An icon called Calendar was read as the
+  Calendar component.
+- **MCP, Figma → code:** a gradient fill is no longer reported as a removed
+  fill. The library report wrote `background: transparent` for a gradient
+  Avatar. A paint the reader cannot read is named and gives no CSS.
+- **MCP, Figma → code:** an icon button is named after its layer ("Search"),
+  not its component ("Button"). An icon where the component has no slot
+  (a pin in a sub-item of NavItem) stays in the markup as a plain icon.
+- **Dropdown menu:** a menu with several triggers bound its keyboard and click
+  handlers once per trigger. With 14 triggers one arrow key moved the focus by
+  14 items. They are bound once per menu.
+- **MCP, Figma → code:** a change made to a library component inside a project
+  component was not seen: Figma lists no override for it. The reader now
+  compares each layer with the main component's. In the test file the sidebar
+  strips the fill of its items' count badges; they came out red.
+- **MCP, Figma → code:** a fill or stroke that was removed on an instance is
+  written as `transparent` instead of being dropped.
+- **MCP, Figma → code:** a library change drawn in the default state no longer
+  repaints the disabled one (a gradient on Button covered the disabled gray),
+  and a change in the Disabled variant applies to `:disabled` only.
+
 ## [1.2.4] — 2026-11-10
 
 ### Fixed
@@ -2032,7 +3757,7 @@ was `@uicraft/core@1.4.4`.
 - Figma plugin: the Badge preview was broken (a single "—" placeholder) — the UI never had a preview handler for the `badge` def type the canvas generates, and the defs carry their Variant/Color axes only in the name string. Added the mirrored preview handler and a def normalizer, so the full Filled/Bordered × 5-color matrix now renders.
 - Figma plugin: the UI preview and the canvas generator each kept their own hardcoded copies of component metrics, and they had drifted apart. Shared tables now live in `src/shared/component-metrics.ts` (input/select states, chip, menu-item, alert/banner tones, toast content, progress colors, spacing scale), and the preview reads recipe-covered sizes (button, input, checkbox, radio, switch, avatar, progress) from `component-recipes.json` — the same source the canvas builds from. Drift fixed along the way: preview avatars rendered 32/40/48/64 px instead of the canonical 24/40/56/80; preview buttons used the pre-on-brand color logic (white text + darkening simulation) instead of the real `on/brand` + `brand/fill-hover` tokens, and their spacing keys resolved against an identity map (`'4'` → 4 px instead of 16 px) until the first theme edit patched it; alert/banner tints were simulated with color-mix instead of the real `*/background` tokens; the canvas progress bar was missing the Blue color the preview offered; three separate in-file copies of the button tables (one unreachable, with values that matched nothing) are gone.
 
-## [1.3.0] — 2026-07-02
+## 1.3.0 (old numbering) — 2026-07-02
 
 ### Added
 - Figma plugin: dark-mode theme editing is now enabled. The Theme Editor got a Light/Dark mode switch (the dark editor with all 25 semantic color tokens was built but hidden), and the Components page got back its light/dark preview toggle. Dark colors flow end-to-end: presets → editor → live preview → `Apply to Figma` (dark mode of the Palette collection) → read-back on plugin start. On the Figma free plan (no second variable mode) both switches hide themselves and the editor falls back to light.
@@ -2093,7 +3818,8 @@ First stable release.
 - **WCAG contrast**: 32 token pairs fall below AA across editorial/rounded-sans themes. Default theme addressed; remaining themes queued for v1.1.
 - **Scope**: 18 components (Dialog, Accordion, Slider, Button Group, Popover, Sheet, Sidebar, mini-variants) remain in `main.scss` pending recipe-engine extensions (`rawRules`, `@keyframes`, `[data-*]` selectors). Scheduled for v1.1.
 
-[Unreleased]: https://github.com/tarasenko-by/veritheme/compare/v1.2.4...HEAD
+[Unreleased]: https://github.com/tarasenko-by/veritheme/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.3.0
 [1.2.4]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.2.4
 [1.2.3]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.2.3
 [1.2.2]: https://github.com/tarasenko-by/veritheme/releases/tag/v1.2.2

@@ -1,5 +1,5 @@
 /*!
- * veritheme.js v1.2.4
+ * veritheme.js v1.3.0
  * https://veritheme.com
  * MIT License
  */
@@ -925,6 +925,20 @@ var VtCarousel = {
 
 // VtDropdown — shared open/close state and the WAI-ARIA menu keyboard
 // contract for `[data-vt-dropdown-trigger]` buttons and their `.vt-dropdown-menu`.
+//
+// One menu may have many triggers (a "More" button on every row of a list): the
+// menu's own handlers are bound once, and the menu opens at the trigger that was
+// used. A menu that is not next to its trigger in the markup is placed by the
+// trigger's position; any menu opens upward when there is no room below.
+//
+// Attributes:
+//   data-vt-dropdown-trigger="<menu id>"   on the trigger
+//   data-vt-dropdown-bubble                on the trigger: let its click reach
+//       handlers on its ancestors. By default the click stops at the trigger, so
+//       a trigger inside a clickable row does not also activate the row.
+//   data-vt-dropdown-close-on-select       on the menu: a checkbox or radio item
+//       closes the menu too. By default only plain items close it, so several
+//       options can be changed in one visit.
 var VtDropdown = {
   items: function(menu) {
     return Array.from(menu.querySelectorAll('.vt-command-item,.vt-dropdown-item')).filter(function(item) {
@@ -939,11 +953,114 @@ var VtDropdown = {
   },
 
   close: function(menu, restoreFocus) {
+    // Drawn open in a prototype's state: the state decides (states.js takes
+    // Escape and a click elsewhere to the state its button goes to).
+    if (menu.hasAttribute('data-vt-keep-open')) return;
     menu.classList.remove('vt-open');
-    VtDropdown.triggersFor(menu).forEach(function(trigger) {
-      trigger.setAttribute('aria-expanded', 'false');
-      if (restoreFocus) trigger.focus();
-    });
+    VtDropdown.unplace(menu);
+    var opener = menu.__vtDropdownOpener;
+    menu.__vtDropdownOpener = null;
+    var triggers = VtDropdown.triggersFor(menu);
+    triggers.forEach(function(trigger) { trigger.setAttribute('aria-expanded', 'false'); });
+    // Focus goes back to the trigger that opened the menu, not to the last one bound.
+    var target = opener && document.contains(opener) ? opener : triggers[0];
+    if (restoreFocus && target) target.focus();
+  },
+
+  // Inline styles this module set, so closing puts the stylesheet back in charge.
+  PLACED: ['position', 'top', 'right', 'bottom', 'left', 'margin'],
+
+  unplace: function(menu) {
+    menu.__vtDropdownFixed = false;
+    if (!menu.__vtDropdownPlaced) return;
+    VtDropdown.PLACED.forEach(function(property) { menu.style.removeProperty(property); });
+    menu.__vtDropdownPlaced = false;
+  },
+
+  // A container above the menu that cuts off what overflows it (a scrolling
+  // sidebar, a card with overflow: hidden): a menu placed in the flow there is
+  // clipped, so it is fixed to its trigger instead.
+  clipper: function(menu) {
+    for (var node = menu.parentElement && menu.parentElement.parentElement; node && node !== document.body && node !== document.documentElement; node = node.parentElement) {
+      var style = getComputedStyle(node);
+      if (style.overflowX !== 'visible' || style.overflowY !== 'visible') return node;
+    }
+    return null;
+  },
+
+  // Fixed is relative to the window unless an ancestor is transformed or
+  // filtered (an animated drawer): then to that ancestor's box.
+  fixedOrigin: function(menu) {
+    for (var node = menu.parentElement; node && node !== document.documentElement; node = node.parentElement) {
+      var style = getComputedStyle(node);
+      var contain = style.contain || '';
+      if (style.transform !== 'none' || style.filter !== 'none' || style.perspective !== 'none'
+        || (style.backdropFilter && style.backdropFilter !== 'none')
+        || /paint|layout|strict|content/.test(contain) || /transform|filter/.test(style.willChange || '')) {
+        var box = node.getBoundingClientRect();
+        return { left: box.left + node.clientLeft - node.scrollLeft, top: box.top + node.clientTop - node.scrollTop };
+      }
+    }
+    return { left: 0, top: 0 };
+  },
+
+  // Where the open menu goes. Next to its trigger in the markup, the stylesheet
+  // places it below, and it only flips upward when it would leave the viewport.
+  // Anywhere else (one menu shared by many triggers), or next to its trigger
+  // inside a container that clips (a chat's menu in a scrolling sidebar), it is
+  // fixed to the trigger.
+  place: function(menu, trigger) {
+    VtDropdown.unplace(menu);
+    var gap = 4;
+    var anchor = trigger.getBoundingClientRect();
+    // Layout size, not the painted box: the menu may be mid-way through its opening animation.
+    var size = { width: menu.offsetWidth, height: menu.offsetHeight };
+    var viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    var viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+    var fitsBelow = anchor.bottom + gap + size.height <= viewportHeight;
+    var fitsAbove = anchor.top - gap - size.height >= 0;
+    // vt-dropdown-menu-up asks for the side above (an input at the bottom of the
+    // screen); either side gives way to the other when the menu does not fit.
+    var prefersUp = menu.classList.contains('vt-dropdown-menu-up');
+    var end = menu.classList.contains('vt-dropdown-menu-end');
+    var next = trigger.parentElement && trigger.parentElement.contains(menu);
+    var clipped = next && VtDropdown.clipper(menu);
+    if (clipped) {
+      // Fixed in a clipping container: the side and the edge the stylesheet gave
+      // the menu are kept — a page's own CSS that aligns a card's menu to the
+      // right or opens it upward (Studio's card menus) still holds.
+      var natural = menu.getBoundingClientRect();
+      var wrap = menu.parentElement.getBoundingClientRect();
+      if (!end && Math.abs(natural.right - wrap.right) < 2 && Math.abs(natural.left - wrap.left) >= 2) end = true;
+      if (!prefersUp && natural.bottom <= anchor.top + 1) prefersUp = true;
+    }
+    var up = prefersUp ? fitsAbove || !fitsBelow : !fitsBelow && fitsAbove;
+    var beside = next && !clipped;
+    if (beside) {
+      if (up === prefersUp) return;
+      if (up) {
+        menu.style.top = 'auto';
+        menu.style.bottom = '100%';
+      } else {
+        // An "up" menu with no room above opens below, as the stylesheet's default does.
+        menu.style.top = '100%';
+        menu.style.bottom = 'auto';
+        menu.style.margin = 'var(--vt-spacing-2) 0 0';
+      }
+    } else {
+      // vt-dropdown-menu-end: the menu's right edge on the trigger's right edge.
+      var wanted = end ? anchor.right - size.width : anchor.left;
+      var left = Math.max(gap, Math.min(wanted, viewportWidth - size.width - gap));
+      var origin = VtDropdown.fixedOrigin(menu);
+      menu.style.position = 'fixed';
+      menu.style.margin = '0';
+      menu.style.right = 'auto';
+      menu.style.bottom = 'auto';
+      menu.style.left = (left - origin.left) + 'px';
+      menu.style.top = ((up ? anchor.top - gap - size.height : anchor.bottom + gap) - origin.top) + 'px';
+      menu.__vtDropdownFixed = true;
+    }
+    menu.__vtDropdownPlaced = true;
   },
 
   closeAll: function(restoreFocus, except) {
@@ -959,7 +1076,11 @@ var VtDropdown = {
     var menu = document.getElementById(trigger.getAttribute('data-vt-dropdown-trigger'));
     if (!menu) return;
     VtDropdown.closeAll(false, menu);
+    // Reopened from another trigger: the first one is no longer the open one.
+    VtDropdown.triggersFor(menu).forEach(function(other) { other.setAttribute('aria-expanded', 'false'); });
     menu.classList.add('vt-open');
+    menu.__vtDropdownOpener = trigger;
+    VtDropdown.place(menu, trigger);
     trigger.setAttribute('aria-expanded', 'true');
     var items = VtDropdown.items(menu);
     var first = focusLast ? items[items.length - 1] : items[0];
@@ -976,23 +1097,13 @@ var VtDropdown = {
     trigger.setAttribute('aria-haspopup', 'menu');
     trigger.setAttribute('aria-controls', menu.id);
     trigger.setAttribute('aria-expanded', 'false');
-    menu.setAttribute('role', 'menu');
-
-    menu.querySelectorAll('.vt-command-item,.vt-dropdown-item').forEach(function(item) {
-      item.tabIndex = -1;
-      var checkbox = item.querySelector(CHECKBOX_INDICATOR);
-      var radio = item.querySelector(RADIO_INDICATOR);
-      var mark = item.querySelector('.vt-command-item-check');
-      item.setAttribute('role', checkbox || mark ? 'menuitemcheckbox' : radio ? 'menuitemradio' : 'menuitem');
-      if (checkbox) item.setAttribute('aria-checked', String(indicatorOn(checkbox)));
-      if (radio) item.setAttribute('aria-checked', String(indicatorOn(radio)));
-      // A check mark row says its state itself (aria-checked in the markup).
-      if (mark && !item.hasAttribute('aria-checked')) item.setAttribute('aria-checked', 'false');
-    });
+    VtDropdown.prepareItems(menu);
 
     trigger.addEventListener('click', function(e) {
-      e.stopPropagation();
-      if (menu.classList.contains('vt-open')) VtDropdown.close(menu, true);
+      // A trigger often sits inside something clickable (a row, a card): by
+      // default its click stops here. `data-vt-dropdown-bubble` lets it through.
+      if (!trigger.hasAttribute('data-vt-dropdown-bubble')) e.stopPropagation();
+      if (menu.classList.contains('vt-open') && menu.__vtDropdownOpener === trigger) VtDropdown.close(menu, true);
       else VtDropdown.open(trigger);
     });
 
@@ -1002,6 +1113,52 @@ var VtDropdown = {
         VtDropdown.open(trigger, e.key === 'ArrowUp');
       }
     });
+
+    VtDropdown.bindMenu(menu);
+  },
+
+  // The menu's role and its rows' roles (menuitem, menuitemcheckbox, menuitemradio)
+  // and checked states, from what each row holds. For a menu with a trigger and
+  // for one drawn open in the markup (a prototype's state with its menu open).
+  prepareItems: function(menu) {
+    if (!menu.hasAttribute('role')) menu.setAttribute('role', 'menu');
+    menu.querySelectorAll('.vt-command-item,.vt-dropdown-item').forEach(function(item) {
+      item.tabIndex = -1;
+      var checkbox = item.querySelector(CHECKBOX_INDICATOR);
+      var radio = item.querySelector(RADIO_INDICATOR);
+      var mark = item.querySelector('.vt-command-item-check');
+      // A check row picks one of a group when the markup says so (role="menuitemradio",
+      // the mode picker: title, description, check at the end); otherwise it toggles.
+      var pickOne = mark && item.getAttribute('role') === 'menuitemradio';
+      item.setAttribute('role', pickOne || (radio && !checkbox && !mark) ? 'menuitemradio' : checkbox || mark ? 'menuitemcheckbox' : 'menuitem');
+      if (checkbox) item.setAttribute('aria-checked', String(indicatorOn(checkbox)));
+      if (radio) item.setAttribute('aria-checked', String(indicatorOn(radio)));
+      // A check mark row says its state itself (aria-checked in the markup).
+      if (mark && !item.hasAttribute('aria-checked')) item.setAttribute('aria-checked', 'false');
+    });
+  },
+
+  // A menu drawn open next to its button (a prototype's state with the menu
+  // open: .vt-open in the markup, data-vt-keep-open): placed at its button as
+  // if a click had opened it — fixed when a container would clip it. The button
+  // is the wrap's first child that is not the menu. Hidden ones wait.
+  placeOpen: function(scope) {
+    (scope || document).querySelectorAll('.vt-dropdown-wrap > .vt-dropdown-menu.vt-open').forEach(function(menu) {
+      if (menu.closest('.vt-combobox-wrapper') || !menu.getClientRects().length) return;
+      var wrap = menu.parentElement;
+      var trigger = null;
+      for (var i = 0; i < wrap.children.length && !trigger; i++) if (wrap.children[i] !== menu) trigger = wrap.children[i];
+      if (!trigger) return;
+      menu.__vtDropdownOpener = trigger;
+      VtDropdown.place(menu, trigger);
+    });
+  },
+
+  // The menu's own handlers, once per menu however many triggers it has: bound
+  // per trigger, one arrow key moved the focus once for every trigger.
+  bindMenu: function(menu) {
+    if (menu.__vtDropdownBound) return;
+    menu.__vtDropdownBound = true;
 
     menu.addEventListener('keydown', function(e) {
       var items = VtDropdown.items(menu);
@@ -1033,18 +1190,50 @@ var VtDropdown = {
       }
     });
 
-    // Plain items close the menu on activation; checkbox and radio items stay open.
+    // Plain items close the menu on activation. Checkbox and radio items stay
+    // open unless the menu says `data-vt-dropdown-close-on-select`.
     menu.addEventListener('click', function(e) {
-      var item = e.target.closest('[role="menuitem"]');
+      // A checkbox, switch or radio row turns by itself: no onclick in the
+      // markup needed (one that has veritheme.toggleCheckbox already turned it).
+      var row = e.target.closest('[role="menuitemcheckbox"],[role="menuitemradio"]');
+      if (row && menu.contains(row) && !e.__vtToggled && row.getAttribute('aria-disabled') !== 'true') {
+        if (row.getAttribute('role') === 'menuitemradio') selectMenuRadio(row); else toggleCheckbox(row);
+      }
+      var selector = menu.hasAttribute('data-vt-dropdown-close-on-select')
+        ? '[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]'
+        : '[role="menuitem"]';
+      var item = e.target.closest(selector);
       if (item && item.getAttribute('aria-disabled') !== 'true') VtDropdown.close(menu, true);
     });
   },
 
   init: function() {
     document.querySelectorAll('[data-vt-dropdown-trigger]').forEach(VtDropdown.bindTrigger);
+    // A menu with no trigger of its own (drawn open in a prototype's state, its
+    // button going to another state): its rows still get their roles, the
+    // arrows, Home and End, and its switches and checks turn.
+    document.querySelectorAll('.vt-dropdown-menu').forEach(function(menu) {
+      if (menu.__vtDropdownBound || menu.closest('.vt-combobox-wrapper') || !menu.querySelector('.vt-command-item,.vt-dropdown-item')) return;
+      VtDropdown.prepareItems(menu);
+      VtDropdown.bindMenu(menu);
+    });
+    VtDropdown.placeOpen();
 
     if (window.__vtDropdownEvents) return;
     window.__vtDropdownEvents = true;
+
+    // A prototype's state shows a menu drawn open: it is placed at its button,
+    // and when the state came from the user, the focus goes to its first row.
+    document.addEventListener('vt-state-change', function(e) {
+      var scope = e.target;
+      requestAnimationFrame(function() {
+        VtDropdown.placeOpen(scope);
+        if (!e.detail || !e.detail.previous) return;
+        var shown = Array.prototype.filter.call(scope.querySelectorAll('.vt-dropdown-menu.vt-open[data-vt-keep-open]'), function(m) { return m.getClientRects().length; })[0];
+        var first = shown && VtDropdown.items(shown)[0];
+        if (first && !shown.contains(document.activeElement)) first.focus();
+      });
+    });
 
     document.addEventListener('click', function(e) {
       if (!e.target.closest('[data-vt-dropdown-trigger],.vt-dropdown-menu')) VtDropdown.closeAll(false);
@@ -1052,6 +1241,19 @@ var VtDropdown = {
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') VtDropdown.closeAll(true);
     });
+    // A fixed menu stays with its trigger when what holds the trigger scrolls
+    // (the sidebar under a chat's menu) or the window resizes.
+    var follow = function(e) {
+      document.querySelectorAll('.vt-dropdown-menu.vt-open').forEach(function(menu) {
+        var opener = menu.__vtDropdownOpener;
+        if (!menu.__vtDropdownFixed || !opener) return;
+        if (e && e.type === 'scroll' && e.target !== document && !(e.target.contains && e.target.contains(opener))) return;
+        if (e && e.type === 'scroll' && menu.contains(e.target)) return;
+        VtDropdown.place(menu, opener);
+      });
+    };
+    document.addEventListener('scroll', follow, true);
+    window.addEventListener('resize', follow);
   }
 };
 
@@ -1060,11 +1262,14 @@ var CHECK_ICON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" st
 // Checkable rows carry the system's own atoms: .vt-checkbox (.checked) and
 // .vt-radio (.selected, with a .vt-dot). The older markup drew them with
 // utilities (.checkbox-indicator / .radio-indicator) and still works.
-var CHECKBOX_INDICATOR = '.vt-checkbox, .checkbox-indicator';
+// A switch at the end of a row (.vt-switch, a decorative span) is a checkbox
+// indicator too: the row is the control, the switch shows its state (.vt-active).
+var CHECKBOX_INDICATOR = '.vt-checkbox, .vt-switch, .checkbox-indicator';
 var RADIO_INDICATOR = '.vt-radio, .radio-indicator';
 
 function indicatorOn(indicator) {
   if (indicator.classList.contains('vt-checkbox')) return indicator.classList.contains('checked');
+  if (indicator.classList.contains('vt-switch')) return indicator.classList.contains('vt-active');
   if (indicator.classList.contains('vt-radio')) return indicator.classList.contains('selected');
   if (indicator.classList.contains('checkbox-indicator')) return indicator.classList.contains('vt-bg-brand-fill');
   return !!indicator.children.length;
@@ -1073,6 +1278,9 @@ function indicatorOn(indicator) {
 // Checkbox menu item: the visual indicator and aria-checked always agree.
 function toggleCheckbox(item) {
   if (item.getAttribute('aria-disabled') === 'true') return;
+  // Said on the click that ran it (an onclick in the markup): the menu's own
+  // click handler then leaves the row alone instead of turning it back.
+  if (typeof window !== 'undefined' && window.event) window.event.__vtToggled = true;
   var indicator = item.querySelector(CHECKBOX_INDICATOR);
   var mark = item.querySelector('.vt-command-item-check');
   if (!indicator && !mark) return;
@@ -1081,6 +1289,8 @@ function toggleCheckbox(item) {
   if (indicator && indicator.classList.contains('vt-checkbox')) {
     indicator.classList.toggle('checked', !wasChecked);
     if (!indicator.querySelector('.check-icon')) indicator.insertAdjacentHTML('beforeend', CHECK_ICON.replace('<svg ', '<svg class="check-icon" '));
+  } else if (indicator && indicator.classList.contains('vt-switch')) {
+    indicator.classList.toggle('vt-active', !wasChecked);
   } else if (indicator) {
     indicator.classList.remove('vt-bg-info-fill');
     ['vt-bg-brand-fill', 'vt-text-generic-white', 'vt-border-transparent'].forEach(function(cls) {
@@ -1108,6 +1318,12 @@ function selectMenuRadio(item) {
       indicator.innerHTML = selected ? '<span class="vt-w-2 vt-h-2 vt-rounded-full vt-bg-brand-fill"></span>' : '';
     }
     row.setAttribute('aria-checked', String(selected));
+  });
+  // Check-mark rows of a pick-one group (role="menuitemradio" with .vt-command-item-check):
+  // the check shows from aria-checked alone.
+  item.closest('.vt-dropdown-menu').querySelectorAll('[role="menuitemradio"]').forEach(function(row) {
+    if (!row.querySelector('.vt-command-item-check') || row.querySelector(RADIO_INDICATOR)) return;
+    row.setAttribute('aria-checked', String(row === item));
   });
 }
 
@@ -1159,6 +1375,28 @@ var VtScrollView = {
       });
     });
 
+    // Scroll indicators: an edge shows while there is more past it. Said at
+    // once (a list that overflows says so before anyone scrolls), on scroll,
+    // and again when the box or what is in it changes size.
+    function watch(indicator, scroll, update) {
+      update();
+      scroll.addEventListener('scroll', update, { passive: true });
+      if (typeof ResizeObserver !== 'undefined') {
+        var sizes = new ResizeObserver(update);
+        var observeChildren = function() {
+          sizes.observe(scroll);
+          for (var i = 0; i < scroll.children.length; i++) sizes.observe(scroll.children[i]);
+        };
+        observeChildren();
+        if (typeof MutationObserver !== 'undefined') {
+          new MutationObserver(function() { observeChildren(); update(); })
+            .observe(scroll, { childList: true, subtree: true, characterData: true });
+        }
+      } else {
+        window.addEventListener('resize', update);
+      }
+    }
+
     // Scroll indicators — vertical
     document.querySelectorAll('.vt-scroll-indicator').forEach(function(indicator) {
       if (indicator.hasAttribute('data-vt-indicator-init')) return;
@@ -1167,7 +1405,7 @@ var VtScrollView = {
       var scroll = indicator.querySelector('.vt-scroll, .vt-scroll-hidden, .vt-scroll-autohide');
       if (!scroll) return;
 
-      scroll.addEventListener('scroll', function() {
+      watch(indicator, scroll, function() {
         var st = scroll.scrollTop;
         var sh = scroll.scrollHeight;
         var ch = scroll.clientHeight;
@@ -1184,7 +1422,7 @@ var VtScrollView = {
       var scroll = indicator.querySelector('.vt-scroll, .vt-scroll-hidden, .vt-scroll-autohide, [class*="vt-overflow-x"]');
       if (!scroll) return;
 
-      scroll.addEventListener('scroll', function() {
+      watch(indicator, scroll, function() {
         var sl = scroll.scrollLeft;
         var sw = scroll.scrollWidth;
         var cw = scroll.clientWidth;
@@ -1195,7 +1433,7 @@ var VtScrollView = {
   }
 };
 
-// VtNumberInput — increment/decrement with min/max constraints
+// VtNumberInput — increment/decrement by the input's step, within its min/max
 var VtNumberInput = {
   init: function() {
     document.querySelectorAll('[data-vt-number-input]').forEach(function(wrapper) {
@@ -1207,32 +1445,60 @@ var VtNumberInput = {
       var incBtn = wrapper.querySelector('[data-vt-action="increment"]');
       if (!input) return;
 
-      function toInt(value, fallback) {
-        // `parseInt(x) || fallback` treats a legitimate 0 as missing.
-        var n = parseInt(value, 10);
-        return isNaN(n) ? fallback : n;
+      function toNumber(value, fallback) {
+        // `parseFloat(x) || fallback` treats a legitimate 0 as missing.
+        var n = parseFloat(value);
+        return isFinite(n) ? n : fallback;
+      }
+
+      // Digits after the point: 0.1 → 1, 2.5e-3 → 4. A sum of steps is rounded
+      // to these, so 0.1 + 0.2 shows 0.3, not 0.30000000000000004.
+      function decimals(n) {
+        var text = String(n);
+        var e = text.indexOf('e-');
+        if (e >= 0) return parseInt(text.slice(e + 2), 10) + decimals(text.slice(0, e));
+        var dot = text.indexOf('.');
+        return dot < 0 ? 0 : text.length - dot - 1;
       }
 
       function bounds() {
         return {
-          min: input.hasAttribute('min') ? toInt(input.min, -Infinity) : -Infinity,
-          max: input.hasAttribute('max') ? toInt(input.max, Infinity) : Infinity
+          min: input.hasAttribute('min') ? toNumber(input.min, -Infinity) : -Infinity,
+          max: input.hasAttribute('max') ? toNumber(input.max, Infinity) : Infinity
         };
       }
 
+      // As the browser has it: no step, a bad one or "any" is 1.
+      function stepSize() {
+        var s = toNumber(input.getAttribute('step'), 1);
+        return s > 0 ? s : 1;
+      }
+
       function updateButtons() {
-        var val = toInt(input.value, 0);
+        var val = toNumber(input.value, 0);
         var b = bounds();
         if (decBtn) decBtn.disabled = val <= b.min;
         if (incBtn) incBtn.disabled = val >= b.max;
       }
 
-      function step(delta) {
-        var val = toInt(input.value, 0);
+      // One step up or down, on the steps counted from min (or 0), as the
+      // browser's own stepper does: 7 with step 5 from 0 goes to 10 or 5.
+      function step(direction) {
         var b = bounds();
-        var next = Math.min(Math.max(val + delta, b.min), b.max);
-        input.value = next;
+        var size = stepSize();
+        var base = isFinite(b.min) ? b.min : 0;
+        var val = toNumber(input.value, base);
+        var places = Math.max(decimals(size), decimals(base), decimals(val));
+        var at = (val - base) / size;
+        var near = Math.round(at);
+        // Already on a step (within rounding): move one; between steps: to the next one that way.
+        var onStep = Math.abs(at - near) < 1e-9;
+        var index = onStep ? near + direction : direction > 0 ? Math.ceil(at) : Math.floor(at);
+        var next = Math.min(Math.max(base + index * size, b.min), b.max);
+        input.value = String(Number(next.toFixed(places)));
         updateButtons();
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
       }
 
       if (decBtn) decBtn.addEventListener('click', function() { step(-1); });
@@ -1242,8 +1508,10 @@ var VtNumberInput = {
         var b = bounds();
         // An empty/invalid field falls back to the lower bound when there is
         // one, otherwise to 0 — never to -Infinity.
-        var val = toInt(input.value, isFinite(b.min) ? b.min : 0);
-        input.value = Math.min(Math.max(val, b.min), b.max);
+        var val = toNumber(input.value, isFinite(b.min) ? b.min : 0);
+        var held = Math.min(Math.max(val, b.min), b.max);
+        // What was typed stays as typed ("1.50") unless it is out of bounds or not a number.
+        if (held !== val || !isFinite(parseFloat(input.value))) input.value = String(held);
         updateButtons();
       });
 
@@ -1441,10 +1709,50 @@ var VtSlider = {
 };
 
 // VtToast — programmatic toast notifications
+//
+//   veritheme.showToast({ title: 'Saved', description: 'Your changes are live.', kind: 'success' })
+//   veritheme.showToast({ title: 'Message archived', action: { label: 'Undo', onClick: restore } })
+//   veritheme.showToast('success')   // a demo toast with stock copy, for docs and previews
+//
+// `kind` is 'default' | 'success' | 'error'. `duration` is in milliseconds (4000);
+// 0 keeps the toast until it is closed. The call returns the toast element.
+//
+// Motion (components/toast.json, `motion`): the toast comes in from
+// .vt-toast-closed and closing puts it back there, then removes it once the
+// transition ends (a timer covers a transition that never fires). With
+// prefers-reduced-motion it appears and goes at once.
 var VtToast = {
   _count: 0,
 
-  show: function(type) {
+  ICONS: {
+    success: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-toast-icon" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>',
+    error: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-toast-icon" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>',
+    close: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>'
+  },
+
+  // Stock copy for `showToast('success')`: what the docs and previews show.
+  DEMOS: {
+    default: { title: 'Scheduled: Catch up', description: 'Friday, February 14, 2026 at 5:57 PM', action: { label: 'Undo' } },
+    success: { kind: 'success', title: 'Success', description: 'Your changes have been saved.' },
+    error: { kind: 'error', title: 'Error', description: 'Something went wrong. Please try again.', action: { label: 'Retry' } },
+    action: { title: 'Event created', description: 'Sunday, December 03, 2023', action: { label: 'Undo' } }
+  },
+
+  reducedMotion: function() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  },
+
+  // The longest transition on the element, in ms (computed values are seconds).
+  transitionMs: function(el) {
+    var style = getComputedStyle(el);
+    var delays = style.transitionDelay.split(',');
+    return style.transitionDuration.split(',').reduce(function(max, value, i) {
+      var ms = (parseFloat(value) || 0) * 1000 + (parseFloat(delays[i % delays.length]) || 0) * 1000;
+      return Math.max(max, ms);
+    }, 0);
+  },
+
+  container: function() {
     var container = document.getElementById('toast-container');
     if (!container) {
       // Out-of-the-box: create the host container on first use.
@@ -1453,44 +1761,478 @@ var VtToast = {
       container.className = 'vt-fixed vt-bottom-4 vt-right-4 vt-z-50 vt-flex vt-flex-col vt-items-end';
       document.body.appendChild(container);
     }
+    return container;
+  },
 
-    var id = 'toast-' + (++VtToast._count);
-    var configs = {
-      default: { title: 'Scheduled: Catch up', desc: 'Friday, February 14, 2026 at 5:57 PM', icon: '', btn: 'Undo' },
-      success: { title: 'Success', desc: 'Your changes have been saved.', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-toast-icon" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>', btn: '' },
-      error: { title: 'Error', desc: 'Something went wrong. Please try again.', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vt-toast-icon" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>', btn: 'Retry' },
-      action: { title: 'Event created', desc: 'Sunday, December 03, 2023', icon: '', btn: 'Undo' }
-    };
+  show: function(input) {
+    var options = typeof input === 'string' || input == null
+      ? (VtToast.DEMOS[input] || VtToast.DEMOS.default)
+      : input;
+    var kind = options.kind === 'success' || options.kind === 'error' ? options.kind : 'default';
 
-    var c = configs[type] || configs.default;
     var toast = document.createElement('div');
-    toast.id = id;
+    toast.id = 'toast-' + (++VtToast._count);
     // The toast's own classes (components/toast.json): the look lives in the CSS.
-    toast.className = 'vt-toast vt-mb-2' + (type === 'success' ? ' vt-toast-success' : type === 'error' ? ' vt-toast-danger' : '');
-    toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
-    toast.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
+    toast.className = 'vt-toast vt-mb-2' + (kind === 'success' ? ' vt-toast-success' : kind === 'error' ? ' vt-toast-danger' : '');
+    toast.setAttribute('role', kind === 'error' ? 'alert' : 'status');
+    toast.setAttribute('aria-live', kind === 'error' ? 'assertive' : 'polite');
     toast.setAttribute('aria-atomic', 'true');
-    toast.innerHTML =
-      c.icon +
-      '<div class="vt-toast-content">' +
-        '<p class="vt-toast-title">' + c.title + '</p>' +
-        '<p class="vt-toast-description">' + c.desc + '</p>' +
-      '</div>' +
-      (c.btn ? '<button onclick="this.parentElement.remove()" class="vt-btn vt-btn-bordered vt-btn-sm">' + c.btn + '</button>' : '') +
-      '<button onclick="this.parentElement.remove()" aria-label="Close" class="vt-btn vt-btn-ghost vt-btn-icon vt-btn-sm">' +
-        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
-      '</button>';
 
-    container.appendChild(toast);
-    setTimeout(function() {
-      var el = document.getElementById(id);
-      if (el) el.remove();
-    }, 4000);
+    // The icon is the bundle's own markup; the caller's text goes in as text,
+    // never as HTML, so a title built from user input cannot inject markup.
+    if (VtToast.ICONS[kind]) toast.insertAdjacentHTML('beforeend', VtToast.ICONS[kind]);
+    var content = document.createElement('div');
+    content.className = 'vt-toast-content';
+    [['vt-toast-title', options.title], ['vt-toast-description', options.description]].forEach(function(part) {
+      if (part[1] == null || part[1] === '') return;
+      var line = document.createElement('p');
+      line.className = part[0];
+      line.textContent = String(part[1]);
+      content.appendChild(line);
+    });
+    toast.appendChild(content);
+
+    var closed = false;
+    var dismiss = function() {
+      if (closed) return;
+      closed = true;
+      if (VtToast.reducedMotion() || !toast.isConnected) { toast.remove(); return; }
+      var timer;
+      var done = function() {
+        clearTimeout(timer);
+        toast.removeEventListener('transitionend', onEnd);
+        toast.remove();
+      };
+      var onEnd = function(event) { if (event.target === toast && event.propertyName === 'opacity') done(); };
+      toast.addEventListener('transitionend', onEnd);
+      toast.classList.add('vt-toast-closed');
+      timer = setTimeout(done, VtToast.transitionMs(toast) + 50);
+    };
+    if (options.action && options.action.label) {
+      var action = document.createElement('button');
+      action.type = 'button';
+      action.className = 'vt-btn vt-btn-bordered vt-btn-sm';
+      action.textContent = String(options.action.label);
+      action.addEventListener('click', function(event) {
+        if (typeof options.action.onClick === 'function') options.action.onClick(event);
+        dismiss();
+      });
+      toast.appendChild(action);
+    }
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'vt-btn vt-btn-ghost vt-btn-icon vt-btn-sm';
+    close.setAttribute('aria-label', 'Close');
+    close.innerHTML = VtToast.ICONS.close;
+    close.addEventListener('click', dismiss);
+    toast.appendChild(close);
+
+    var animate = !VtToast.reducedMotion();
+    if (animate) toast.classList.add('vt-toast-closed');
+    VtToast.container().appendChild(toast);
+    if (animate) {
+      void toast.offsetWidth; // commit the closed state, so the class change transitions
+      toast.classList.remove('vt-toast-closed');
+    }
+    var duration = typeof options.duration === 'number' ? options.duration : 4000;
+    if (duration > 0) setTimeout(dismiss, duration);
+    return toast;
   },
 
   init: function() {
     // Expose showToast globally for onclick use
-    veritheme.showToast = function(type) { VtToast.show(type); };
+    veritheme.showToast = function(input) { return VtToast.show(input); };
+  }
+};
+
+// VtProgress — a progress bar's value.
+//
+//   <div class="vt-progress" data-vt-progress="64"><div class="vt-progress-bar"></div></div>
+//   veritheme.setProgress(element, 80)        // 0–100, later, from script
+//
+// The attribute is read at load and whenever `veritheme.init()` runs. Both ways
+// set the bar's width and the ARIA of a progressbar, so the value is also read
+// to assistive technology. A bar with no attribute is left as it is.
+var VtProgress = {
+  set: function(progress, value) {
+    if (!progress) return;
+    var number = Math.max(0, Math.min(100, Number(value)));
+    if (!isFinite(number)) return;
+    var bar = progress.querySelector('.vt-progress-bar');
+    if (bar) bar.style.width = number + '%';
+    progress.setAttribute('data-vt-progress', String(number));
+    progress.setAttribute('role', 'progressbar');
+    progress.setAttribute('aria-valuemin', '0');
+    progress.setAttribute('aria-valuemax', '100');
+    progress.setAttribute('aria-valuenow', String(number));
+  },
+
+  init: function() {
+    document.querySelectorAll('.vt-progress[data-vt-progress]').forEach(function(progress) {
+      VtProgress.set(progress, progress.getAttribute('data-vt-progress'));
+    });
+    veritheme.setProgress = function(progress, value) { VtProgress.set(progress, value); };
+  }
+};
+
+// VtSwitch — a switch that toggles itself.
+//
+//   <button type="button" class="vt-switch" data-vt-switch role="switch" aria-checked="false">
+//     <span class="vt-switch-thumb"></span>
+//   </button>
+//   veritheme.setSwitch(element, true)        // later, from script
+//
+// A click flips `.vt-active` (the class that paints the track and moves the thumb)
+// and `aria-checked`, then fires `vt-switch-change` with `detail.checked`, so the
+// page only has to listen. The attribute is the opt-in: a switch without it is
+// left to the page's own script, as before.
+var VtSwitch = {
+  set: function(el, on, silent) {
+    if (!el) return;
+    el.classList.toggle('vt-active', Boolean(on));
+    el.setAttribute('role', 'switch');
+    el.setAttribute('aria-checked', String(Boolean(on)));
+    if (!silent) el.dispatchEvent(new CustomEvent('vt-switch-change', { bubbles: true, detail: { checked: Boolean(on) } }));
+  },
+
+  init: function() {
+    document.querySelectorAll('.vt-switch[data-vt-switch]').forEach(function(el) {
+      VtSwitch.set(el, el.classList.contains('vt-active') || el.getAttribute('aria-checked') === 'true', true);
+    });
+    veritheme.setSwitch = function(el, on) { VtSwitch.set(el, on); };
+    if (VtSwitch.bound) return;
+    VtSwitch.bound = true;
+    document.addEventListener('click', function(event) {
+      var el = event.target.closest ? event.target.closest('.vt-switch[data-vt-switch]') : null;
+      if (!el || el.disabled || el.getAttribute('aria-disabled') === 'true') return;
+      VtSwitch.set(el, !el.classList.contains('vt-active'));
+    });
+  }
+};
+
+// VtDismiss — a close button that removes its alert or banner.
+//
+//   <div class="vt-alert vt-alert-info" role="alert">
+//     …
+//     <button type="button" class="vt-btn vt-btn-ghost vt-btn-sm vt-btn-icon" data-vt-dismiss aria-label="Dismiss">…</button>
+//   </div>
+//   veritheme.dismiss(element)                 // later, from script
+//
+// A click fires `vt-dismiss` on the alert or banner before it goes (it bubbles
+// and is cancelable: `event.preventDefault()` keeps it, to animate it out or to
+// ask first), then removes it. Focus that was inside does not fall to the page:
+// it moves to the next control after the removed block, or the one before it.
+// The attribute is the opt-in: a close button without it is left to the page's
+// own script, as before.
+var VtDismiss = {
+  SELECTOR: '.vt-alert, .vt-banner',
+
+  focusable: function() {
+    return Array.prototype.filter.call(
+      document.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'),
+      function(el) { return el.offsetParent !== null || el === document.activeElement; }
+    );
+  },
+
+  // The control focus goes to when `box` leaves: the first after it, else the last before it.
+  nextFocus: function(box) {
+    var list = VtDismiss.focusable().filter(function(el) { return !box.contains(el); });
+    for (var i = 0; i < list.length; i++) {
+      if (box.compareDocumentPosition(list[i]) & Node.DOCUMENT_POSITION_FOLLOWING) return list[i];
+    }
+    return list.length ? list[list.length - 1] : null;
+  },
+
+  dismiss: function(box, trigger) {
+    if (!box || !box.parentNode) return false;
+    var event = new CustomEvent('vt-dismiss', { bubbles: true, cancelable: true, detail: { trigger: trigger || null } });
+    if (!box.dispatchEvent(event)) return false;
+    var hadFocus = box.contains(document.activeElement);
+    var next = hadFocus ? VtDismiss.nextFocus(box) : null;
+    var parent = box.parentNode;
+    parent.removeChild(box);
+    if (hadFocus) {
+      if (next) next.focus();
+      else {
+        // Nothing focusable is left: the block's container keeps the place.
+        if (!parent.hasAttribute('tabindex')) parent.setAttribute('tabindex', '-1');
+        parent.focus();
+      }
+    }
+    return true;
+  },
+
+  init: function() {
+    veritheme.dismiss = function(el) {
+      var box = el && el.closest ? el.closest(VtDismiss.SELECTOR) : null;
+      return VtDismiss.dismiss(box || el, null);
+    };
+    if (VtDismiss.bound) return;
+    VtDismiss.bound = true;
+    document.addEventListener('click', function(event) {
+      var button = event.target.closest ? event.target.closest('[data-vt-dismiss]') : null;
+      if (!button || button.disabled || button.getAttribute('aria-disabled') === 'true') return;
+      var box = button.closest(VtDismiss.SELECTOR);
+      if (box) VtDismiss.dismiss(box, button);
+    });
+  }
+};
+
+// VtRating — a rating the reader sets.
+//
+//   <div class="vt-rating" data-vt-rating aria-label="Rate this answer">
+//     <span class="vt-star vt-filled"><svg><!-- filled star --></svg></span>
+//     <span class="vt-star"><svg><!-- star outline --></svg></span>
+//     …
+//   </div>
+//   veritheme.setRating(element, 4)            // later, from script
+//
+// The row is one control, a slider from 0 to the number of stars: it takes the
+// focus once, the arrow keys move the value, Home and End go to either end, and
+// aria-valuenow / aria-valuetext say it. (A radio group would need each star to
+// be an option of its own, focused in turn; here the stars are a scale.)
+// Hovering previews the value, a click sets it; `vt-rating-change` fires with
+// `detail.value`. With `data-vt-rating-half` the value moves by halves, drawn as
+// the component draws them (`.vt-rating-half`). The filled and the empty star
+// are taken from the markup itself, so a heart rating stays hearts. The
+// attribute is the opt-in: a rating without it is a picture of a value, as before.
+var VtRating = {
+  stars: function(root) {
+    return Array.prototype.filter.call(root.children, function(el) { return el.classList.contains('vt-star'); });
+  },
+
+  // The two drawings, read once from the markup: a filled star and an empty one.
+  shapes: function(root) {
+    if (root.__vtShapes) return root.__vtShapes;
+    var stars = VtRating.stars(root);
+    var filled = stars.filter(function(s) { return s.classList.contains('vt-filled'); })[0];
+    var empty = stars.filter(function(s) { return !s.classList.contains('vt-filled') && !s.classList.contains('vt-rating-half'); })[0];
+    var half = stars.filter(function(s) { return s.classList.contains('vt-rating-half'); })[0];
+    var fillIn = half && half.querySelector('.vt-filled');
+    root.__vtShapes = {
+      filled: filled ? filled.innerHTML : (fillIn ? fillIn.innerHTML : null),
+      empty: empty ? empty.innerHTML : (half && half.firstElementChild && !half.firstElementChild.classList.contains('vt-filled') ? half.firstElementChild.outerHTML : null),
+    };
+    return root.__vtShapes;
+  },
+
+  valueOf: function(root) {
+    var attr = parseFloat(root.getAttribute('data-vt-rating-value'));
+    if (!isNaN(attr)) return attr;
+    var stars = VtRating.stars(root);
+    var value = 0;
+    stars.forEach(function(s) {
+      if (s.classList.contains('vt-rating-half')) value += 0.5;
+      else if (s.classList.contains('vt-filled')) value += 1;
+    });
+    return value;
+  },
+
+  step: function(root) { return root.hasAttribute('data-vt-rating-half') ? 0.5 : 1; },
+
+  // Draws a value on the stars (the committed one, or a preview while hovering).
+  paint: function(root, value) {
+    var shapes = VtRating.shapes(root);
+    VtRating.stars(root).forEach(function(star, i) {
+      var full = value >= i + 1;
+      var half = !full && value >= i + 0.5 && shapes.filled && shapes.empty;
+      var want = full ? 'full' : half ? 'half' : 'empty';
+      if (star.__vtLook === want) return;
+      star.__vtLook = want;
+      star.classList.toggle('vt-filled', full);
+      star.classList.toggle('vt-rating-half', Boolean(half));
+      if (!shapes.filled || !shapes.empty) return;
+      star.innerHTML = full ? shapes.filled : half ? shapes.empty + '<span class="vt-star vt-filled">' + shapes.filled + '</span>' : shapes.empty;
+    });
+  },
+
+  set: function(root, value, silent) {
+    if (!root) return;
+    var max = VtRating.stars(root).length;
+    var step = VtRating.step(root);
+    var v = Math.max(0, Math.min(max, Math.round(Number(value) / step) * step));
+    root.__vtValue = v;
+    root.setAttribute('data-vt-rating-value', String(v));
+    root.setAttribute('aria-valuenow', String(v));
+    root.setAttribute('aria-valuetext', v + ' of ' + max + (max === 1 ? ' star' : ' stars'));
+    VtRating.paint(root, v);
+    if (!silent) root.dispatchEvent(new CustomEvent('vt-rating-change', { bubbles: true, detail: { value: v } }));
+  },
+
+  // The value under the pointer: the star it is over, or half of it.
+  pointed: function(root, event) {
+    var stars = VtRating.stars(root);
+    var rtl = getComputedStyle(root).direction === 'rtl';
+    for (var i = 0; i < stars.length; i++) {
+      var box = stars[i].getBoundingClientRect();
+      if (event.clientX < box.left || event.clientX > box.right) continue;
+      if (VtRating.step(root) === 0.5) {
+        var startHalf = rtl ? event.clientX > box.left + box.width / 2 : event.clientX < box.left + box.width / 2;
+        if (startHalf) return i + 0.5;
+      }
+      return i + 1;
+    }
+    return null;
+  },
+
+  disabled: function(root) { return root.getAttribute('aria-disabled') === 'true' || root.getAttribute('aria-readonly') === 'true'; },
+
+  init: function() {
+    document.querySelectorAll('.vt-rating[data-vt-rating]').forEach(function(root) {
+      if (root.__vtRating) return;
+      root.__vtRating = true;
+      // A slider, no longer a picture of a value.
+      root.setAttribute('role', 'slider');
+      if (!root.hasAttribute('tabindex')) root.setAttribute('tabindex', '0');
+      if (!root.hasAttribute('aria-label') || /^Rated /.test(root.getAttribute('aria-label'))) root.setAttribute('aria-label', 'Rating');
+      root.setAttribute('aria-valuemin', '0');
+      root.setAttribute('aria-valuemax', String(VtRating.stars(root).length));
+      VtRating.shapes(root);
+      VtRating.set(root, VtRating.valueOf(root), true);
+      // On the row itself: a preview redraws the stars, and the one under the
+      // pointer is no longer in the page by the time the pointer leaves it.
+      root.addEventListener('mouseleave', function() { VtRating.paint(root, root.__vtValue || 0); });
+    });
+    veritheme.setRating = function(el, value) { VtRating.set(el, value); };
+    if (VtRating.bound) return;
+    VtRating.bound = true;
+    var rootOf = function(target) { return target && target.closest ? target.closest('.vt-rating[data-vt-rating]') : null; };
+    // The row being previewed: a preview redraws its stars, and the one under the
+    // pointer is gone from the page by the time the pointer leaves, so leaving is
+    // told by the next move outside the row, not by a leave event on it.
+    var previewing = null;
+    document.addEventListener('mousemove', function(event) {
+      var root = rootOf(event.target);
+      if (previewing && previewing !== root) { VtRating.paint(previewing, previewing.__vtValue || 0); previewing = null; }
+      if (!root || VtRating.disabled(root)) return;
+      // Over a star: its value; between two (the gap): the value that is set.
+      var v = VtRating.pointed(root, event);
+      VtRating.paint(root, v !== null ? v : root.__vtValue || 0);
+      previewing = root;
+    });
+    document.addEventListener('click', function(event) {
+      var root = rootOf(event.target);
+      if (!root || VtRating.disabled(root)) return;
+      var v = VtRating.pointed(root, event);
+      if (v !== null) VtRating.set(root, v);
+    });
+    document.addEventListener('keydown', function(event) {
+      var root = event.target && event.target.matches && event.target.matches('.vt-rating[data-vt-rating]') ? event.target : null;
+      if (!root || VtRating.disabled(root)) return;
+      var step = VtRating.step(root);
+      var rtl = getComputedStyle(root).direction === 'rtl';
+      var now = root.__vtValue || 0;
+      var max = VtRating.stars(root).length;
+      var next = null;
+      if (event.key === 'ArrowUp' || event.key === (rtl ? 'ArrowLeft' : 'ArrowRight')) next = now + step;
+      else if (event.key === 'ArrowDown' || event.key === (rtl ? 'ArrowRight' : 'ArrowLeft')) next = now - step;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = max;
+      if (next === null) return;
+      event.preventDefault();
+      VtRating.set(root, next);
+    });
+  }
+};
+
+// VtFileUpload — a drop zone that opens the file picker and says what was chosen.
+//
+//   <div class="vt-file-upload" data-vt-file-upload>
+//     <svg class="vt-file-upload-icon">…</svg>
+//     <p class="vt-file-upload-title">Drop files here</p>
+//     <p class="vt-file-upload-hint">PNG, JPG or PDF, up to 10 MB</p>
+//     <button type="button" class="vt-btn vt-btn-primary">Browse files</button>
+//     <input type="file" multiple hidden>
+//   </div>
+//   veritheme.openFileUpload(element)          // the picker, from script
+//
+// Dragging files over the zone highlights it (`.vt-dragover`, the component's Dragover state);
+// dropping them, or choosing them in the picker, fires `vt-file-upload-change`
+// with `detail.files` (an array of File). A click on the zone opens the picker.
+// The zone is reached with Tab and opened with Enter or Space, unless it holds a
+// button of its own (Browse files): that button is the control then, not a
+// button inside a button. The files are the page's to show: the chips of
+// File upload item are not drawn here. aria-disabled="true" on the zone turns it
+// all off, as on the other controls that are not native ones. The attribute is
+// the opt-in: a zone without it is left to the page.
+var VtFileUpload = {
+  inputOf: function(zone) { return zone.querySelector('input[type="file"]'); },
+
+  off: function(zone) { return zone.getAttribute('aria-disabled') === 'true'; },
+
+  open: function(zone) {
+    var input = zone && VtFileUpload.inputOf(zone);
+    if (input && !VtFileUpload.off(zone)) input.click();
+  },
+
+  report: function(zone, files) {
+    zone.dispatchEvent(new CustomEvent('vt-file-upload-change', { bubbles: true, detail: { files: Array.prototype.slice.call(files || []) } }));
+  },
+
+  init: function() {
+    document.querySelectorAll('.vt-file-upload[data-vt-file-upload]').forEach(function(zone) {
+      if (zone.__vtFileUpload) return;
+      zone.__vtFileUpload = true;
+      // A control of its own only when nothing inside is one.
+      if (!zone.querySelector('button, a[href]') && !zone.hasAttribute('tabindex')) {
+        zone.setAttribute('tabindex', '0');
+        zone.setAttribute('role', 'button');
+      }
+      var input = VtFileUpload.inputOf(zone);
+      if (input) input.addEventListener('change', function() { VtFileUpload.report(zone, input.files); });
+    });
+    veritheme.openFileUpload = function(el) { VtFileUpload.open(el && el.closest ? el.closest('.vt-file-upload') || el : el); };
+    if (VtFileUpload.bound) return;
+    VtFileUpload.bound = true;
+    var zoneOf = function(target) { return target && target.closest ? target.closest('.vt-file-upload[data-vt-file-upload]') : null; };
+    document.addEventListener('click', function(event) {
+      var zone = zoneOf(event.target);
+      if (!zone || VtFileUpload.off(zone)) return;
+      // The input's own click (the one this opens) is not a click on the zone.
+      if (event.target.matches('input[type="file"]')) return;
+      // A link of the page's own inside the zone does what it does.
+      if (event.target.closest('a[href]')) return;
+      VtFileUpload.open(zone);
+    });
+    document.addEventListener('keydown', function(event) {
+      var zone = event.target && event.target.matches && event.target.matches('.vt-file-upload[data-vt-file-upload][role="button"]') ? event.target : null;
+      if (!zone || (event.key !== 'Enter' && event.key !== ' ')) return;
+      event.preventDefault();
+      VtFileUpload.open(zone);
+    });
+    // Drag over: a counter, since entering a child leaves the parent.
+    document.addEventListener('dragenter', function(event) {
+      var zone = zoneOf(event.target);
+      if (!zone || VtFileUpload.off(zone)) return;
+      event.preventDefault();
+      zone.__vtDepth = (zone.__vtDepth || 0) + 1;
+      zone.classList.add('vt-dragover');
+    });
+    document.addEventListener('dragover', function(event) {
+      var zone = zoneOf(event.target);
+      if (!zone || VtFileUpload.off(zone)) return;
+      event.preventDefault();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+    });
+    document.addEventListener('dragleave', function(event) {
+      var zone = zoneOf(event.target);
+      if (!zone) return;
+      zone.__vtDepth = Math.max(0, (zone.__vtDepth || 1) - 1);
+      if (!zone.__vtDepth) zone.classList.remove('vt-dragover');
+    });
+    document.addEventListener('drop', function(event) {
+      var zone = zoneOf(event.target);
+      if (!zone) return;
+      event.preventDefault();
+      zone.__vtDepth = 0;
+      zone.classList.remove('vt-dragover');
+      if (VtFileUpload.off(zone)) return;
+      var files = event.dataTransfer ? event.dataTransfer.files : [];
+      // The input holds them too, for a form that posts it.
+      var input = VtFileUpload.inputOf(zone);
+      if (input && files && files.length) { try { input.files = files; } catch (error) { /* a browser that will not take them */ } }
+      VtFileUpload.report(zone, files);
+    });
   }
 };
 
@@ -1795,6 +2537,366 @@ var VtSidebarNav = {
   }
 };
 
+// VtStates — one page, several states of it (the artboards of one screen in Figma).
+//
+//   <main data-vt-states="workspace typing chat-answer" data-vt-states-url>
+//     <template data-vt-show="chat-thinking" data-vt-go-after="chat-answer" data-vt-go-delay="800"></template>
+//     <div data-vt-show="workspace typing">…</div>           shown in these states only
+//     <div>…<button data-vt-go="typing">…</button></div>  no data-vt-show: in every state
+//   </main>
+//   veritheme.showState('typing')                         later, from script
+//
+//   data-vt-states="a b"     the states, the first one shown at load
+//   data-vt-states-url       the state follows `?state=` (read at load, written on change)
+//   data-vt-show="a b"       the element belongs to states a and b; hidden in the others
+//   data-vt-go="a"           a click (or Enter on it) shows state a; the innermost wins
+//   data-vt-go-hover="a"     state a while the pointer stays where the element was
+//   data-vt-submit="#send"   on a field: Enter (not Shift+Enter) presses that button
+//   data-vt-cancel           on a dialog's button with data-vt-go: what Escape and a
+//                            click on the backdrop do (else .vt-dialog-close, else
+//                            a button that reads Cancel or Close)
+//   data-vt-go-after="a" data-vt-go-delay="800"
+//                            on a direct child of the container: in the states that
+//                            child belongs to, state a follows by itself after 800 ms
+//
+// A menu drawn open in a state (.vt-dropdown-menu.vt-open[data-vt-keep-open] in a
+// .vt-dropdown-wrap) closes on Escape, a click elsewhere or Tab out of it, to the
+// state its button goes to. A dialog drawn open (.vt-dialog-overlay.vt-open) keeps
+// Tab inside it and takes the focus when its state is shown. Closed with Escape (or
+// a click elsewhere), the focus goes back to what opened them: each state draws its
+// own copy of the region, so the copy is found by what the opener was — its
+// data-vt-go, label, place among its like and where it was — else the element
+// nearest to that place, never the body.
+//
+// Each change fires `vt-state-change` on the container (`detail.state`,
+// `detail.previous`) and sets `data-vt-state` on it and on <html>, for page CSS. A
+// hidden element gets the `hidden` attribute: the page's CSS should make it win
+// over a component's own `display` (`[data-vt-show][hidden] { display: none !important; }`).
+// A `<select data-vt-states-select>` (options are states) and a
+// `<button data-vt-states-theme>` (dark mode) make a switcher for review; with a
+// select on the page, `[` and `]` step through the states.
+var VtStates = {
+  containers: [],
+
+  stateOf: function(container) { return container.getAttribute('data-vt-state'); },
+
+  list: function(container) {
+    return String(container.getAttribute('data-vt-states') || '').split(/\s+/).filter(Boolean);
+  },
+
+  /** Show a state; `quiet` skips the view transition and keeps a hover in progress. */
+  go: function(container, state, quiet, then) {
+    if (!state || state === VtStates.stateOf(container) || VtStates.list(container).indexOf(state) < 0) return;
+    if (!quiet) container.__vtHover = null;
+    var change = function() { VtStates.apply(container, state); if (then) then(); };
+    var calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!quiet && !calm && document.startViewTransition) document.startViewTransition(change);
+    else change();
+  },
+
+  apply: function(container, state) {
+    var previous = VtStates.stateOf(container);
+    container.querySelectorAll('[data-vt-show]').forEach(function(el) {
+      el.toggleAttribute('hidden', el.getAttribute('data-vt-show').split(' ').indexOf(state) < 0);
+    });
+    container.setAttribute('data-vt-state', state);
+    document.documentElement.setAttribute('data-vt-state', state);
+    var select = document.querySelector('[data-vt-states-select]');
+    if (select && VtStates.containers[0] === container) select.value = state;
+    if (container.hasAttribute('data-vt-states-url')) {
+      var url = new URL(location.href);
+      url.searchParams.set('state', state);
+      history.replaceState(history.state, '', url);
+    }
+    // A state that moves on by itself: said by the container's direct child for it.
+    clearTimeout(container.__vtTimer);
+    for (var i = 0; i < container.children.length; i++) {
+      var child = container.children[i];
+      var next = child.getAttribute('data-vt-go-after');
+      var own = child.getAttribute('data-vt-show');
+      if (!next || (own && own.split(' ').indexOf(state) < 0)) continue;
+      container.__vtTimer = setTimeout(function(to) { return function() { VtStates.go(container, to); }; }(next), Number(child.getAttribute('data-vt-go-delay')) || 0);
+      break;
+    }
+    container.dispatchEvent(new CustomEvent('vt-state-change', { bubbles: true, detail: { state: state, previous: previous } }));
+  },
+
+  shown: function(el) { return !!(el && el.getClientRects().length && !el.closest('[hidden]')); },
+
+  /** The menu drawn open and the dialog drawn open that this state shows, if any. */
+  openMenu: function(container) {
+    return Array.prototype.filter.call(container.querySelectorAll('.vt-dropdown-menu.vt-open[data-vt-keep-open]'), VtStates.shown)[0] || null;
+  },
+  openDialog: function(container) {
+    return Array.prototype.filter.call(container.querySelectorAll('.vt-dialog-overlay.vt-open, [role="dialog"].vt-open'), VtStates.shown)[0] || null;
+  },
+
+  labelOf: function(el) {
+    return String(el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim();
+  },
+
+  /** The element a click or a key on `el` puts the focus back on: `el`, else the field or button inside it. */
+  focusTarget: function(el) {
+    if (!el) return null;
+    if (el.matches('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')) return el;
+    return VtStates.focusable(el)[0] || null;
+  },
+
+  /**
+   * Remember what left the current state: its data-vt-go, its label, its place
+   * among the shown elements like it and where it was on the screen. Each state
+   * draws its own copy of the region, so after coming back the element is
+   * another node; this is how its copy is found (see `refocus`).
+   */
+  remember: function(container, el) {
+    var target = VtStates.focusTarget(el) || el;
+    if (!target || !target.getBoundingClientRect) return;
+    var go = el.getAttribute('data-vt-go') || '';
+    var label = VtStates.labelOf(target);
+    var like = VtStates.likeOf(container, go, label);
+    var r = target.getBoundingClientRect();
+    var trail = container.__vtTrail || (container.__vtTrail = []);
+    trail.push({ from: VtStates.stateOf(container), go: go, label: label, index: Math.max(0, like.indexOf(target)), x: r.left + r.width / 2, y: r.top + r.height / 2 });
+    if (trail.length > 20) trail.shift();
+  },
+
+  /** The shown, focusable elements that go to `go` (any, when empty) and read `label`. */
+  likeOf: function(container, go, label) {
+    return VtStates.focusable(container).filter(function(n) {
+      var holder = n.closest('[data-vt-go]');
+      return (!go || (holder && container.contains(holder) && holder.getAttribute('data-vt-go') === go)) && VtStates.labelOf(n) === label;
+    });
+  },
+
+  nearest: function(list, x, y) {
+    var best = null;
+    var far = Infinity;
+    list.forEach(function(n) {
+      var r = n.getBoundingClientRect();
+      var d = Math.pow(r.left + r.width / 2 - x, 2) + Math.pow(r.top + r.height / 2 - y, 2);
+      if (d < far) { far = d; best = n; }
+    });
+    return best;
+  },
+
+  /**
+   * Back in a state: the focus goes to the copy of what left it last — the same
+   * data-vt-go and label at the same place among its like, else the same label
+   * nearest to where it was, else the focusable element nearest to that place.
+   * With nothing remembered (the state was shown from script or the URL): the
+   * element that goes to `left` (the state just closed) nearest to `anchor` (the
+   * closed menu's button), else the focusable element nearest to `anchor`, else
+   * the first focusable one in the container. Never to the body.
+   */
+  refocus: function(container, left, anchor) {
+    var state = VtStates.stateOf(container);
+    var trail = container.__vtTrail || [];
+    var mark = null;
+    for (var i = trail.length - 1; i >= 0; i--) {
+      if (trail[i].from === state) { mark = trail[i]; trail.length = i; break; }
+    }
+    var all = VtStates.focusable(container);
+    var pick = null;
+    if (mark) {
+      var same = VtStates.likeOf(container, mark.go, mark.label);
+      pick = same[mark.index] || VtStates.nearest(same, mark.x, mark.y)
+        || VtStates.nearest(VtStates.likeOf(container, '', mark.label), mark.x, mark.y)
+        || VtStates.nearest(all, mark.x, mark.y);
+    }
+    if (!pick && left) {
+      var back = Array.prototype.map.call(container.querySelectorAll('[data-vt-go="' + left + '"]'), VtStates.focusTarget).filter(function(n) { return n && VtStates.shown(n); });
+      pick = anchor ? VtStates.nearest(back, anchor.x, anchor.y) : back[0];
+    }
+    if (!pick && anchor) pick = VtStates.nearest(all, anchor.x, anchor.y);
+    pick = pick || all[0];
+    if (pick) pick.focus();
+  },
+
+  /** Go where `el` goes; then the focus goes to what led here (see `refocus`). `from` is where the focus came from. */
+  follow: function(container, el, from) {
+    if (!el) return false;
+    var left = VtStates.stateOf(container);
+    var r = from && from.getBoundingClientRect ? from.getBoundingClientRect() : null;
+    var anchor = r && r.width ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : null;
+    VtStates.go(container, el.getAttribute('data-vt-go'), false, function() { VtStates.refocus(container, left, anchor); });
+    return true;
+  },
+
+  /** A menu drawn open closes the way its button does: the button's state. */
+  closeMenu: function(container, menu) {
+    var wrap = menu.closest('.vt-dropdown-wrap');
+    var button = null;
+    if (wrap) for (var i = 0; i < wrap.children.length && !button; i++) {
+      var child = wrap.children[i];
+      if (child === menu) continue;
+      button = child.matches('[data-vt-go]') ? child : child.querySelector('[data-vt-go]');
+    }
+    return VtStates.follow(container, button, button);
+  },
+
+  /**
+   * A dialog drawn open is cancelled the way its Cancel does: a [data-vt-cancel]
+   * with data-vt-go, else its close button (.vt-dialog-close), else a button
+   * that reads Cancel or Close, else the first one that goes anywhere.
+   */
+  cancelDialog: function(container, dialog) {
+    var goes = Array.prototype.filter.call(dialog.querySelectorAll('[data-vt-go]'), VtStates.shown);
+    var pick = goes.filter(function(b) { return b.hasAttribute('data-vt-cancel'); })[0]
+      || goes.filter(function(b) { return b.classList.contains('vt-dialog-close'); })[0]
+      || goes.filter(function(b) { return /^(cancel|close|not now|dismiss)$/i.test(String(b.textContent || b.getAttribute('aria-label') || '').trim()); })[0]
+      || goes[0];
+    return VtStates.follow(container, pick);
+  },
+
+  focusable: function(root) {
+    return Array.prototype.filter.call(root.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'), function(n) {
+      return !n.disabled && n.getAttribute('aria-hidden') !== 'true' && VtStates.shown(n);
+    });
+  },
+
+  containerOf: function(el) {
+    var container = el && el.closest ? el.closest('[data-vt-states]') : null;
+    return container && container.__vtStates ? container : null;
+  },
+
+  init: function() {
+    document.querySelectorAll('[data-vt-states]').forEach(function(container) {
+      if (container.__vtStates) return;
+      container.__vtStates = true;
+      VtStates.containers.push(container);
+      // An element that is not a link, a button or a field is reachable from the keyboard too.
+      // One that already has a role keeps it: a menu row stays role="menuitem" (its menu
+      // handles the keys and the focus), it does not become a button.
+      container.querySelectorAll('[data-vt-go]').forEach(function(el) {
+        if (/^(A|BUTTON|INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.hasAttribute('role') || el.querySelector('[data-vt-go], input, textarea')) return;
+        el.setAttribute('role', 'button');
+        if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+      });
+      var states = VtStates.list(container);
+      var wanted = container.hasAttribute('data-vt-states-url') ? new URLSearchParams(location.search).get('state') : null;
+      if (states.length) VtStates.apply(container, states.indexOf(wanted) >= 0 ? wanted : states[0]);
+    });
+    veritheme.showState = function(state) {
+      VtStates.containers.forEach(function(container) { VtStates.go(container, state); });
+    };
+    if (VtStates.bound) return;
+    VtStates.bound = true;
+
+    document.addEventListener('click', function(e) {
+      var container = VtStates.containerOf(e.target);
+      if (!container) return;
+      if (e.target.closest('a[href="#"]')) e.preventDefault();
+      var el = e.target.closest('[data-vt-go]');
+      if (!el || !container.contains(el)) {
+        // A click elsewhere: a menu drawn open closes to its button's state; a
+        // click on a dialog's backdrop (not inside the dialog) cancels it.
+        var menu = VtStates.openMenu(container);
+        if (menu && !menu.closest('.vt-dropdown-wrap').contains(e.target)) { VtStates.closeMenu(container, menu); return; }
+        var dialog = VtStates.openDialog(container);
+        if (dialog && e.target === dialog) VtStates.cancelDialog(container, dialog);
+        return;
+      }
+      var field = Boolean(e.target.closest('input, textarea'));
+      var to = el.getAttribute('data-vt-go');
+      if (to !== VtStates.stateOf(container) && VtStates.list(container).indexOf(to) >= 0) VtStates.remember(container, el);
+      VtStates.go(container, to, false, field && function() {
+        // The same field in the next state: keep typing where the click was.
+        var next = Array.prototype.filter.call(container.querySelectorAll('input[type="text"], input:not([type]), textarea'), function(f) { return f.offsetParent !== null; })[0];
+        if (next) { next.focus(); try { next.setSelectionRange(next.value.length, next.value.length); } catch (error) { /* not a text field */ } }
+      });
+    });
+
+    document.addEventListener('keydown', function(e) {
+      var here = VtStates.containerOf(e.target) || VtStates.containers.filter(function(c) { return VtStates.openMenu(c) || VtStates.openDialog(c); })[0];
+      if (here) {
+        var openMenu = VtStates.openMenu(here);
+        var openDialog = VtStates.openDialog(here);
+        // Escape closes a menu drawn open (to its button's state), else cancels a dialog drawn open.
+        if (e.key === 'Escape' && (openMenu || openDialog)) {
+          e.preventDefault();
+          if (openMenu) VtStates.closeMenu(here, openMenu); else VtStates.cancelDialog(here, openDialog);
+          return;
+        }
+        // Tab out of a menu drawn open closes it, as with a menu opened by a click.
+        if (e.key === 'Tab' && openMenu && openMenu.contains(e.target)) { VtStates.closeMenu(here, openMenu); return; }
+        // Tab stays inside a dialog drawn open.
+        if (e.key === 'Tab' && openDialog) {
+          var all = VtStates.focusable(openDialog);
+          if (all.length) {
+            var head = all[0];
+            var last = all[all.length - 1];
+            if (!openDialog.contains(e.target)) { e.preventDefault(); head.focus(); return; }
+            if (e.shiftKey && e.target === head) { e.preventDefault(); last.focus(); return; }
+            if (!e.shiftKey && e.target === last) { e.preventDefault(); head.focus(); return; }
+          }
+        }
+        // Enter in a field that says where it submits (data-vt-submit="<selector or id>"):
+        // that button is pressed. Shift+Enter in a text area is a new line.
+        var field = e.target.closest && e.target.closest('[data-vt-submit]');
+        if (e.key === 'Enter' && field && !e.shiftKey && !e.isComposing) {
+          var to = field.getAttribute('data-vt-submit');
+          var target = null;
+          try { target = Array.prototype.filter.call(here.querySelectorAll(to), VtStates.shown)[0] || null; } catch (error) { target = null; }
+          target = target || document.getElementById(to);
+          if (target) { e.preventDefault(); target.click(); return; }
+        }
+      }
+      var el = e.target.closest && e.target.closest('[data-vt-go][role="button"]');
+      var container = VtStates.containerOf(el);
+      if (container && e.target === el && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); VtStates.remember(container, el); VtStates.go(container, el.getAttribute('data-vt-go')); return; }
+      var select = document.querySelector('[data-vt-states-select]');
+      var first = VtStates.containers[0];
+      if (!select || !first || e.target !== document.body || (e.key !== '[' && e.key !== ']')) return;
+      var states = VtStates.list(first);
+      var next = states.indexOf(VtStates.stateOf(first)) + (e.key === ']' ? 1 : -1);
+      if (next >= 0 && next < states.length) VtStates.go(first, states[next]);
+    });
+
+    // A state the user went to that shows a dialog drawn open: the focus goes into it.
+    document.addEventListener('vt-state-change', function(e) {
+      if (!e.detail || !e.detail.previous) return;
+      var container = e.target;
+      requestAnimationFrame(function() {
+        var dialog = VtStates.openDialog(container);
+        if (!dialog || dialog.contains(document.activeElement)) return;
+        var first = VtStates.focusable(dialog)[0];
+        if (first) first.focus();
+      });
+    });
+
+    // While hovering: the state is shown as long as the pointer stays where the
+    // element was. (The element itself is replaced by its copy in the other state.)
+    document.addEventListener('pointerover', function(e) {
+      var el = e.target.closest && e.target.closest('[data-vt-go-hover]');
+      var container = VtStates.containerOf(el);
+      if (!container || container.__vtHover) return;
+      container.__vtHover = { back: VtStates.stateOf(container), rect: el.getBoundingClientRect() };
+      VtStates.go(container, el.getAttribute('data-vt-go-hover'), true);
+    });
+    document.addEventListener('pointermove', function(e) {
+      VtStates.containers.forEach(function(container) {
+        var hover = container.__vtHover;
+        if (!hover) return;
+        var r = hover.rect;
+        if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) return;
+        container.__vtHover = null;
+        VtStates.go(container, hover.back, true);
+      });
+    });
+
+    // The review switcher, when the page has one.
+    document.addEventListener('change', function(e) {
+      if (!e.target.matches || !e.target.matches('[data-vt-states-select]') || !VtStates.containers[0]) return;
+      VtStates.go(VtStates.containers[0], e.target.value);
+    });
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest || !e.target.closest('[data-vt-states-theme]')) return;
+      var dark = document.documentElement.classList.toggle('dark');
+      try { localStorage.theme = dark ? 'dark' : 'light'; } catch (error) { /* storage blocked */ }
+    });
+  }
+};
+
 // Auto-initialize all components
 (function() {
   function initAll() {
@@ -1814,11 +2916,17 @@ var VtSidebarNav = {
     VtSelect.init();
     VtSlider.init();
     VtToast.init();
+    VtProgress.init();
+    VtSwitch.init();
+    VtDismiss.init();
+    VtRating.init();
+    VtFileUpload.init();
     VtDialog.init();
     VtTreeView.init();
     VtFields.init();
     VtCommand.init();
     VtSidebarNav.init();
+    VtStates.init();
   }
 
   // Markup added after load — a rendered preview, a fetched fragment, a
